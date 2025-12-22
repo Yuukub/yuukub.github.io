@@ -10,7 +10,7 @@ baseurl: ""
 # ข้อมูลผู้เขียน (แสดงผลในบทความ)
 author:
   name: "CZGroup Digital Specialist"
-  email: "your-email@example.com"
+  email: "yuukun.eutopia@gmail.com"
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
 
 # การตั้งค่าโซเชียล
@@ -26,3 +26,15 @@ theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+
+# ข้อมูลสำหรับ Footer และ Sidebar
+author_name: "PROFESSIONAL DIGITAL MARKETER"
+author_job: "SEO & WORDPRESS SPECIALIST | CZGROUP"
+author_bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที (Google Certified)"
+copyright_name: "CZGroup Co., Ltd."
+
+# Social Links (ใส่แค่ Username)
+github_username: "Yuukub"
+facebook_username: "saranyou.meekumlang"
+line_id: ""
+linkedin_username: "yuu-kun-2500ba303"
