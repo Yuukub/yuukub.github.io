@@ -16,4 +16,4 @@ permalink: /about/
 * **Google IT Support Professional Certificate**
 * **Google Cybersecurity Certificate**
 
-**สนใจปรึกษาเรื่องการตลาดหรือเว็บไซต์:** [CZGroup Co., Ltd.](https://wantalkmarketing.com/)(https://www.cz.co.th)
+**สนใจปรึกษาเรื่องการตลาดหรือเว็บไซต์:** [แว่นTalk](https://wantalkmarketing.com/)
