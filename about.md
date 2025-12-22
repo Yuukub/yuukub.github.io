@@ -1,14 +1,14 @@
 ---
 layout: page
-title: About Me
+title: เกี่ยวกับเรา
 permalink: /about/
 ---
 
 ## ข้อมูลส่วนตัวและความเชี่ยวชาญ
-ผมเป็นผู้เชี่ยวชาญด้านการตลาดดิจิทัลที่เน้นการวัดผลได้จริง โดยผสานความรู้ด้าน **Cybersecurity** และ **IT Support** เข้ากับการทำ **SEO** และ **Google Ads**
+Digital Marketer และนักพัฒนาเว็บไซต์ที่มีความเชี่ยวชาญด้าน WordPress และ Technical SEO ผสมผสานทักษะด้านเทคโนโลยีและการตลาดเข้าด้วยกัน เพื่อสร้างเว็บไซต์ที่ปลอดภัยและทำงานได้รวดเร็ว พร้อมวางกลยุทธ์โฆษณา Google Ads ที่แม่นยำและวัดผลได้
 
 ### บริการและทักษะ:
-* **WordPress Development:** รับทำเว็บไซต์ด้วย Bricks Builder, WoodMart และ Elementor ที่เน้นความเร็วและปลอดภัย
+* **WordPress Development:** รับทำเว็บไซต์ด้วย Elementor, WoodMart และ Gutenberg ที่เน้นความเร็วและปลอดภัย
 * **Google Ads Management:** วางกลยุทธ์ P-Max และ Search Ads ให้ตรงกลุ่มเป้าหมาย
 * **Technical SEO:** ปรับแต่งโครงสร้างเว็บไซต์ให้ติดอันดับ Google อย่างยั่งยืน
 
