@@ -1,44 +1,72 @@
-# ข้อมูลหลักของเว็บไซต์
+# ==========================================
+# ข้อมูลหลักของเว็บไซต์ (Site Settings)
+# ==========================================
 title: "Digital Marketing & WordPress Specialist | CZGroup"
-description: >- 
-  เชี่ยวชาญการวางกลยุทธ์ Google Ads (P-Max, Search Ads) และ SEO เชิงลึก 
-  รับทำเว็บไซต์ WordPress เน้นความปลอดภัยและโหลดเร็ว 
+description: >-
+  เชี่ยวชาญการวางกลยุทธ์ Google Ads (P-Max, Search Ads) และ SEO เชิงลึก
+  รับทำเว็บไซต์ WordPress เน้นความปลอดภัยและโหลดเร็ว
   โดยผู้ได้รับ Google IT Support & Cybersecurity Certificate
-url: "https://yuukub.github.io" 
-baseurl: ""
+url: "https://yuukub.github.io"
+baseurl: "" # ทิ้งไว้เป็นค่าว่างสำหรับ GitHub Pages (Domain หลัก)
 
-# ข้อมูลผู้เขียน (แสดงผลในบทความ)
+# ==========================================
+# การตั้งค่า URL (SEO & Permalinks)
+# ==========================================
+# ตั้งค่า URL ให้สะอาดที่สุด (เช่น yuukub.github.io/xss-deep-dive/)
+permalink: /:title/
+
+# ==========================================
+# ข้อมูลผู้เขียน (Author Information)
+# ==========================================
 author:
   name: "CZGroup Digital Specialist"
   email: "yuukun.eutopia@gmail.com"
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
 
-# การตั้งค่าโซเชียล
-twitter_username: 
-github_username: Yuukub
-linkedin_username: 
-facebook_username: 
-
-# การเลือกใช้ธีม (Minima คือธีมมาตรฐานที่ Google ชอบเพราะเบาและเร็ว)
-theme: minima
-
-# ปลั๊กอินเสริมที่จำเป็นสำหรับ SEO
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
-
-# ข้อมูลสำหรับ Footer และ Sidebar
+# ==========================================
+# ข้อมูลเพิ่มเติมสำหรับ Footer & Sidebar
+# ==========================================
 author_name: "PROFESSIONAL DIGITAL MARKETER"
 author_job: "SEO & WORDPRESS SPECIALIST | CZGROUP"
 author_bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที (Google Certified)"
 copyright_name: "Yuu_CZGroup Co., Ltd."
 
+# ข้อมูลพาร์ทเนอร์/สังกัด
 company_status: "Member of"
 company_name: "แว่น Talk มาร์เก็ตติ้ง"
 company_url: "https://wantalkmarketing.com/"
 
-# Social Links (ใส่แค่ Username)
+# ==========================================
+# โซเชียลมีเดีย (Social Links)
+# ==========================================
 github_username: "Yuukub"
 facebook_username: "saranyou.meekumlang"
-line_id: ""
 linkedin_username: "yuu-kun-2500ba303"
+twitter_username: "" # เว้นว่างไว้ถ้าไม่มี
+line_id: ""
+
+# ==========================================
+# การเลือกใช้ธีมและปลั๊กอิน (Build Settings)
+# ==========================================
+theme: minima
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# ==========================================
+# การตั้งค่าการจัดการไฟล์
+# ==========================================
+# ยกเว้นไฟล์เหล่านี้จากการสร้างหน้าเว็บ
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# กำหนดให้ใช้ Markdown แบบ GitHub (Kramdown)
+markdown: kramdown
+highlighter: rouge
