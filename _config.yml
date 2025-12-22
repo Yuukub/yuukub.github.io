@@ -14,6 +14,7 @@ baseurl: "" # ทิ้งไว้เป็นค่าว่างสำหร
 # ==========================================
 # ตั้งค่า URL ให้สะอาดที่สุด (เช่น yuukub.github.io/xss-deep-dive/)
 permalink: /:title/
+future: true # แสดงบทความแม้จะเป็นวันที่ปัจจุบันหรืออนาคต
 
 # ==========================================
 # ข้อมูลผู้เขียน (Author Information)
@@ -24,14 +25,14 @@ author:
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
 
 # ==========================================
-# ข้อมูลเพิ่มเติมสำหรับ Footer & Sidebar
+# ข้อมูลสำหรับ Footer & Sidebar
 # ==========================================
 author_name: "PROFESSIONAL DIGITAL MARKETER"
 author_job: "SEO & WORDPRESS SPECIALIST | CZGROUP"
 author_bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที (Google Certified)"
 copyright_name: "Yuu_CZGroup Co., Ltd."
 
-# ข้อมูลพาร์ทเนอร์/สังกัด
+# ข้อมูลพาร์ทเนอร์/สังกัด (Affiliation)
 company_status: "Member of"
 company_name: "แว่น Talk มาร์เก็ตติ้ง"
 company_url: "https://wantalkmarketing.com/"
@@ -42,7 +43,7 @@ company_url: "https://wantalkmarketing.com/"
 github_username: "Yuukub"
 facebook_username: "saranyou.meekumlang"
 linkedin_username: "yuu-kun-2500ba303"
-twitter_username: "" # เว้นว่างไว้ถ้าไม่มี
+twitter_username: ""
 line_id: ""
 
 # ==========================================
@@ -57,7 +58,6 @@ plugins:
 # ==========================================
 # การตั้งค่าการจัดการไฟล์
 # ==========================================
-# ยกเว้นไฟล์เหล่านี้จากการสร้างหน้าเว็บ
 exclude:
   - Gemfile
   - Gemfile.lock
@@ -67,6 +67,5 @@ exclude:
   - vendor/gems/
   - vendor/ruby/
 
-# กำหนดให้ใช้ Markdown แบบ GitHub (Kramdown)
 markdown: kramdown
 highlighter: rouge
