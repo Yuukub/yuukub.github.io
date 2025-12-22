@@ -1,8 +1,66 @@
 ---
-layout: home
-title: Home
+layout: default
 ---
 
-# ยินดีต้อนรับสู่ Blog ของผม
-ที่นี่รวบรวมความรู้ด้าน Digital Marketing, SEO และ WordPress 
-โดยผู้เชี่ยวชาญจาก **CZGroup**
+<section style="padding: 60px 0; text-align: center; background: linear-gradient(135.2deg, #f1f5f9 10%, #ffffff 90%); border-radius: 15px; margin-bottom: 40px;">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: #1a202c; line-height: 1.2; margin-bottom: 20px;">
+        Digital Marketing & WordPress Expert <br>
+        <span style="color: #0366d6;">ที่เน้นความปลอดภัยและผลลัพธ์</span>
+    </h1>
+    <p style="font-size: 1.2rem; color: #4a5568; max-width: 700px; margin: 0 auto 25px;">
+        ยกระดับธุรกิจของคุณด้วยกลยุทธ์ SEO เชิงลึก และการพัฒนาเว็บไซต์ที่รองรับมาตรฐาน Cybersecurity
+    </p>
+    <div style="font-weight: 600; color: #2d3748;">
+        Partner at <a href="https://www.cz.co.th" target="_blank" style="color: #0366d6; text-decoration: none;">CZGroup Co., Ltd.</a>
+    </div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 50px; text-align: center;">
+    <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <div style="font-size: 1.5rem; margin-bottom: 5px;">🛡️</div>
+        <strong style="display: block;">Google Certified</strong>
+        <span style="font-size: 0.9rem; color: #718096;">IT Support & Cybersecurity</span>
+    </div>
+    <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <div style="font-size: 1.5rem; margin-bottom: 5px;">🚀</div>
+        <strong style="display: block;">WordPress Expert</strong>
+        <span style="font-size: 0.9rem; color: #718096;">Bricks, WoodMart & Speed</span>
+    </div>
+    <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <div style="font-size: 1.5rem; margin-bottom: 5px;">📈</div>
+        <strong style="display: block;">SEO & Ads</strong>
+        <span style="font-size: 0.9rem; color: #718096;">P-Max & Technical SEO</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 50px;">
+    <div>
+        <h2 style="border-bottom: 2px solid #0366d6; display: inline-block; padding-bottom: 5px;">บริการของผม</h2>
+        <p>ผมมุ่งเน้นการสร้างเว็บไซต์ WordPress ที่ไม่ใช่แค่สวยงาม แต่ต้อง <strong>โหลดเร็วและปลอดภัย</strong> เพื่อตอบโจทย์ทั้งผู้ใช้งานและ Google</p>
+        <ul style="line-height: 1.8;">
+            <li>วางโครงสร้าง <strong>Technical SEO</strong> ให้เว็บไซต์ติดอันดับง่ายขึ้น</li>
+            <li>บริหาร <strong>Google Ads (P-Max)</strong> ให้คุ้มค่า ROI</li>
+            <li>ดูแลระบบความปลอดภัย ป้องกันการโจมตีทางไซเบอร์</li>
+        </ul>
+    </div>
+    
+    <div>
+        <h2 style="border-bottom: 2px solid #0366d6; display: inline-block; padding-bottom: 5px;">บทความล่าสุด</h2>
+        <ul style="list-style: none; padding: 0;">
+            {% for post in site.posts limit:3 %}
+            <li style="margin-bottom: 15px;">
+                <small style="color: #a0aec0;">{{ post.date | date: "%b %d, %Y" }}</small><br>
+                <a href="{{ post.url | relative_url }}" style="text-decoration: none; font-weight: bold; color: #2d3748; font-size: 1.1rem;">
+                    {{ post.title }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div style="background-color: #1a202c; color: white; padding: 40px; border-radius: 15px; text-align: center;">
+    <h2 style="color: white; margin-top: 0;">เริ่มสร้างการเติบโตให้ธุรกิจวันนี้</h2>
+    <p style="margin-bottom: 25px;">ปรึกษาโปรเจกต์ทำเว็บ WordPress หรือวางแผน SEO/Ads กับทีมงาน CZGroup</p>
+    <a href="https://www.cz.co.th" target="_blank" style="background-color: #0366d6; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">ติดต่อเราที่ CZGroup</a>
+</div>
