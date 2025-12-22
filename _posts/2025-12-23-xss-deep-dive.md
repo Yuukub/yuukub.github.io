@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "เจาะลึก Cross-Site Scripting (XSS)"
-date: 2025-12-23
+date: 2025-12-22
 # ใช้ tags แทน เพื่อระบุกลุ่มเนื้อหาโดยไม่กระทบ URL
 tags: [cybersecurity, security, web-safety]
 ---
