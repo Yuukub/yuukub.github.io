@@ -37,6 +37,48 @@ body {
 .nav-links a { text-decoration: none; color: var(--text-muted); font-weight: 500; transition: 0.3s; }
 .nav-links a:hover { color: var(--primary-color); }
 
+/* ================= hero ================= */
+/* ส่วนแนะนำตัวที่ดูดีขึ้น */
+.hero-intro {
+  padding: 120px 0 80px; /* เพิ่มพื้นที่ว่างด้านบนและล่างให้ดูโปร่ง */
+  background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+  color: #ffffff;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #cbd5e1;
+  max-width: 750px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+}
+
+/* ปุ่ม CTA ที่เด่นชัด */
+.cta-button-primary {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 18px 45px;
+  border-radius: 50px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+}
+
+.cta-button-primary:hover {
+  transform: translateY(-5px);
+  background-color: var(--primary-dark);
+}
+
 /* ==========================================================================
    Code Highlight Fix (แก้ปัญหาคอมเมนต์พื้นหลังสีแดงจากรูป image_018d60)
    ========================================================================== */
