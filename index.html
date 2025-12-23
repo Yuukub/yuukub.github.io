@@ -1,133 +1,26 @@
 ---
-layout: default
-title: "Digital Marketing & WordPress Specialist | CZGroup"
+layout: home
+title: "Digital Marketing & WordPress Specialist"
 ---
 
-<style>
-  /* Base Styles */
-  .container-full { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-  
-  /* Hero Section */
-  .hero {
-    padding: 80px 0;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: white;
-    text-align: center;
-    border-radius: 20px;
-    margin: 20px 0 60px 0;
-  }
-  .hero h1 { font-size: 2.8rem; margin-bottom: 20px; color: #f8fafc; }
-  .hero p { font-size: 1.2rem; color: #cbd5e1; max-width: 700px; margin: 0 auto 30px; line-height: 1.6; }
-  .cta-button {
-    display: inline-block;
-    background: #3b82f6;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
-  }
-  .cta-button:hover { background: #2563eb; transform: scale(1.05); }
-
-  /* Services Grid */
-  .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 80px; }
-  .service-item {
-    background: #f8fafc;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid #e2e8f0;
-    transition: 0.3s;
-  }
-  .service-item:hover { border-color: #3b82f6; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-  .service-item i { font-size: 2rem; display: block; margin-bottom: 15px; }
-
-  /* Blog Post Cards */
-  .section-title { text-align: center; margin-bottom: 40px; font-size: 2rem; }
-  .post-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-  }
-  .post-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    transition: 0.3s;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #eee;
-  }
-  .post-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.12); }
-  
-  .post-thumbnail img { width: 100%; height: 200px; object-fit: cover; }
-  .post-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-  .post-date { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; }
-  .post-title { font-size: 1.25rem; margin-bottom: 15px; line-height: 1.4; }
-  .post-title a { color: #1e293b; text-decoration: none; font-weight: bold; }
-  .post-excerpt { font-size: 0.95rem; color: #475569; margin-bottom: 20px; line-height: 1.6; }
-  .read-more { margin-top: auto; color: #3b82f6; font-weight: bold; text-decoration: none; font-size: 0.9rem; }
-
-  @media (max-width: 768px) {
-    .hero h1 { font-size: 2rem; }
-    .hero { padding: 40px 20px; }
-  }
-</style>
-
 <div class="container-full">
-  
-  <header class="hero">
-    <h1>Professional Digital Specialist</h1>
-    <p>เชี่ยวชาญการวางกลยุทธ์ Google Ads, SEO เชิงลึก และรับทำเว็บไซต์ WordPress เน้นความปลอดภัยระดับ Cybersecurity Certified</p>
-    <a href="mailto:{{ site.author.email }}" class="cta-button">ติดต่องาน / ปรึกษาฟรี</a>
-  </header>
-
-  <div class="services">
+  <section class="services">
     <div class="service-item">
       <i>🚀</i>
       <h3>SEO & Google Ads</h3>
-      <p>เพิ่มยอดขายด้วย P-Max และ Search Ads พร้อมดันอันดับด้วย SEO สายขาว</p>
+      <p>เน้นกลยุทธ์ Google Ads (P-Max, Search) และทำ SEO เชิงลึกเพื่อเพิ่ม Conversion</p>
     </div>
+    
     <div class="service-item">
       <i>💻</i>
-      <h3>WordPress Dev</h3>
-      <p>สร้างเว็บไซต์ด้วย WordPress ที่โหลดเร็ว รองรับมือถือ และโครงสร้างดีต่อ SEO</p>
+      <h3>WordPress Specialist</h3>
+      <p>รับทำเว็บไซต์ WordPress ที่เน้นความเร็ว (Core Web Vitals) และโครงสร้างที่ Google รัก</p>
     </div>
+    
     <div class="service-item">
       <i>🛡️</i>
-      <h3>Cybersecurity</h3>
-      <p>ดูแลระบบความปลอดภัย ป้องกันการแฮก และดูแลรักษาเว็บไซต์ให้เสถียรเสมอ</p>
+      <h3>Cybersecurity Certified</h3>
+      <p>มั่นใจด้วยการดูแลระบบความปลอดภัยเว็บไซต์ ป้องกันการโจมตีตามมาตรฐาน Google Certificate</p>
     </div>
-  </div>
-
-  <h2 class="section-title">บทความและสาระน่ารู้</h2>
-  <div class="post-grid">
-    {% for post in site.posts limit:6 %}
-    <article class="post-card">
-      <div class="post-thumbnail">
-        <a href="{{ post.url | relative_url }}">
-          {% if post.thumbnail %}
-            <img src="{{ post.thumbnail | relative_url }}" alt="{{ post.title }}">
-          {% else %}
-            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80" alt="CZGroup Content">
-          {% endif %}
-        </a>
-      </div>
-
-      <div class="post-content">
-        <span class="post-date">{{ post.date | date: "%B %d, %Y" }}</span>
-        <h3 class="post-title">
-          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-        </h3>
-        <p class="post-excerpt">
-          {{ post.excerpt | strip_html | truncatewords: 20 }}
-        </p>
-        <a href="{{ post.url | relative_url }}" class="read-more">อ่านรายละเอียดเพิ่มเติม →</a>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-
+  </section>
 </div>
