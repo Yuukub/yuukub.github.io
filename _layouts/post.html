@@ -1,0 +1,22 @@
+---
+layout: default
+---
+
+<article class="post-container">
+  <div class="container-full">
+    <header class="post-header" style="margin-bottom: 40px; text-align: center;">
+      <h1 class="post-title" style="font-size: 2.5rem; margin-bottom: 10px;">{{ page.title }}</h1>
+      <p class="post-date" style="color: #64748b;">เผยแพร่เมื่อ: {{ page.date | date: "%B %d, %Y" }}</p>
+    </header>
+
+    <div class="post-main-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 1.1rem;">
+      {{ content }}
+    </div>
+
+    <div class="post-cta" style="margin-top: 60px; padding: 30px; background: #f0f9ff; border-radius: 12px; border-left: 5px solid #3b82f6;">
+      <h4 style="margin-top: 0;">🛡️ ปรึกษาด้านความปลอดภัยและระบบเว็บไซต์</h4>
+      <p>หากคุณต้องการตรวจสอบความปลอดภัย (Security Audit) หรือพัฒนาเว็บไซต์ WordPress ที่ได้มาตรฐาน Cybersecurity สามารถปรึกษาทีมงาน <strong>{{ site.company_name }}</strong> ได้โดยตรง</p>
+      <a href="{{ site.company_url }}" target="_blank" style="color: #3b82f6; font-weight: bold; text-decoration: none;">ดูข้อมูลติดต่อและบริการ →</a>
+    </div>
+  </div>
+</article>
