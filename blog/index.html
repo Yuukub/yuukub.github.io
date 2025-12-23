@@ -1,0 +1,12 @@
+---
+layout: default
+title: Blog
+---
+<h1>บทความทั้งหมด</h1>
+<ul>
+  {% for post in paginator.posts %}
+    <li>
+      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
