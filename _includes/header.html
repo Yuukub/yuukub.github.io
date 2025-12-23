@@ -1,0 +1,25 @@
+<header class="site-header">
+  <nav class="site-nav">
+    <div class="container-full nav-wrapper" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0;">
+      <a class="site-logo" href="{{ '/' | relative_url }}" style="font-weight: bold; font-size: 1.2rem; color: #1e293b; text-decoration: none;">
+        {{ site.title | escape }}
+      </a>
+      
+      <ul class="nav-links" style="list-style: none; display: flex; gap: 20px; margin: 0; padding: 0;">
+        <li><a href="{{ '/' | relative_url }}" style="text-decoration: none; color: #64748b;">หน้าแรก</a></li>
+        <li><a href="#services" style="text-decoration: none; color: #64748b;">บริการ</a></li>
+        <li><a href="mailto:{{ site.author.email }}" style="text-decoration: none; color: #64748b;">ติดต่อ</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  {% if page.url == "/" %}
+  <div class="hero">
+    <div class="container-full">
+      <h1>Professional Digital Specialist</h1>
+      <p>{{ site.description }}</p>
+      <a href="mailto:{{ site.author.email }}" class="cta-button">ติดต่องาน / ปรึกษาฟรี</a>
+    </div>
+  </div>
+  {% endif %}
+</header>
