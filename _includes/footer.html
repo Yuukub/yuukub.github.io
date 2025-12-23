@@ -6,7 +6,7 @@
       <p class="footer-bio">
         {{ site.author.bio }}
       </p>
-      <p class="company-name">© 2025 {{ site.copyright_name }}</p>
+      <p class="company-name">© {{ "now" | date: "%Y" }} {{ site.copyright_name }}</p>
     </div>
 
     <div class="footer-col links-col">
@@ -37,7 +37,9 @@
         {% endif %}
       </div>
       
-      <p class="partner-tag">{{ site.company_status }} <strong>{{ site.company_name }}</strong></p>
+      <p class="partner-tag" style="margin-top: 20px; font-size: 0.85rem;">
+        {{ site.company_status }} <strong><a href="{{ site.company_url }}" target="_blank" style="color: inherit;">{{ site.company_name }}</a></strong>
+      </p>
     </div>
 
   </div>
