@@ -92,3 +92,17 @@
 .read-more-btn:hover {
   text-decoration: underline;
 }
+
+/* กรณีไม่มีรูป ให้ส่วนเนื้อหาขยายเต็มพื้นที่ Card */
+.post-content {
+  padding: 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* จัดเนื้อหาให้อยู่กลาง Card กรณีไม่มีรูป */
+}
+
+/* ถ้าไม่มีรูป ให้เพิ่มแถบสีด้านบนเล็กน้อยเพื่อให้ Card ดูไม่โล่งเกินไป */
+.post-card:not(:has(.post-thumbnail)) {
+  border-top: 5px solid #007bff; /* ใส่สีประจำแบรนด์ */
+}
