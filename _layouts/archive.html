@@ -10,7 +10,7 @@ layout: default
     </header>
     
     <div class="post-grid">
-      {% for post in site.posts %}
+      {% for post in paginator.posts %}
       <article class="post-card">
         <div class="post-thumbnail">
           <a href="{{ post.url | relative_url }}">
