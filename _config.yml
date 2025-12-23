@@ -4,6 +4,12 @@ description: "เชี่ยวชาญ Google Ads, SEO เชิงลึก 
 url: "https://yuukub.github.io"
 baseurl: ""
 
+# เลือกรูปแบบ Header: "logo" หรือ "text"
+header_style: "text" 
+
+# ที่อยู่ไฟล์โลโก้ (กรณีเลือกแบบ logo)
+logo_path: "/assets/images/logo.png"
+
 # การตั้งค่าบทความ
 permalink: /:title/
 future: true
