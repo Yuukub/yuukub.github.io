@@ -1,59 +1,33 @@
-# ==========================================
-# ข้อมูลหลักของเว็บไซต์ (Site Settings)
-# ==========================================
+# ข้อมูลหลัก (ห้ามตัด เพราะใช้ใน SEO และ Header)
 title: "Digital Marketing & WordPress Specialist | CZGroup"
-description: >-
-  เชี่ยวชาญการวางกลยุทธ์ Google Ads (P-Max, Search Ads) และ SEO เชิงลึก
-  รับทำเว็บไซต์ WordPress เน้นความปลอดภัยและโหลดเร็ว
-  โดยผู้ได้รับ Google IT Support & Cybersecurity Certificate
+description: "เชี่ยวชาญ Google Ads, SEO เชิงลึก และ WordPress Specialist โดยผู้ได้รับ Google IT Support & Cybersecurity Certificate"
 url: "https://yuukub.github.io"
-baseurl: "" 
+baseurl: ""
 
-# ==========================================
-# การตั้งค่า URL & Content
-# ==========================================
+# การตั้งค่าบทความ
 permalink: /:title/
 future: true
-excerpt_separator: "" # เพิ่มเพื่อให้คุมจุดตัดคำในหน้าแรกได้ง่ายขึ้น
+excerpt_separator: "" # แนะนำให้ใช้ค่านี้ เพื่อคุมจุดตัดคำในหน้าแรก
 
-# ==========================================
-# ข้อมูลผู้เขียน (Author Information)
-# ==========================================
+# ข้อมูลผู้เขียน (ห้ามตัด เพราะ Footer เรียกใช้ {{ site.author.bio }})
 author:
   name: "CZGroup Digital Specialist"
   email: "yuukun.eutopia@gmail.com"
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
-  # เพิ่มข้อมูลสำหรับ jekyll-seo-tag (Optional)
-  twitter: ""
   facebook: "saranyou.meekumlang"
 
-# ==========================================
-# ข้อมูลสำหรับ Footer & Sidebar
-# ==========================================
-author_name: "PROFESSIONAL DIGITAL MARKETER"
-author_job: "SEO & WORDPRESS SPECIALIST | CZGROUP"
-author_bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที (Google Certified)"
+# ข้อมูลแสดงผลใน Footer (ห้ามตัด เพราะ Footer เรียกใช้ตรงๆ)
 copyright_name: "Yuu_CZGroup Co., Ltd."
-
-# ข้อมูลพาร์ทเนอร์/สังกัด (Affiliation)
 company_status: "Member of"
 company_name: "แว่น Talk มาร์เก็ตติ้ง"
 company_url: "https://wantalkmarketing.com/"
 
-# ==========================================
-# โซเชียลมีเดีย (Social Links)
-# ==========================================
+# โซเชียลมีเดีย (ห้ามตัด เพื่อให้ปุ่มใน Footer ทำงานได้)
 github_username: "Yuukub"
 facebook_username: "saranyou.meekumlang"
 linkedin_username: "yuu-kun-2500ba303"
 
-# ==========================================
-# Build Settings
-# ==========================================
-# ถ้าคุณใช้ Layout ของตัวเองทั้งหมด สามารถเอา theme: minima ออกได้ 
-# แต่ถ้าจะใช้สไตล์บางส่วนของมันไว้ก่อน ก็คงไว้ได้ครับ
-theme: minima
-
+# ระบบหลังบ้าน (ห้ามตัด เพื่อให้อันดับ SEO ดี)
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
