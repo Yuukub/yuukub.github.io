@@ -7,14 +7,14 @@ description: >-
   รับทำเว็บไซต์ WordPress เน้นความปลอดภัยและโหลดเร็ว
   โดยผู้ได้รับ Google IT Support & Cybersecurity Certificate
 url: "https://yuukub.github.io"
-baseurl: "" # ทิ้งไว้เป็นค่าว่างสำหรับ GitHub Pages (Domain หลัก)
+baseurl: "" 
 
 # ==========================================
-# การตั้งค่า URL (SEO & Permalinks)
+# การตั้งค่า URL & Content
 # ==========================================
-# ตั้งค่า URL ให้สะอาดที่สุด (เช่น yuukub.github.io/xss-deep-dive/)
 permalink: /:title/
-future: true # แสดงบทความแม้จะเป็นวันที่ปัจจุบันหรืออนาคต
+future: true
+excerpt_separator: "" # เพิ่มเพื่อให้คุมจุดตัดคำในหน้าแรกได้ง่ายขึ้น
 
 # ==========================================
 # ข้อมูลผู้เขียน (Author Information)
@@ -23,6 +23,9 @@ author:
   name: "CZGroup Digital Specialist"
   email: "yuukun.eutopia@gmail.com"
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
+  # เพิ่มข้อมูลสำหรับ jekyll-seo-tag (Optional)
+  twitter: ""
+  facebook: "saranyou.meekumlang"
 
 # ==========================================
 # ข้อมูลสำหรับ Footer & Sidebar
@@ -43,29 +46,23 @@ company_url: "https://wantalkmarketing.com/"
 github_username: "Yuukub"
 facebook_username: "saranyou.meekumlang"
 linkedin_username: "yuu-kun-2500ba303"
-twitter_username: ""
-line_id: ""
 
 # ==========================================
-# การเลือกใช้ธีมและปลั๊กอิน (Build Settings)
+# Build Settings
 # ==========================================
+# ถ้าคุณใช้ Layout ของตัวเองทั้งหมด สามารถเอา theme: minima ออกได้ 
+# แต่ถ้าจะใช้สไตล์บางส่วนของมันไว้ก่อน ก็คงไว้ได้ครับ
 theme: minima
 
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# ==========================================
-# การตั้งค่าการจัดการไฟล์
-# ==========================================
 exclude:
   - Gemfile
   - Gemfile.lock
   - node_modules
-  - vendor/bundle/
-  - vendor/cache/
-  - vendor/gems/
-  - vendor/ruby/
+  - vendor/
 
 markdown: kramdown
 highlighter: rouge
