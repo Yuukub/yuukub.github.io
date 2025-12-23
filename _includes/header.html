@@ -12,13 +12,16 @@
       
       <ul class="nav-links">
         <li><a href="{{ '/' | relative_url }}">หน้าแรก</a></li>
+        
+        <li><a href="{{ '/blog/' | relative_url }}">บทความ</a></li> 
+        
         <li><a href="{{ '/' | relative_url }}#services">บริการ</a></li>
         <li><a href="mailto:{{ site.author.email }}">ติดต่อ</a></li>
       </ul>
     </div>
   </nav>
 
-  {% if page.url == "/" %}
+  {% if page.url == "/" or page.url == "/index.html" %}
   <section class="hero">
     <div class="container-full">
       <h1>{{ site.author_name | default: "Professional Digital Specialist" }}</h1>
