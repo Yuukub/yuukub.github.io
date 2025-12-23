@@ -1,53 +1,51 @@
-# ข้อมูลหลัก (ห้ามตัด เพราะใช้ใน SEO และ Header)
+# ข้อมูลหลัก (SEO & Header)
 title: "Digital Marketing & WordPress Specialist | CZGroup"
 description: "เชี่ยวชาญ Google Ads, SEO เชิงลึก และ WordPress Specialist โดยผู้ได้รับ Google IT Support & Cybersecurity Certificate"
 url: "https://yuukub.github.io"
 baseurl: ""
 
-# เลือกรูปแบบ Header: "logo" หรือ "text"
-header_style: "text" 
-
-# ที่อยู่ไฟล์โลโก้ (กรณีเลือกแบบ logo)
+# ตั้งค่าการแสดงผล
+header_style: "text"
 logo_path: "/assets/images/logo.png"
 
 # การตั้งค่าบทความ
 permalink: /:title/
 future: true
-excerpt_separator: "" # แนะนำให้ใช้ค่านี้ เพื่อคุมจุดตัดคำในหน้าแรก
+excerpt_separator: "" # ใช้ ในบทความเพื่อตัดคำ
 
-# ข้อมูลผู้เขียน (ห้ามตัด เพราะ Footer เรียกใช้ {{ site.author.bio }})
+# ข้อมูลผู้เขียน (เรียกใช้ผ่าน {{ site.author.bio }})
 author:
   name: "CZGroup Digital Specialist"
   email: "yuukun.eutopia@gmail.com"
   bio: "ผู้เชี่ยวชาญด้านการตลาดดิจิทัลและระบบความปลอดภัยไอที มุ่งเน้นการเติบโตของธุรกิจผ่านช่องทางออนไลน์"
   facebook: "saranyou.meekumlang"
 
-# ข้อมูลแสดงผลใน Footer (ห้ามตัด เพราะ Footer เรียกใช้ตรงๆ)
+# ข้อมูล Footer
 copyright_name: "Yuu_CZGroup Co., Ltd."
 company_status: "Member of"
 company_name: "แว่น Talk มาร์เก็ตติ้ง"
 company_url: "https://wantalkmarketing.com/"
 
-# โซเชียลมีเดีย (ห้ามตัด เพื่อให้ปุ่มใน Footer ทำงานได้)
+# Social Links
 github_username: "Yuukub"
 facebook_username: "saranyou.meekumlang"
 linkedin_username: "yuu-kun-2500ba303"
 
-# ระบบหลังบ้าน (ห้ามตัด เพื่อให้อันดับ SEO ดี)
+# Plugins & SEO
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-paginate
 
-# ตั้งค่า Pagination
-paginate: 6 # จำนวนบทความต่อ 1 หน้า
-paginate_path: "/blog/page:num/" # รูปแบบ URL ของหน้าถัดไป (ให้ตรงกับ permalink ของหน้าหลัก)
+# Pagination (ต้องมีหน้า blog.html หรือ index.html ที่รองรับ)
+paginate: 6
+paginate_path: "/blog/page:num/"
 
+# การประมวลผล
+markdown: kramdown
+highlighter: rouge
 exclude:
   - Gemfile
   - Gemfile.lock
   - node_modules
   - vendor/
-
-markdown: kramdown
-highlighter: rouge
