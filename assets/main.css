@@ -106,3 +106,111 @@ pre, .highlight {
   .social-links { justify-content: center; }
   .post-grid { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   Code Highlight Fix (แก้ปัญหาคอมเมนต์สีแดงจากรูป image_018d60)
+   ========================================================================== */
+
+pre, .highlight {
+  background-color: var(--code-bg) !important;
+  color: #e2e8f0 !important;
+  padding: 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  border: 1px solid #334155;
+  margin: 30px 0;
+}
+
+/* บังคับลบพื้นหลังที่ผิดปกติในคอมเมนต์ */
+.highlight .c, 
+.highlight .cm, 
+.highlight .c1, 
+.highlight .cp {
+  color: #94a3b8 !important;         /* เปลี่ยนเป็นสีเทาสบายตา */
+  background-color: transparent !important; /* ลบพื้นหลังสีแดงออก */
+  font-style: italic !important;
+}
+
+.highlight .k { color: #f472b6; }    /* Keywords */
+.highlight .s, .highlight .s2 { color: #34d399; } /* Strings */
+
+/* ==========================================================================
+   Footer Styling (จัดกึ่งกลางและสมดุลจากรูป image_012049)
+   ========================================================================== */
+
+.site-footer {
+  background-color: var(--dark-bg);
+  color: #94a3b8;
+  padding: 80px 0 40px;
+  margin-top: 100px;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr; /* แบ่งสัดส่วน 3 คอลัมน์ */
+  gap: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  text-align: left; /* จัดข้อความชิดซ้ายในคอลัมน์เพื่อความอ่านง่าย */
+}
+
+.footer-title {
+  color: #f8fafc;
+  font-size: 1.25rem;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+.social-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.social-links a {
+  background: #1e293b;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: 0.3s ease;
+}
+
+.social-links a:hover {
+  background: var(--primary-color);
+  transform: translateY(-3px);
+}
+
+/* ==========================================================================
+   Single Post Layout (Typography)
+   ========================================================================== */
+
+.single-post-container {
+  max-width: 850px; /* ความกว้างที่เหมาะสมที่สุดสำหรับการอ่าน */
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.post-page-header { text-align: center; margin-bottom: 50px; }
+.post-page-title { font-size: 3rem; color: var(--dark-bg); line-height: 1.2; font-weight: 800; }
+.post-page-content { line-height: 1.9; font-size: 1.15rem; color: #334155; }
+
+/* Author Card Design */
+.author-card {
+  background: var(--light-bg);
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  margin-top: 60px;
+}
+
+@media (max-width: 768px) {
+  .footer-container { grid-template-columns: 1fr; text-align: center; }
+  .social-links { justify-content: center; }
+  .post-page-title { font-size: 2.2rem; }
+}
