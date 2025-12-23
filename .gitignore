@@ -1,0 +1,40 @@
+# ==========================================
+# Jekyll & GitHub Pages
+# ==========================================
+# โฟลเดอร์ที่เกิดจากการ build (GitHub จะ build เองบน server)
+_site/
+.jekyll-metadata
+.jekyll-cache/
+
+# ==========================================
+# Dependencies (Ruby / Bundler)
+# ==========================================
+# ไม่ควรเก็บ library ไว้ใน repo ของเรา
+.bundle/
+vendor/
+.sass-cache/
+
+# หากคุณไม่ต้องการ commit ไฟล์ล็อคเวอร์ชัน (แต่ปกติแนะนำให้ commit ไว้)
+# Gemfile.lock
+
+# ==========================================
+# OS & IDE Files (ไฟล์ขยะจากระบบ)
+# ==========================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# IDEs (VS Code, Sublime, etc.)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==========================================
+# Personal / Log Files
+# ==========================================
+*.log
+.env
