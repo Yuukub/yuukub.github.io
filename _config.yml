@@ -33,8 +33,9 @@ plugins:
   - jekyll-seo-tag
   - jekyll-paginate
 
-paginate: 6
-paginate_path: "/blog/page:num/"
+# ตั้งค่า Pagination
+paginate: 6 # จำนวนบทความต่อ 1 หน้า
+paginate_path: "/blog/page:num/" # รูปแบบ URL ของหน้าถัดไป (ให้ตรงกับ permalink ของหน้าหลัก)
 
 exclude:
   - Gemfile
