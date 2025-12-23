@@ -207,6 +207,13 @@ body {
 /* ==========================================================================
    Site Footer
    ========================================================================== */
+.footer-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: 50px;
+  max-width: 1200px; /* เพิ่มเพื่อให้ Footer ไม่กว้างจนหลุดสายตา */
+  margin: 0 auto;    /* เพิ่มเพื่อให้ Footer อยู่กึ่งกลางหน้าจอเสมอ */
+}
 
 .site-footer {
   background-color: var(--dark-bg);
