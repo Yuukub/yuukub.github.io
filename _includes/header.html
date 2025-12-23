@@ -1,7 +1,6 @@
 <header class="site-header">
   <nav class="site-nav">
     <div class="container-full nav-wrapper">
-      
       <a class="site-logo" href="{{ '/' | relative_url }}">
         {% if site.header_style == "logo" %}
           <img src="{{ site.logo_path | relative_url }}" alt="{{ site.title }}" class="logo-img">
@@ -18,14 +17,4 @@
       </ul>
     </div>
   </nav>
-
-  {% if page.url == "/" or page.url == "/index.html" %}
-  <section class="hero">
-    <div class="container-full">
-      <h1>{{ site.author_name | default: "Professional Digital Specialist" }}</h1>
-      <p>{{ site.description }}</p>
-      <a href="mailto:{{ site.author.email }}" class="cta-button">ติดต่องาน / ปรึกษาฟรี</a>
-    </div>
-  </section>
-  {% endif %}
 </header>
