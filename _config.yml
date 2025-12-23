@@ -9,7 +9,7 @@ header_style: "text"
 logo_path: "/assets/images/logo.png"
 
 # การตั้งค่าบทความ
-permalink: /:title/
+permalink: /blog/:title/
 future: true
 excerpt_separator: "" # ใช้ ในบทความเพื่อตัดคำ
 
