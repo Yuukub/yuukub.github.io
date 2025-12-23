@@ -3,22 +3,32 @@ layout: home
 title: "Digital Marketing & WordPress Specialist"
 ---
 
+<section class="hero-intro">
+  <div class="container-full hero-content">
+    <h1 class="hero-title">{{ site.author_name | default: "Professional Digital Specialist" }}</h1>
+    <p class="hero-subtitle">{{ site.description }}</p>
+    <div class="hero-cta">
+      <a href="mailto:{{ site.author.email }}" class="cta-button-primary">ติดต่องาน / ปรึกษาฟรี</a>
+    </div>
+  </div>
+</section>
+
 <div class="container-full">
-  <section class="services">
-    <div class="service-item">
-      <i>🚀</i>
+  <section id="services" class="services-grid">
+    <div class="service-card">
+      <div class="service-icon">🚀</div>
       <h3>SEO & Google Ads</h3>
       <p>เน้นกลยุทธ์ Google Ads (P-Max, Search) และทำ SEO เชิงลึกเพื่อเพิ่ม Conversion</p>
     </div>
     
-    <div class="service-item">
-      <i>💻</i>
+    <div class="service-card">
+      <div class="service-icon">💻</div>
       <h3>WordPress Specialist</h3>
       <p>รับทำเว็บไซต์ WordPress ที่เน้นความเร็ว (Core Web Vitals) และโครงสร้างที่ Google รัก</p>
     </div>
     
-    <div class="service-item">
-      <i>🛡️</i>
+    <div class="service-card">
+      <div class="service-icon">🛡️</div>
       <h3>Cybersecurity Certified</h3>
       <p>มั่นใจด้วยการดูแลระบบความปลอดภัยเว็บไซต์ ป้องกันการโจมตีตามมาตรฐาน Google Certificate</p>
     </div>
