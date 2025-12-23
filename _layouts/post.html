@@ -10,7 +10,7 @@ layout: default
         <i class="far fa-calendar-alt"></i> {{ page.date | date: "%B %d, %Y" }}
       </time>
       {% if page.categories %}
-        <span class="post-category"> | {{ page.categories | join: ", " }}</span>
+        <span class="post-category"> | <i class="fas fa-tag"></i> {{ page.categories | join: ", " }}</span>
       {% endif %}
     </div>
   </header>
@@ -25,8 +25,15 @@ layout: default
         <h3>เขียนโดย: {{ site.author.name }}</h3>
         <p>{{ site.author.bio }}</p>
         <div class="author-social">
-          <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank">Facebook</a>
-          <a href="https://github.com/{{ site.github_username }}" target="_blank">GitHub</a>
+          {% if site.facebook_username %}
+            <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+          {% endif %}
+          {% if site.github_username %}
+            <a href="https://github.com/{{ site.github_username }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+          {% endif %}
+          {% if site.linkedin_username %}
+            <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+          {% endif %}
         </div>
       </div>
     </div>
