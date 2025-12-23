@@ -29,6 +29,63 @@ body {
 }
 
 /* ==========================================================================
+   Navbar
+   ========================================================================== */
+
+/* การจัดวาง Navbar ซ้าย-ขวา */
+.nav-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+}
+
+/* สไตล์สำหรับโลโก้รูปภาพ */
+.logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+
+/* สไตล์สำหรับชื่อเว็บไซต์แบบข้อความ */
+.logo-text {
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--dark-bg);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+
+.site-logo {
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.site-logo:hover {
+  opacity: 0.8;
+}
+
+/* สไตล์เมนูฝั่งขวา */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--primary-color);
+}
+
+/* ==========================================================================
    Hero Section
    ========================================================================== */
 
