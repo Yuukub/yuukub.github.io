@@ -1,13 +1,34 @@
 ---
 layout: default
 ---
-<article class="single-post container-full" style="max-width: 800px; margin: 60px auto; padding: 0 20px;">
-  <header style="margin-bottom: 40px; text-align: center;">
-    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">{{ page.title }}</h1>
-    <time style="color: var(--text-muted);">{{ page.date | date: "%B %d, %Y" }}</time>
+
+<article class="single-post-container">
+  <header class="post-page-header">
+    <h1 class="post-page-title">{{ page.title }}</h1>
+    <div class="post-page-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">
+        <i class="far fa-calendar-alt"></i> {{ page.date | date: "%B %d, %Y" }}
+      </time>
+      {% if page.categories %}
+        <span class="post-category"> | {{ page.categories | join: ", " }}</span>
+      {% endif %}
+    </div>
   </header>
 
-  <div class="entry-content" style="line-height: 1.8; font-size: 1.1rem;">
+  <div class="post-page-content">
     {{ content }}
   </div>
+
+  <footer class="post-page-footer">
+    <div class="author-card">
+      <div class="author-info">
+        <h3>เขียนโดย: {{ site.author.name }}</h3>
+        <p>{{ site.author.bio }}</p>
+        <div class="author-social">
+          <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank">Facebook</a>
+          <a href="https://github.com/{{ site.github_username }}" target="_blank">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 </article>
