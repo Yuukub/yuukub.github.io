@@ -113,21 +113,85 @@ pre, .highlight {
     margin: 60px 0;
 }
 /* ==========================================================================
-   services จาก index.html
-   ========================================================================= */
-.service-item {
-    padding: 45px 35px; /* เพิ่ม Padding ให้ดูโปร่ง */
-    background: var(--light-bg);
-    border-radius: 20px;
-    text-align: center;
-    border: 1px solid var(--border-color);
-    transition: 0.3s;
+   Modern Service Cards Style 
+   ========================================================================== */
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin: 60px 0 100px;
 }
 
-.service-item i {
-    font-size: 3rem; /* ขยายขนาดไอคอน/อิโมจิ */
-    display: block;
-    margin-bottom: 20px;
+.service-card {
+    background: #ffffff;
+    padding: 60px 40px;
+    border-radius: 30px; /* เพิ่มความโค้งมนให้ดูทันสมัย */
+    text-align: center;
+    border: 1px solid #f1f5f9;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* เอฟเฟกต์เมื่อ Hover */
+.service-card:hover {
+    transform: translateY(-15px); /* ลอยตัวขึ้น */
+    border-color: var(--primary-color);
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.1); /* เงาที่ลึกและนุ่มนวลขึ้น */
+}
+
+/* ตกแต่งส่วน Icon ให้ดูเป็นสัดส่วน */
+.service-icon {
+    width: 90px;
+    height: 90px;
+    background: var(--light-bg);
+    border-radius: 20px; /* ทรงสี่เหลี่ยมมุมโค้ง */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .service-icon {
+    background: var(--primary-color); /* เปลี่ยนสีพื้นหลังไอคอนเมื่อ Hover */
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* ปรับแต่งหัวข้อบทความใน Card */
+.service-card h3 {
+    font-size: 1.5rem;
+    color: var(--dark-bg);
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.service-card p {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* เพิ่มเส้นตกแต่งด้านล่าง (Decorative Accent) */
+.service-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 4px;
+    background: var(--primary-color);
+    transition: width 0.4s ease;
+}
+
+.service-card:hover::after {
+    width: 100%;
 }
 
 /* ==========================================================================
