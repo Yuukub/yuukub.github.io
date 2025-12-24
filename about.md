@@ -16,4 +16,4 @@ Digital Marketer และนักพัฒนาเว็บไซต์ที
 * **Google IT Support Professional Certificate**
 * **Google Cybersecurity Certificate**
 
-**สนใจปรึกษาเรื่องการตลาดหรือเว็บไซต์:** [แว่น Talk มาร์เก็ตติ้ง](https://wantalkmarketing.com/)
+**สนใจปรึกษาเรื่องการตลาดหรือเว็บไซต์:** [แว่น Talk มาร์เก็ตติ้ง]
