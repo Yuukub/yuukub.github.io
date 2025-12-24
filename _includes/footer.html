@@ -24,18 +24,18 @@
       <p>Email: <a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a></p>
       
       <div class="social-links">
-        {% if site.facebook_username %}
-        <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank" title="Facebook">Facebook</a>
-        {% endif %}
-        
-        {% if site.github_username %}
-        <a href="https://github.com/{{ site.github_username }}" target="_blank" title="GitHub">GitHub</a>
-        {% endif %}
+  {% if site.facebook_username %}
+    <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank" title="Facebook">Facebook</a>
+  {% endif %}
+  
+  {% if site.fastwork_url %}
+    <a href="{{ site.fastwork_url }}" target="_blank" title="Fastwork">Fastwork</a>
+  {% endif %}
 
-        {% if site.linkedin_username %}
-        <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank" title="LinkedIn">LinkedIn</a>
-        {% endif %}
-      </div>
+  {% if site.linkedin_username %}
+    <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank" title="LinkedIn">LinkedIn</a>
+  {% endif %}
+</div>
       
       <p class="partner-tag" style="margin-top: 20px; font-size: 0.85rem;">
         {{ site.company_status }} <strong><a href="{{ site.company_url }}" target="_blank" style="color: inherit;">{{ site.company_name }}</a></strong>
