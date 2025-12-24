@@ -1,6 +1,7 @@
 <header class="site-header">
   <nav class="site-nav">
     <div class="container-full nav-wrapper">
+      
       <a class="site-logo" href="{{ '/' | relative_url }}">
         {% if site.header_style == "logo" %}
           <img src="{{ site.logo_path | relative_url }}" alt="{{ site.title }}" class="logo-img">
@@ -11,6 +12,7 @@
       
       <ul class="nav-links">
         <li><a href="{{ '/' | relative_url }}">หน้าแรก</a></li>
+        <li><a href="{{ '/about/' | relative_url }}">เกี่ยวกับเรา</a></li> 
         <li><a href="{{ '/blog/' | relative_url }}">บทความ</a></li>
         <li><a href="{{ '/' | relative_url }}#services">บริการ</a></li>
         <li><a href="mailto:{{ site.author.email }}">ติดต่อ</a></li>
