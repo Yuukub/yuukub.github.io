@@ -1,5 +1,4 @@
----
----
+--- ---
 /* ==========================================================================
    Modern Professional Light Theme
    Inspired by: Stripe, Vercel, Linear
@@ -111,6 +110,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  padding-top: var(--header-height);
 }
 
 /* Typography */
