@@ -610,6 +610,7 @@ body>header:first-of-type {
 
 .post-page-header {
   text-align: center;
+  margin-top: 2rem;
   margin-bottom: 3rem;
   padding-bottom: 2rem;
   border-bottom: 2px solid var(--border-light);
@@ -894,6 +895,7 @@ body>header:first-of-type {
 
 .page-header {
   text-align: center;
+  margin-top: 2rem;
   margin-bottom: 3rem;
   padding-bottom: 2rem;
   border-bottom: 2px solid var(--border-light);
@@ -1109,7 +1111,7 @@ body>header:first-of-type {
    Blog Listing Page
    ========================================================================== */
 .blog-listing-page {
-  padding-bottom: 4rem;
+  padding-bottom: 6rem;
   min-height: 100vh;
   background: var(--bg-primary);
 }
@@ -1119,6 +1121,7 @@ body>header:first-of-type {
   padding: 3rem 2rem 4rem;
   background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);
   border-radius: var(--radius-xl);
+  margin-top: 2rem;
   margin-bottom: 3rem;
 }
 
