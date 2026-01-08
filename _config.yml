@@ -14,6 +14,7 @@ future: true
 excerpt_separator: "" # ใช้ ในบทความเพื่อตัดคำ
 
 # ข้อมูลผู้เขียน (เรียกใช้ผ่าน {{ site.author.bio }})
+author_name: "Saranyuu M."
 author:
   name: "CZGroup Digital Specialist"
   email: "yuukun.eutopia@gmail.com"
