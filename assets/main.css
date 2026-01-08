@@ -111,6 +111,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-top: var(--header-height);
 }
 
 /* Typography */
@@ -287,6 +288,7 @@ header {
   align-items: center;
   justify-content: center;
   text-align: center;
+  margin-top: calc(var(--header-height) * -1);
   padding-top: var(--header-height);
   background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 50%, #FEF3C7 100%);
   overflow: hidden;
@@ -601,7 +603,6 @@ header {
    Single Post Page
    ========================================================================== */
 .single-post-container {
-  padding-top: calc(var(--header-height) + 3rem);
   padding-bottom: 4rem;
   min-height: 100vh;
   background: var(--bg-surface);
@@ -886,7 +887,6 @@ header {
    Page Layout (About, etc.)
    ========================================================================== */
 .page-container {
-  padding-top: calc(var(--header-height) + 3rem);
   padding-bottom: 4rem;
   min-height: 100vh;
   background: var(--bg-surface);
@@ -1109,7 +1109,6 @@ header {
    Blog Listing Page
    ========================================================================== */
 .blog-listing-page {
-  padding-top: calc(var(--header-height) + 2rem);
   padding-bottom: 4rem;
   min-height: 100vh;
   background: var(--bg-primary);
