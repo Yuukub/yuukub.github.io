@@ -4,32 +4,38 @@ layout: default
 
 {{ content }}
 
-<section class="post-container">
+<section class="latest-posts">
   <div class="container-full">
-    <h2 class="section-title">บทความและสาระน่ารู้</h2>
-    
+    <div class="section-header">
+      <h2 class="section-title">Latest Articles</h2>
+      <p style="color: var(--text-muted);">บทความและสาระน่ารู้ล่าสุด</p>
+    </div>
+
     <div class="post-grid">
       {% for post in site.posts limit:6 %}
       <article class="post-card">
         <div class="post-thumbnail">
           <a href="{{ post.url | relative_url }}">
             {% if post.thumbnail %}
-              <img src="{{ post.thumbnail | relative_url }}" alt="{{ post.title }}">
+            <img src="{{ post.thumbnail | relative_url }}" alt="{{ post.title }}">
             {% else %}
-              <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80" alt="{{ post.title }}">
+            <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80"
+              alt="{{ post.title }}">
             {% endif %}
           </a>
         </div>
 
         <div class="post-content">
-          <span class="post-date">{{ post.date | date: "%B %d, %Y" }}</span>
+          <div class="post-meta">{{ post.date | date: "%B %d, %Y" }}</div>
           <h3 class="post-title">
             <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
           </h3>
           <p class="post-excerpt">
-            {{ post.excerpt | strip_html | truncatewords: 20 }}
+            {{ post.excerpt | strip_html | truncatewords: 15 }}
           </p>
-          <a href="{{ post.url | relative_url }}" class="read-more-btn">อ่านรายละเอียดเพิ่มเติม →</a>
+          <a href="{{ post.url | relative_url }}" class="read-more-link">
+            อ่านต่อ <i class="fa-solid fa-arrow-right"></i>
+          </a>
         </div>
       </article>
       {% endfor %}

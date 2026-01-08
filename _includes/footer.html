@@ -1,46 +1,57 @@
 <footer class="site-footer">
-  <div class="footer-container">
-    
-    <div class="footer-col about-col">
-      <h3 class="footer-title">{{ site.title | escape }}</h3>
-      <p class="footer-bio">
-        {{ site.author.bio }}
-      </p>
-      <p class="company-name">© {{ "now" | date: "%Y" }} {{ site.copyright_name }}</p>
+  <div class="container-full">
+    <div class="footer-grid">
+
+      <div class="footer-brand">
+        <h3>{{ site.title | escape }}</h3>
+        <p style="color: var(--text-muted); line-height: 1.6;">
+          {{ site.author.bio }}
+        </p>
+      </div>
+
+      <div class="footer-links-group">
+        <h4 class="footer-heading">บริการของเรา</h4>
+        <ul class="footer-links">
+          <li><a href="{{ '/' | relative_url }}#services">รับทำเว็บไซต์ WordPress</a></li>
+          <li><a href="{{ '/' | relative_url }}#services">วางกลยุทธ์ Google Ads</a></li>
+          <li><a href="{{ '/' | relative_url }}#services">SEO เชิงลึก</a></li>
+          <li><a href="{{ '/' | relative_url }}#services">Cybersecurity & Trust</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-group">
+        <h4 class="footer-heading">ติดต่อเรา</h4>
+        <p style="margin-bottom: 16px;">
+          <a href="mailto:{{ site.author.email }}" style="color: #fff;">
+            <i class="fa-solid fa-envelope"></i> {{ site.author.email }}
+          </a>
+        </p>
+
+        <div style="display: flex; gap: 16px;">
+          {% if site.facebook_username %}
+          <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank"
+            style="font-size: 1.2rem; color: #fff;">
+            <i class="fa-brands fa-facebook"></i>
+          </a>
+          {% endif %}
+
+          {% if site.linkedin_username %}
+          <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank"
+            style="font-size: 1.2rem; color: #fff;">
+            <i class="fa-brands fa-linkedin"></i>
+          </a>
+          {% endif %}
+        </div>
+
+        <p class="partner-tag" style="margin-top: 24px; font-size: 0.85rem; color: var(--text-muted);">
+          {{ site.company_status }} <a href="{{ site.company_url }}" target="_blank">{{ site.company_name }}</a>
+        </p>
+      </div>
+
     </div>
 
-    <div class="footer-col links-col">
-      <h3 class="footer-title">บริการของเรา</h3>
-      <ul class="footer-links">
-  <li><a href="{{ '/' | relative_url }}#services">รับทำเว็บไซต์ WordPress</a></li>
-  <li><a href="{{ '/' | relative_url }}#services">วางกลยุทธ์ Google Ads</a></li>
-  <li><a href="{{ '/' | relative_url }}#services">รับทำ SEO เชิงลึก</a></li>
-  <li><a href="{{ 'https://fastwork.co/user/yuukun992/it-device-repair-52044401?source=seller-center_my-service_share-link' | relative_url }}#services">Cybersecurity แก้ไข WP ติดไวรัส</a></li>
-</ul>
+    <div class="copyright">
+      &copy; {{ "now" | date: "%Y" }} {{ site.copyright_name }}. All Rights Reserved.
     </div>
-
-    <div class="footer-col contact-col">
-      <h3 class="footer-title">ติดต่อสอบถาม</h3>
-      <p>Email: <a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a></p>
-      
-      <div class="social-links">
-  {% if site.facebook_username %}
-    <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank" title="Facebook">Facebook</a>
-  {% endif %}
-  
-  {% if site.fastwork_url %}
-    <a href="{{ site.fastwork_url }}" target="_blank" title="Fastwork">Fastwork</a>
-  {% endif %}
-
-  {% if site.linkedin_username %}
-    <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank" title="LinkedIn">LinkedIn</a>
-  {% endif %}
-</div>
-      
-      <p class="partner-tag" style="margin-top: 20px; font-size: 0.85rem;">
-        {{ site.company_status }} <strong><a href="{{ site.company_url }}" target="_blank" style="color: inherit;">{{ site.company_name }}</a></strong>
-      </p>
-    </div>
-
   </div>
 </footer>

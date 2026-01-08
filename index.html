@@ -2,35 +2,74 @@
 layout: home
 title: "Digital Marketing & WordPress Specialist"
 ---
+<!-- FontAwesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<section class="hero-intro">
+<section class="hero-section">
+  <div class="hero-bg-glow"></div>
   <div class="container-full hero-content">
-    <h1 class="hero-title">{{ site.author_name | default: "Professional Digital Specialist" }}</h1>
-    <p class="hero-subtitle">{{ site.description }}</p>
-    <div class="hero-cta">
-      <a href="mailto:{{ site.author.email }}" class="cta-button-primary">ติดต่องาน / ปรึกษาฟรี</a>
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Available for Projects
+    </div>
+    <h1 class="hero-title">
+      {{ site.author_name | default: "Professional" }} <br>
+      <span class="text-gradient">Digital Specialist</span>
+    </h1>
+    <p class="hero-subtitle">
+      {{ site.description }}
+    </p>
+    <div class="hero-cta-group">
+      <a href="mailto:{{ site.author.email }}" class="btn btn-primary">
+        <i class="fa-regular fa-paper-plane"></i> &nbsp; ติดต่องาน
+      </a>
+      <a href="#services" class="btn btn-secondary">
+        ดูบริการต่างๆ
+      </a>
     </div>
   </div>
 </section>
 
 <div class="container-full">
-  <section id="services" class="services-grid">
-    <div class="service-card">
-      <div class="service-icon">🚀</div>
-      <h3>SEO & Google Ads</h3>
-      <p>เน้นกลยุทธ์ Google Ads (P-Max, Search) และทำ SEO เชิงลึกเพื่อเพิ่ม Conversion</p>
+  <section id="services" class="services-section">
+    <div class="section-header">
+      <h2 class="section-title">Services</h2>
+      <p style="color: var(--text-muted);">บริการที่ช่วยให้ธุรกิจของคุณเติบโตในยุคดิจิทัล</p>
     </div>
     
-    <div class="service-card">
-      <div class="service-icon">💻</div>
-      <h3>WordPress Specialist</h3>
-      <p>รับทำเว็บไซต์ WordPress ที่เน้นความเร็ว (Core Web Vitals) และโครงสร้างที่ Google รัก</p>
-    </div>
-    
-    <div class="service-card">
-      <div class="service-icon">🛡️</div>
-      <h3>Cybersecurity Certified</h3>
-      <p>มั่นใจด้วยการดูแลระบบความปลอดภัยเว็บไซต์ ป้องกันการโจมตีตามมาตรฐาน Google Certificate</p>
+    <div class="services-grid">
+      <!-- Service 1 -->
+      <div class="feature-card">
+        <div class="card-icon">
+          <i class="fa-solid fa-rocket"></i>
+        </div>
+        <h3 class="card-title">SEO & Google Ads</h3>
+        <p class="card-desc">
+          เพิ่มยอดขายด้วยกลยุทธ์ Google Ads (Search, YouTube, P-Max) และทำ SEO เชิงลึกให้ติดหน้าแรก
+        </p>
+      </div>
+      
+      <!-- Service 2 -->
+      <div class="feature-card">
+        <div class="card-icon">
+          <i class="fa-brands fa-wordpress"></i>
+        </div>
+        <h3 class="card-title">WordPress Specialist</h3>
+        <p class="card-desc">
+          รับทำเว็บไซต์ WordPress เน้นความเร็ว (Core Web Vitals) โครงสร้างถูกต้องตามหลัก SEO ปรับแต่งได้ดั่งใจ
+        </p>
+      </div>
+      
+      <!-- Service 3 -->
+      <div class="feature-card">
+        <div class="card-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="card-title">Cybersecurity</h3>
+        <p class="card-desc">
+          ดูแลความปลอดภัยเว็บไซต์ ติดตั้ง SSL, Firewall และป้องกัน Malware มาตรฐาน Google Certificate
+        </p>
+      </div>
     </div>
   </section>
 </div>
