@@ -1,168 +1,82 @@
 ---
 layout: page
 title: เกี่ยวกับเรา
+subtitle: Digital Marketing & WordPress Specialist
 permalink: /about/
 ---
 
-<style>
-  /* CSS เฉพาะหน้านี้ */
-  .about-container {
-    max-width: 900px;
-    margin: 40px auto;
-    color: #1e293b;
-    line-height: 1.8;
-  }
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  /* Hero Section */
-  .about-hero {
-    text-align: center;
-    padding: 60px 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 30px;
-    margin-bottom: 60px;
-  }
-  .about-hero h2 {
-    font-size: 2.5rem;
-    color: #0f172a;
-    margin-bottom: 20px;
-    font-weight: 800;
-  }
-  .about-hero p {
-    font-size: 1.2rem;
-    max-width: 750px;
-    margin: 0 auto;
-    color: #64748b;
-  }
-
-  /* Skills Grid */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-    margin-bottom: 80px;
-  }
-  .skill-card {
-    background: #ffffff;
-    padding: 40px 30px;
-    border-radius: 20px;
-    border: 1px solid #e2e8f0;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-  .skill-card:hover {
-    transform: translateY(-10px);
-    border-color: #3b82f6;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-  }
-  .skill-icon {
-    font-size: 3rem;
-    margin-bottom: 20px;
-    display: block;
-  }
-  .skill-card h3 {
-    font-size: 1.3rem;
-    margin-bottom: 15px;
-    color: #0f172a;
-  }
-
-  /* Certifications Section */
-  .cert-box {
-    background: #0f172a;
-    color: #f8fafc;
-    padding: 50px 40px;
-    border-radius: 30px;
-    text-align: center;
-    margin-bottom: 60px;
-  }
-  .cert-box h3 {
-    color: #ffffff;
-    margin-bottom: 30px;
-  }
-  .cert-item {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255,255,255,0.1);
-    padding: 12px 25px;
-    border-radius: 50px;
-    margin: 10px;
-    font-weight: 500;
-  }
-  .cert-item i {
-    margin-right: 10px;
-    color: #3b82f6;
-  }
-
-  /* Call to Action */
-  .about-footer {
-    text-align: center;
-    padding: 60px 20px;
-    border-top: 1px solid #e2e8f0;
-  }
-  .cta-btn {
-    display: inline-block;
-    background: #3b82f6;
-    color: #fff !important;
-    padding: 18px 45px;
-    border-radius: 50px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: 0.3s;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-  }
-  .cta-btn:hover {
-    background: #2563eb;
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 768px) {
-    .about-hero h2 { font-size: 2rem; }
-    .cert-box { padding: 30px 20px; }
-  }
-</style>
-
-<div class="about-container">
-  <section class="about-hero">
-    <h2>Digital Marketer & WordPress Specialist</h2>
-    <p>
-      ผมผสมผสานทักษะด้าน <strong>Technical SEO</strong> และ <strong>Cybersecurity</strong> 
+<section class="about-hero-section">
+  <div class="about-hero-content">
+    <div class="about-badge">
+      <span class="badge-dot"></span>
+      Available for Projects
+    </div>
+    <h2 class="about-title">
+      Digital Marketer & <span class="text-gradient">WordPress Specialist</span>
+    </h2>
+    <p class="about-description">
+      ผมผสมผสานทักษะด้าน <strong>Technical SEO</strong> และ <strong>Cybersecurity</strong>
       เพื่อสร้างเว็บไซต์ที่ไม่ใช่แค่สวยงาม แต่ต้องโหลดไว ปลอดภัย และสร้าง Conversion ได้จริง
     </p>
-  </section>
+  </div>
+</section>
 
-  <div class="skills-grid">
-    <div class="skill-card">
-      <span class="skill-icon">🛠️</span>
-      <h3>WordPress Development</h3>
+<section class="skills-section">
+  <h3 class="section-subtitle">ความเชี่ยวชาญ</h3>
+  <div class="skills-grid-about">
+    <div class="skill-card-about">
+      <div class="skill-icon-about">
+        <i class="fa-brands fa-wordpress"></i>
+      </div>
+      <h4>WordPress Development</h4>
       <p>สร้างเว็บไซต์ด้วย Elementor, WoodMart และ Gutenberg ที่เน้นความเร็วและโครงสร้างที่เป็นมิตรกับ Google</p>
     </div>
-    
-    <div class="skill-card">
-      <span class="skill-icon">📈</span>
-      <h3>Google Ads Expert</h3>
+
+    <div class="skill-card-about">
+      <div class="skill-icon-about">
+        <i class="fa-solid fa-rocket"></i>
+      </div>
+      <h4>Google Ads Expert</h4>
       <p>วางกลยุทธ์ P-Max และ Search Ads โดยเน้นการวัดผลที่แม่นยำเพื่อการเติบโตของธุรกิจออนไลน์</p>
     </div>
-    
-    <div class="skill-card">
-      <span class="skill-icon">🛡️</span>
-      <h3>Technical SEO</h3>
+
+    <div class="skill-card-about">
+      <div class="skill-icon-about">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h4>Technical SEO</h4>
       <p>ปรับแต่งโครงสร้างเว็บไซต์เชิงลึกเพื่อให้ติดอันดับอย่างยั่งยืน พร้อมดูแลความปลอดภัยตามมาตรฐานสากล</p>
     </div>
   </div>
+</section>
 
-  <section class="cert-box">
-    <h3>ได้รับการรับรองมาตรฐานจาก Google</h3>
-    <div class="cert-item">
-      <i class="fas fa-check-circle"></i> Google IT Support Professional Certificate
+<section class="certifications-section">
+  <div class="cert-container">
+    <h3 class="cert-title">ได้รับการรับรองมาตรฐานจาก Google</h3>
+    <div class="cert-badges">
+      <div class="cert-badge">
+        <i class="fas fa-check-circle"></i>
+        <span>Google IT Support Professional Certificate</span>
+      </div>
+      <div class="cert-badge">
+        <i class="fas fa-shield-alt"></i>
+        <span>Google Cybersecurity Certificate</span>
+      </div>
     </div>
-    <div class="cert-item">
-      <i class="fas fa-shield-alt"></i> Google Cybersecurity Certificate
-    </div>
-  </section>
-
-  <div class="about-footer">
-    <p style="margin-bottom: 30px; font-size: 1.1rem;">
-      พาร์ทเนอร์ด้านดิจิทัลที่ดูแลคุณโดยทีมงานจาก <strong>แว่น Talk มาร์เก็ตติ้ง</strong>
-    </p>
-    <a href="mailto:{{ site.author.email }}" class="cta-btn">คุยโปรเจกต์กับผมวันนี้</a>
   </div>
-</div>
+</section>
+
+<section class="cta-section-about">
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <p class="cta-text">
+    พาร์ทเนอร์ด้านดิจิทัลที่ดูแลคุณโดยทีมงานจาก <strong>แว่น Talk มาร์เก็ตติ้ง</strong>
+  </p>
+  <a href="mailto:{{ site.author.email }}" class="btn btn-primary">
+    <i class="fa-regular fa-paper-plane"></i>
+    คุยโปรเจกต์กับผมวันนี้
+  </a>
+</section>

@@ -1084,3 +1084,389 @@ header.scrolled {
     --container-width: 1400px;
   }
 }
+
+/* ==========================================================================
+   Page Layout (General Pages like About)
+   ========================================================================== */
+.page-container {
+  padding-top: calc(var(--header-height) + 3rem);
+  padding-bottom: 4rem;
+  min-height: 100vh;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-lighter);
+}
+
+.page-title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+.page-content {
+  color: var(--text-main);
+  line-height: 1.8;
+}
+
+/* ==========================================================================
+   About Page Specific Styles
+   ========================================================================== */
+.about-hero-section {
+  text-align: center;
+  padding: 3rem 0 4rem;
+  position: relative;
+}
+
+.about-hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(600px, 80vw);
+  height: min(600px, 80vw);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.about-hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.about-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 100px;
+  font-size: var(--text-sm);
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--primary);
+  animation: blink 2s ease-in-out infinite;
+}
+
+.about-title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.about-description {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* Skills Section */
+.skills-section {
+  margin: 4rem 0;
+}
+
+.section-subtitle {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #fff;
+}
+
+.skills-grid-about {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 3rem;
+}
+
+.skill-card-about {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.skill-card-about:hover {
+  transform: translateY(-8px);
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-lg);
+}
+
+.skill-icon-about {
+  width: 64px;
+  height: 64px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--primary);
+  margin: 0 auto 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.skill-card-about:hover .skill-icon-about {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.skill-card-about h4 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #fff;
+}
+
+.skill-card-about p {
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
+/* Certifications Section */
+.certifications-section {
+  margin: 4rem 0;
+}
+
+.cert-container {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.cert-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #fff;
+}
+
+.cert-badges {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  padding: 1rem 1.5rem;
+  border-radius: 100px;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+.cert-badge:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.cert-badge i {
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+/* CTA Section About */
+.cta-section-about {
+  margin: 4rem 0 2rem;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px);
+}
+
+.cta-text {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   Blog Listing Page
+   ========================================================================== */
+.blog-listing-page {
+  padding-top: calc(var(--header-height) + 2rem);
+  padding-bottom: 4rem;
+  min-height: 100vh;
+}
+
+.blog-page-header {
+  text-align: center;
+  padding: 3rem 0 4rem;
+  position: relative;
+}
+
+.blog-page-header::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(800px, 90vw);
+  height: min(800px, 90vw);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.blog-header-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.blog-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 100px;
+  font-size: var(--text-sm);
+  color: var(--secondary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.blog-page-title {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.blog-page-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* Pagination */
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 4rem;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.pagination-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+}
+
+.pagination-info strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Responsive Adjustments for New Pages
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  .about-hero-section,
+  .blog-page-header {
+    padding: 2rem 0 3rem;
+  }
+
+  .skills-grid-about {
+    grid-template-columns: 1fr;
+  }
+
+  .cert-badges {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cert-badge {
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+  }
+
+  .pagination-nav {
+    gap: 1rem;
+  }
+
+  .pagination-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: var(--text-sm);
+  }
+}
