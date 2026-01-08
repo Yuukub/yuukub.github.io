@@ -113,10 +113,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-main {
-  padding-top: var(--header-height);
-}
-
 /* Typography */
 h1,
 h2,
