@@ -100,8 +100,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-xl prose-img:shadow-lg
-            prose-pre:p-0 prose-pre:rounded-none prose-pre:bg-transparent prose-pre:border-0 prose-pre:shadow-none
-            prose-code:bg-transparent prose-code:p-0 prose-code:text-xs md:prose-code:text-sm prose-code:leading-loose prose-code:before:content-none prose-code:after:content-none"
+            prose-pre:p-4 prose-pre:rounded-xl prose-pre:bg-[#1e1e1e] prose-pre:shadow-xl prose-pre:border-none
+            prose-code:bg-transparent prose-code:p-0 prose-code:text-xs md:prose-code:text-sm prose-code:leading-loose prose-code:text-gray-100 prose-code:before:content-none prose-code:after:content-none"
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
                 </article>
