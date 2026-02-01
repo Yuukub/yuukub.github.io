@@ -78,6 +78,17 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                                 </Badge>
                             ))}
                         </div>
+
+                        {/* Cover Image */}
+                        {postData.thumbnail && (
+                            <div className="mt-12 aspect-[21/9] w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                                <img
+                                    src={postData.thumbnail}
+                                    alt={postData.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        )}
                     </header>
 
                     <Separator className="mb-12" />

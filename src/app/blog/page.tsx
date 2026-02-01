@@ -52,10 +52,26 @@ export default async function BlogPage() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {allPostsData.map(({ slug, date, title, description, tags, readingTime }) => (
+                    {allPostsData.map(({ slug, date, title, description, tags, readingTime, thumbnail }) => (
                         <Link key={slug} href={`/blog/${slug}`}>
-                            <Card className="h-full flex flex-col group hover:shadow-lg transition-shadow border-muted">
-                                <CardHeader className="flex-none pb-4">
+                            <Card className="h-full flex flex-col group hover:shadow-lg transition-all border-muted overflow-hidden">
+                                {/* Thumbnail Container */}
+                                <div className="aspect-[16/9] w-full overflow-hidden bg-muted relative">
+                                    {thumbnail ? (
+                                        <img
+                                            src={thumbnail}
+                                            alt={title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                                            <Newspaper className="h-12 w-12" />
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
+                                </div>
+
+                                <CardHeader className="flex-none pb-4 pt-6">
                                     <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                                         <div className="flex items-center gap-1">
                                             <Calendar className="h-3 w-3" />

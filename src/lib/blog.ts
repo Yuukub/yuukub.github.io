@@ -44,6 +44,9 @@ export async function getSortedPostsData() {
             slug,
             readingTime,
             ...(matterResult.data as { date: string; title: string; tags?: string[]; description?: string; thumbnail?: string }),
+            thumbnail: matterResult.data.thumbnail && !matterResult.data.thumbnail.startsWith('http') && !matterResult.data.thumbnail.startsWith('/')
+                ? `/images/blog/${matterResult.data.thumbnail}`
+                : matterResult.data.thumbnail,
         };
     });
 
@@ -73,13 +76,20 @@ export async function getPostData(slug: string): Promise<PostData> {
     // Use gray-matter to parse the post metadata section
     const matterResult = matter(fileContents);
 
+    // Rewrite relative image paths to point to /images/blog/
+    // This matches ![alt](filename.ext) where filename doesn't start with / or http
+    const contentWithFixedImages = matterResult.content.replace(
+        /!\[(.*?)\]\((?!https?:\/\/|\/)(.*?)\)/g,
+        '![$1](/images/blog/$2)'
+    );
+
     // Use unified to convert markdown into HTML string with highlighting
     const processedContent = await unified()
         .use(remarkParse)
         .use(remarkRehype)
         .use(rehypeHighlight)
         .use(rehypeStringify)
-        .process(matterResult.content);
+        .process(contentWithFixedImages);
     const contentHtml = processedContent.toString();
 
     // Calculate reading time
@@ -94,5 +104,8 @@ export async function getPostData(slug: string): Promise<PostData> {
         contentHtml,
         readingTime,
         ...(matterResult.data as { date: string; title: string; tags?: string[]; description?: string; thumbnail?: string }),
+        thumbnail: matterResult.data.thumbnail && !matterResult.data.thumbnail.startsWith('http') && !matterResult.data.thumbnail.startsWith('/')
+            ? `/images/blog/${matterResult.data.thumbnail}`
+            : matterResult.data.thumbnail,
     };
 }
