@@ -1,6 +1,6 @@
 <div align="center">
 
-# �️ Saranyuu.M — Portfolio
+# 🖥️ Saranyuu.M — Portfolio
 
 ### Systems Architect & Cybersecurity Consultant
 
@@ -19,7 +19,7 @@
 
 ---
 
-## 🚀 Key Features
+## 🎯 Key Features
 
 | Feature | Description |
 |---------|-------------|
@@ -44,7 +44,7 @@
 
 ---
 
-## � Quick Start
+## 🚀 Quick Start
 
 ```bash
 # Clone
