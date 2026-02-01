@@ -1,73 +1,88 @@
-# 💻 Saranyuu.M — Professional Portfolio
+<div align="center">
 
-> **"ระบบที่ดีเริ่มต้นที่ความปลอดภัย"** (A good system starts with security)
+# �️ Saranyuu.M — Portfolio
 
-ยินดีต้อนรับสู่ Repository ของพอร์ตโฟลิโอส่วนตัว โปรเจกต์นี้ถูกพัฒนาขึ้นเพื่อแสดงศักยภาพในฐานะ **Systems Architect (สถาปนิกวางแผนระบบ)** และ **Cybersecurity Consultant (ที่ปรึกษาด้านความปลอดภัย)** โดยมุ่งเน้นการผสมผสานงานดีไซน์ที่สวยงาม ทันสมัย เข้ากับรากฐานทางวิศวกรรมที่แข็งแกร่งและปลอดภัยสูงสุด
+### Systems Architect & Cybersecurity Consultant
 
-![Saranyuu Portfolio Overview](https://raw.githubusercontent.com/Yuukub/yuukub.github.io/main/public/portfolio-preview.png) *(Note: Placeholder for preview)*
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-yuukub.github.io-2563eb?style=for-the-badge)](https://yuukub.github.io)
+[![Fastwork](https://img.shields.io/badge/💼_Hire_Me-Fastwork-10b981?style=for-the-badge)](https://fastwork.co/user/yuukub)
 
----
+> **"ระบบที่ดีเริ่มต้นที่ความปลอดภัย"**
 
-## ⚡ Key Features (ฟีเจอร์เด่น)
-
-- **🛡️ Security-First Architecture**: ออกแบบโครงสร้างเว็บไซต์โดยคำนึงถึงความปลอดภัยเป็นแกนหลัก สะท้อนตัวตนความเป็นที่ปรึกษาด้าน Cybersecurity
-- **💼 Specialized Service Catalog**: นำเสนอบริการเชิงเทคนิคระดับสูง เช่น **WordPress Security**, **Malware Removal** และ **Systems Automation** ได้อย่างครบถ้วน
-- **🚀 Fastwork Integration**: เชื่อมต่อโดยตรงกับโปรไฟล์ Fastwork ด้วยปุ่ม **"Hire via Fastwork"** ที่ออกแบบมาเพื่อเพิ่มโอกาสในการปิดการขาย
-- **🧩 Scalable Project Hub**: คลังผลงาน (Portfolio Hub) ที่มีการจัดหมวดหมู่ชัดเจน พร้อม Animation การนำเสนอที่ดึงดูด
-- **✨ Premium UI/UX**:
-  - ดีไซน์แบบ **Glassmorphism** ที่ให้ความรู้สึกพรีเมียมและทันสมัย
-  - การเคลื่อนไหว (Staggered Animations) ที่ลื่นไหล ให้ความรู้สึก "แพง" ในทุกการเลื่อน
-  - โหมด Dark/Light ที่มีการคุมโทนสี (Color Grading) อย่างประณีต
-- **🌑 High Performance Core**: ขับเคลื่อนด้วย **Next.js 15+** และ **Turbopack** เพื่อประสิทธิภาพความเร็วสูงสุด
-
-## 🛠️ Technical Stack (เทคโนโลยีเบื้องหลัง)
-
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Animations**: [Tailwind Animate](https://github.com/jamiebuilds/tailwind-animate)
-- **Deployment**: [GitHub Pages](https://pages.github.com/) (via GitHub Actions)
+</div>
 
 ---
 
-## 🚀 Getting Started (การติดตั้งและใช้งาน)
+## ✨ Overview
 
-หากต้องการรันโปรเจกต์นี้บนเครื่องของคุณ สามารถทำได้ดังนี้:
+พอร์ตโฟลิโอส่วนตัวที่ถูกออกแบบเพื่อแสดงศักยภาพในฐานะ **Systems Architect** และ **Cybersecurity Consultant** โดยมุ่งเน้นการผสมผสานดีไซน์ที่ทันสมัยเข้ากับรากฐานทางวิศวกรรมที่แข็งแกร่ง
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Yuukub/yuukub.github.io.git
-   cd yuukub.github.io
-   ```
+---
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## 🚀 Key Features
 
-3. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   เปิด Browser ไปที่ [http://localhost:3000](http://localhost:3000) เพื่อดูผลลัพธ์
+| Feature | Description |
+|---------|-------------|
+| 🛡️ **Security-First** | ออกแบบโดยคำนึงถึงความปลอดภัยเป็นแกนหลัก |
+| 💼 **Fastwork Integration** | เชื่อมต่อโดยตรงกับโปรไฟล์ Fastwork |
+| ✨ **Premium UI/UX** | Glassmorphism, Dark/Light Mode, Staggered Animations |
+| ⚡ **High Performance** | Next.js 15+ & Turbopack |
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-000?style=flat-square&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000?style=flat-square&logo=shadcnui&logoColor=white)
+
+</div>
+
+---
+
+## � Quick Start
+
+```bash
+# Clone
+git clone https://github.com/Yuukub/yuukub.github.io.git
+cd yuukub.github.io
+
+# Install
+npm install
+
+# Run
+npm run dev
+```
+
+เปิด Browser ที่ [http://localhost:3000](http://localhost:3000)
+
+---
 
 ## 🏗️ Deployment
 
-โปรเจกต์นี้ใช้ระบบ **GitHub Actions** ในการ Deploy ขึ้น **GitHub Pages** โดยอัตโนมัติ
+โปรเจกต์นี้ใช้ **GitHub Actions** ในการ Deploy ขึ้น **GitHub Pages** โดยอัตโนมัติ
 
-- เมื่อมีการ Push Code ขึ้นไปยัง Branch `main` ระบบจะทำการ Build และ Deploy เวอร์ชัน Static ให้ทันที
-
----
-
-## 📩 Contact & Hire (ติดต่องาน)
-
-หากสนใจร่วมงาน หรือต้องการที่ปรึกษาด้านความปลอดภัยระบบ:
-
-- **Fastwork Profile**: [จ้างงานผ่าน Fastwork](https://fastwork.co/user/yuukub)
-- **Email**: [yuukun.eutopia@gmail.com](mailto:yuukun.eutopia@gmail.com)
-- **GitHub**: [@yuukub](https://github.com/yuukub)
+เมื่อ Push ไปยัง Branch `main` ระบบจะ Build และ Deploy ให้ทันที
 
 ---
 
-Developed with ❤️ and Professional Passion by **Saranyuu.M**
+## 📩 Contact
+
+<div align="center">
+
+[![Email](https://img.shields.io/badge/Email-yuukun.eutopia@gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:yuukun.eutopia@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-@yuukub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yuukub)
+
+</div>
+
+---
+
+<div align="center">
+
+**Developed with ❤️ by Saranyuu.M**
+
+</div>
