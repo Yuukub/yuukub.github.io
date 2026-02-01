@@ -54,54 +54,58 @@ export default async function BlogPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {allPostsData.map(({ slug, date, title, description, tags, readingTime, thumbnail }) => (
                         <Link key={slug} href={`/blog/${slug}`}>
-                            <Card className="h-full flex flex-col group hover:shadow-lg transition-all border-muted overflow-hidden">
+                            <Card className="h-full flex flex-col group hover:shadow-2xl transition-all duration-300 border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden rounded-2xl group cursor-pointer hover:-translate-y-2">
                                 {/* Thumbnail Container */}
-                                <div className="aspect-[16/9] w-full overflow-hidden bg-muted relative">
+                                <div className="aspect-[3/4] w-full overflow-hidden bg-muted relative">
                                     {thumbnail ? (
                                         <img
                                             src={thumbnail}
                                             alt={title}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                                            <Newspaper className="h-12 w-12" />
+                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                                            <Newspaper className="h-16 w-16" />
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
+
+                                    {/* Overlay Gradient */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-80" />
+
+                                    {/* Content Overlay */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col gap-2">
+                                        <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground/80">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="h-3 w-3" />
+                                                {format(new Date(date), "dd MMM yyyy", { locale: th })}
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock className="h-3 w-3" />
+                                                {readingTime}
+                                            </div>
+                                        </div>
+                                        <CardTitle className="text-xl md:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                                            {title}
+                                        </CardTitle>
+                                    </div>
                                 </div>
 
-                                <CardHeader className="flex-none pb-4 pt-6">
-                                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                                        <div className="flex items-center gap-1">
-                                            <Calendar className="h-3 w-3" />
-                                            {format(new Date(date), "dd MMMM yyyy", { locale: th })}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="h-3 w-3" />
-                                            {readingTime}
-                                        </div>
-                                    </div>
-                                    <CardTitle className="group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                                        {title}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex-grow flex flex-col">
+                                <CardContent className="flex-grow flex flex-col p-6 pt-4">
                                     {description && (
-                                        <CardDescription className="line-clamp-3 mb-4 text-sm leading-relaxed">
+                                        <CardDescription className="line-clamp-2 mb-6 text-sm leading-relaxed text-muted-foreground/70">
                                             {description}
                                         </CardDescription>
                                     )}
-                                    <div className="mt-auto flex flex-col gap-4">
+                                    <div className="mt-auto flex items-center justify-between">
                                         <div className="flex flex-wrap gap-2">
-                                            {Array.from(new Set(tags || [])).slice(0, 3).map((tag, index) => (
-                                                <Badge key={`${tag}-${index}`} variant="outline" className="text-[10px] uppercase tracking-wider">
+                                            {Array.from(new Set(tags || [])).slice(0, 2).map((tag, index) => (
+                                                <Badge key={`${tag}-${index}`} variant="secondary" className="text-[9px] uppercase tracking-widest bg-primary/5 text-primary/80 border-none px-2">
                                                     {tag}
                                                 </Badge>
                                             ))}
                                         </div>
-                                        <div className="flex items-center text-sm font-medium text-primary gap-1 pt-2">
-                                            อ่านต่อ <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                        <div className="flex items-center text-xs font-semibold text-primary/80 gap-1.5 group-hover:gap-2 transition-all">
+                                            Read <ArrowRight className="h-3.5 w-3.5" />
                                         </div>
                                     </div>
                                 </CardContent>
