@@ -1,8 +1,9 @@
 ---
 layout: post
-title: "Deep Dive เจาะลึกโครงสร้างและการโจมตี Cross-Site Scripting (XSS) ขั้นสูง"
-date: 2025-12-02
-tags: [cybersecurity, security, technical-seo, wordpress]
+title: "เจาะลึก XSS (Cross-Site Scripting): จากพื้นฐานสู่การป้องกันระดับ Enterprise"
+date: "2025-12-02"
+thumbnail: "xss-deep-dive.png"
+tags: ["Cybersecurity", "Web Vulnerability", "XSS"]
 description: "เจาะลึกกลไกการทำงานของ XSS ตั้งแต่ระดับพื้นฐานไปจนถึงเทคนิคการ Bypass ระบบป้องกัน และผลกระทบเชิงลึกต่อความปลอดภัยของข้อมูลและอันดับ SEO"
 ---
 
