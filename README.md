@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💻 Saranyuu.M — Professional Portfolio
 
-## Getting Started
+> **"ระบบที่ดีเริ่มต้นที่ความปลอดภัย"** (A good system starts with security)
 
-First, run the development server:
+Welcome to the repository of my personal portfolio. This project is a showcase of my expertise as a **Systems Architect** and **Cybersecurity Consultant**, built with high-performance modern web technologies and a focus on security-driven design.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![Saranyuu Portfolio Overview](https://raw.githubusercontent.com/Yuukub/yuukub.github.io/main/public/portfolio-preview.png) *(Note: Placeholder for actual preview if available)*
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚡ Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **🛡️ Security-First Architecture**: Every component is designed with security in mind, reflecting my professional focus.
+- **💼 Specialized Service Catalog**: Integrated lead generation for services like WordPress Security, Malware Removal, and Systems Automation.
+- **🚀 Fastwork Integration**: Direct "Hire via Fastwork" buttons color-matched to specific service themes.
+- **🧩 Scalable Project Hub**: A curated repository of technical projects with dynamic animations and categorized tags.
+- **✨ Premium UI/UX**:
+  - High-performance glassmorphism aesthetics.
+  - Staggered entrance animations powered by `framer-motion` (or Tailwind animate).
+  - Dark/Light mode support with harmonious color palettes.
+  - Fully responsive 2x2 grid layout for optimal legibility.
+- **🌑 Global State & Performance**: Built with Next.js 15+ and Turbopack for lightning-fast build times and smooth transitions.
 
-## Learn More
+## 🛠️ Technical Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Animations**: [Tailwind Animate](https://github.com/jamiebuilds/tailwind-animate)
+- **Deployment**: [GitHub Pages](https://pages.github.com/) (via GitHub Actions)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## Deploy on Vercel
+To run this project locally, follow these steps:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Yuukub/yuukub.github.io.git
+   cd yuukub.github.io
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## 🏗️ Deployment
+
+This project is deployed to **GitHub Pages** using a custom GitHub Actions workflow (`.github/workflows/nextjs.yml`). 
+
+- Simply push to the `main` branch, and the workflow will automatically build and deploy the static version to your GitHub Pages URL.
+
+---
+
+## 📩 Contact & Hire
+
+Interested in working together or hiring me for security consultancy?
+
+- **Fastwork Profile**: [Hire me on Fastwork](https://fastwork.co/user/yuukub)
+- **Email**: [yuukun.eutopia@gmail.com](mailto:yuukun.eutopia@gmail.com)
+- **GitHub**: [@yuukub](https://github.com/yuukub)
+
+---
+
+Developed with ❤️ and AI-Assistance by **Saranyuu.M**
