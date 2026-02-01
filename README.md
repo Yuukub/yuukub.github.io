@@ -2,26 +2,25 @@
 
 > **"ระบบที่ดีเริ่มต้นที่ความปลอดภัย"** (A good system starts with security)
 
-Welcome to the repository of my personal portfolio. This project is a showcase of my expertise as a **Systems Architect** and **Cybersecurity Consultant**, built with high-performance modern web technologies and a focus on security-driven design.
+ยินดีต้อนรับสู่ Repository ของพอร์ตโฟลิโอส่วนตัว โปรเจกต์นี้ถูกพัฒนาขึ้นเพื่อแสดงศักยภาพในฐานะ **Systems Architect (สถาปนิกวางแผนระบบ)** และ **Cybersecurity Consultant (ที่ปรึกษาด้านความปลอดภัย)** โดยมุ่งเน้นการผสมผสานงานดีไซน์ที่สวยงาม ทันสมัย เข้ากับรากฐานทางวิศวกรรมที่แข็งแกร่งและปลอดภัยสูงสุด
 
-![Saranyuu Portfolio Overview](https://raw.githubusercontent.com/Yuukub/yuukub.github.io/main/public/portfolio-preview.png) *(Note: Placeholder for actual preview if available)*
+![Saranyuu Portfolio Overview](https://raw.githubusercontent.com/Yuukub/yuukub.github.io/main/public/portfolio-preview.png) *(Note: Placeholder for preview)*
 
 ---
 
-## ⚡ Key Features
+## ⚡ Key Features (ฟีเจอร์เด่น)
 
-- **🛡️ Security-First Architecture**: Every component is designed with security in mind, reflecting my professional focus.
-- **💼 Specialized Service Catalog**: Integrated lead generation for services like WordPress Security, Malware Removal, and Systems Automation.
-- **🚀 Fastwork Integration**: Direct "Hire via Fastwork" buttons color-matched to specific service themes.
-- **🧩 Scalable Project Hub**: A curated repository of technical projects with dynamic animations and categorized tags.
+- **🛡️ Security-First Architecture**: ออกแบบโครงสร้างเว็บไซต์โดยคำนึงถึงความปลอดภัยเป็นแกนหลัก สะท้อนตัวตนความเป็นที่ปรึกษาด้าน Cybersecurity
+- **💼 Specialized Service Catalog**: นำเสนอบริการเชิงเทคนิคระดับสูง เช่น **WordPress Security**, **Malware Removal** และ **Systems Automation** ได้อย่างครบถ้วน
+- **🚀 Fastwork Integration**: เชื่อมต่อโดยตรงกับโปรไฟล์ Fastwork ด้วยปุ่ม **"Hire via Fastwork"** ที่ออกแบบมาเพื่อเพิ่มโอกาสในการปิดการขาย
+- **🧩 Scalable Project Hub**: คลังผลงาน (Portfolio Hub) ที่มีการจัดหมวดหมู่ชัดเจน พร้อม Animation การนำเสนอที่ดึงดูด
 - **✨ Premium UI/UX**:
-  - High-performance glassmorphism aesthetics.
-  - Staggered entrance animations powered by `framer-motion` (or Tailwind animate).
-  - Dark/Light mode support with harmonious color palettes.
-  - Fully responsive 2x2 grid layout for optimal legibility.
-- **🌑 Global State & Performance**: Built with Next.js 15+ and Turbopack for lightning-fast build times and smooth transitions.
+  - ดีไซน์แบบ **Glassmorphism** ที่ให้ความรู้สึกพรีเมียมและทันสมัย
+  - การเคลื่อนไหว (Staggered Animations) ที่ลื่นไหล ให้ความรู้สึก "แพง" ในทุกการเลื่อน
+  - โหมด Dark/Light ที่มีการคุมโทนสี (Color Grading) อย่างประณีต
+- **🌑 High Performance Core**: ขับเคลื่อนด้วย **Next.js 15+** และ **Turbopack** เพื่อประสิทธิภาพความเร็วสูงสุด
 
-## 🛠️ Technical Stack
+## 🛠️ Technical Stack (เทคโนโลยีเบื้องหลัง)
 
 - **Framework**: [Next.js](https://nextjs.org/) (App Router)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
@@ -32,9 +31,9 @@ Welcome to the repository of my personal portfolio. This project is a showcase o
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (การติดตั้งและใช้งาน)
 
-To run this project locally, follow these steps:
+หากต้องการรันโปรเจกต์นี้บนเครื่องของคุณ สามารถทำได้ดังนี้:
 
 1. **Clone the repository:**
    ```bash
@@ -51,24 +50,24 @@ To run this project locally, follow these steps:
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   เปิด Browser ไปที่ [http://localhost:3000](http://localhost:3000) เพื่อดูผลลัพธ์
 
 ## 🏗️ Deployment
 
-This project is deployed to **GitHub Pages** using a custom GitHub Actions workflow (`.github/workflows/nextjs.yml`). 
+โปรเจกต์นี้ใช้ระบบ **GitHub Actions** ในการ Deploy ขึ้น **GitHub Pages** โดยอัตโนมัติ
 
-- Simply push to the `main` branch, and the workflow will automatically build and deploy the static version to your GitHub Pages URL.
+- เมื่อมีการ Push Code ขึ้นไปยัง Branch `main` ระบบจะทำการ Build และ Deploy เวอร์ชัน Static ให้ทันที
 
 ---
 
-## 📩 Contact & Hire
+## 📩 Contact & Hire (ติดต่องาน)
 
-Interested in working together or hiring me for security consultancy?
+หากสนใจร่วมงาน หรือต้องการที่ปรึกษาด้านความปลอดภัยระบบ:
 
-- **Fastwork Profile**: [Hire me on Fastwork](https://fastwork.co/user/yuukub)
+- **Fastwork Profile**: [จ้างงานผ่าน Fastwork](https://fastwork.co/user/yuukub)
 - **Email**: [yuukun.eutopia@gmail.com](mailto:yuukun.eutopia@gmail.com)
 - **GitHub**: [@yuukub](https://github.com/yuukub)
 
 ---
 
-Developed with ❤️ and AI-Assistance by **Saranyuu.M**
+Developed with ❤️ and Professional Passion by **Saranyuu.M**
