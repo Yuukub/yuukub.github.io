@@ -44,16 +44,16 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 pt-32 pb-24 max-w-5xl">
+            <main className="container mx-auto px-4 pt-24 pb-24 max-w-4xl">
                 <Link href="/blog">
-                    <Button variant="ghost" size="sm" className="gap-1 mb-8">
+                    <Button variant="ghost" size="sm" className="gap-1 mb-8 text-muted-foreground hover:text-primary">
                         <ChevronLeft className="h-4 w-4" />
                         กลับไปที่คลังความรู้
                     </Button>
                 </Link>
 
-                <article>
-                    <header className="mb-12">
+                <article className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 md:p-10 shadow-sm">
+                    <header className="mb-10">
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="h-4 w-4" />
@@ -66,7 +66,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                             </div>
                         </div>
 
-                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-[1.3]">
+                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-6 leading-[1.2]">
                             {postData.title}
                         </h1>
 
@@ -81,7 +81,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
                         {/* Cover Image */}
                         {postData.thumbnail && (
-                            <div className="mt-12 aspect-[21/9] w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                            <div className="mt-8 aspect-[21/9] w-full overflow-hidden rounded-xl border border-border/50 shadow-md">
                                 <img
                                     src={postData.thumbnail}
                                     alt={postData.title}
@@ -91,7 +91,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                         )}
                     </header>
 
-                    <Separator className="mb-12" />
+                    <Separator className="mb-10 opacity-50" />
 
                     {/* Post Content */}
                     <div
@@ -100,8 +100,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-xl prose-img:shadow-lg
-            prose-pre:p-0 prose-pre:bg-transparent
-            prose-code:before:content-none prose-code:after:content-none"
+            prose-pre:p-4 prose-pre:rounded-lg prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border/50
+            prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none"
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
                 </article>
