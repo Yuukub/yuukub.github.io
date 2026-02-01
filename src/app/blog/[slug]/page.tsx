@@ -44,7 +44,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 pt-24 pb-24 max-w-4xl">
+            <main className="container mx-auto px-4 pt-24 pb-24 max-w-5xl">
                 <Link href="/blog">
                     <Button variant="ghost" size="sm" className="gap-1 mb-8 text-muted-foreground hover:text-primary">
                         <ChevronLeft className="h-4 w-4" />
@@ -100,7 +100,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-xl prose-img:shadow-lg
-            prose-pre:p-4 prose-pre:rounded-lg prose-pre:bg-slate-950 prose-pre:border prose-pre:border-border/10 prose-pre:shadow-sm
+            prose-pre:p-0 prose-pre:rounded-none prose-pre:bg-transparent prose-pre:border-0 prose-pre:shadow-none
             prose-code:bg-transparent prose-code:p-0 prose-code:text-xs md:prose-code:text-sm prose-code:leading-loose prose-code:before:content-none prose-code:after:content-none"
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
