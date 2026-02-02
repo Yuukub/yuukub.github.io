@@ -81,7 +81,7 @@ export default async function BlogPage() {
                     </p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {allPostsData.map(({ slug, date, title, description, tags, readingTime, thumbnail }) => (
                         <Link key={slug} href={`/blog/${slug}`} className="group h-full block">
                             <Card className="h-full flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/20">

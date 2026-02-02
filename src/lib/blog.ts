@@ -54,7 +54,9 @@ export async function getSortedPostsData() {
 
     // Sort posts by date
     return allPostsData.sort((a, b) => {
-        if (a.date < b.date) {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        if (dateA < dateB) {
             return 1;
         } else {
             return -1;
