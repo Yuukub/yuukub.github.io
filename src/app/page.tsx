@@ -91,7 +91,7 @@ export default function Home() {
             <div className="flex items-center gap-3 pl-2 border-l border-border/50">
               <ModeToggle />
               <a href="mailto:yuukun.eutopia@gmail.com">
-                <Button size="sm" className="rounded-full px-5 hidden xs:flex">Contact</Button>
+                <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
               </a>
             </div>
           </nav>
@@ -135,7 +135,7 @@ export default function Home() {
 
         {/* Bento Grid: About, Services, & Stats */}
         <section className="mb-32">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[160px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:auto-rows-[160px]">
             {/* About Me */}
             <Card className="md:col-span-8 md:row-span-2 p-8 flex flex-col justify-between group overflow-hidden relative animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300 premium-card-hover transform-gpu">
               <div className="relative z-10">
@@ -176,16 +176,16 @@ export default function Home() {
 
             {/* Project Hub: A Single Scalable Box for All Work */}
             <Card id="work" className="md:col-span-8 md:row-span-6 overflow-hidden border-border/40 group flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 premium-card-hover transform-gpu">
-              <div className="p-8 border-b border-border/40 bg-muted/20 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <Layers className="h-5 w-5 text-primary" /> คลังผลงาน
+              <div className="p-6 sm:p-8 border-b border-border/40 bg-muted/20 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                    <Layers className="h-5 w-5 text-primary shrink-0" /> คลังผลงาน
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-1">รวบรวมงานออกแบบและพัฒนาที่มุ่งเน้นความแม่นยำและประสิทธิภาพเชิงเทคนิค</p>
+                  <p className="text-xs text-muted-foreground mt-1 hidden sm:block">รวบรวมงานออกแบบและพัฒนาที่มุ่งเน้นความแม่นยำและประสิทธิภาพเชิงเทคนิค</p>
                 </div>
-                <Link href="https://github.com/Yuukub">
+                <Link href="https://github.com/Yuukub" className="shrink-0">
                   <Button variant="outline" size="sm" className="rounded-full gap-2 text-xs">
-                    สำรวจ GitHub <Github className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">สำรวจ</span> GitHub <Github className="h-3.5 w-3.5" />
                   </Button>
                 </Link>
               </div>
@@ -197,7 +197,7 @@ export default function Home() {
                       key={project.title}
                       className="group/row hover:bg-muted/30 p-6 transition-colors flex flex-col sm:flex-row sm:items-center gap-4 relative"
                     >
-                      <div className={`flex-shrink-0 p-3 rounded-xl transition-colors shadow-sm ${getProjectColorClass(project.color || "")}`}>
+                      <div className={`shrink-0 h-10 w-10 flex items-center justify-center rounded-xl transition-colors shadow-sm ${getProjectColorClass(project.color || "")}`}>
                         {project.icon}
                       </div>
 

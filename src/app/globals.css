@@ -133,11 +133,16 @@
 
 /* Code block adjustments */
 .prose pre {
-  @apply rounded-xl border border-border bg-zinc-950/50 dark:bg-zinc-900/50 overflow-hidden;
+  @apply rounded-xl bg-zinc-950 dark:bg-zinc-900/80 overflow-hidden shadow-lg relative;
+  border: none !important;
+  padding: 0 !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 1.5em !important;
 }
 
+
 .prose pre code {
-  @apply block p-4 overflow-x-auto text-[13px] md:text-sm leading-relaxed;
+  @apply block p-5 overflow-x-auto text-[13px] md:text-sm leading-relaxed;
   font-family: var(--font-geist-mono);
 }
 

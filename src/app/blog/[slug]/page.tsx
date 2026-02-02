@@ -37,7 +37,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                         <div className="flex items-center gap-3 pl-2 border-l border-border/50">
                             <ModeToggle />
                             <a href="mailto:yuukun.eutopia@gmail.com">
-                                <Button size="sm" className="rounded-full px-5 hidden xs:flex">Contact</Button>
+                                <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
                             </a>
                         </div>
                     </nav>
@@ -95,13 +95,12 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
                     {/* Post Content */}
                     <div
-                        className="prose prose-zinc dark:prose-invert max-w-none 
+                        className="prose prose-zinc dark:prose-invert max-w-none
             prose-headings:scroll-mt-20 prose-headings:font-bold
             prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-xl prose-img:shadow-lg
-            prose-pre:p-4 prose-pre:rounded-xl prose-pre:bg-[#1e1e1e] prose-pre:shadow-xl prose-pre:border-none
-            prose-code:bg-transparent prose-code:p-0 prose-code:text-xs md:prose-code:text-sm prose-code:leading-loose prose-code:text-gray-100 prose-code:before:content-none prose-code:after:content-none"
+            prose-code:before:content-none prose-code:after:content-none"
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
                 </article>
