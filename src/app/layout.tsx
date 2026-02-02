@@ -74,6 +74,32 @@ export default function RootLayout({
       <body
         className={`${googleSans.variable} font-sans antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  name: "Saranyuu M.",
+                  url: "https://yuukub.github.io/",
+                },
+                {
+                  "@type": "Person",
+                  name: "Saranyuu Meekumlang",
+                  url: "https://yuukub.github.io/",
+                  jobTitle: "Systems Architect & Cybersecurity Consultant",
+                  sameAs: [
+                    "https://github.com/Yuukub",
+                    "https://www.linkedin.com/in/saranyoo-m",
+                    "https://facebook.com/saranyou.meekumlang",
+                  ],
+                },
+              ],
+            }),
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -83,6 +109,6 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
       </body>
-    </html>
+    </html >
   );
 }

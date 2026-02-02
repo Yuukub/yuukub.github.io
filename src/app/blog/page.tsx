@@ -20,11 +20,34 @@ export default async function BlogPage() {
 
     return (
         <div className="min-h-screen bg-background selection:bg-primary/20 relative">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "BreadcrumbList",
+                        "itemListElement": [
+                            {
+                                "@type": "ListItem",
+                                "position": 1,
+                                "name": "Home",
+                                "item": "https://yuukub.github.io/"
+                            },
+                            {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "name": "Blog",
+                                "item": "https://yuukub.github.io/blog/"
+                            }
+                        ]
+                    })
+                }}
+            />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
             {/* Navigation */}
-            <header className="sticky top-4 z-50 w-full max-w-4xl mx-auto px-4 pointer-events-none mb-12">
+            <header className="sticky top-4 z-50 w-full max-w-4xl mx-auto px-4 pointer-events-none">
                 <div className="glass rounded-full px-6 py-2 flex items-center justify-between pointer-events-auto border border-white/10 shadow-xl group/nav">
                     <Link href="/" className="font-bold text-lg tracking-tight">
                         Saranyuu<span className="text-primary">.M</span>
@@ -46,7 +69,7 @@ export default async function BlogPage() {
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 pt-24 pb-24 max-w-5xl">
+            <main className="container mx-auto px-4 pt-10 md:pt-24 pb-24 max-w-5xl">
                 <header className="max-w-4xl mb-12">
                     <Badge variant="secondary" className="gap-2 mb-4">
                         <Newspaper className="h-3 w-3" />

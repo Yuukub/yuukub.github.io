@@ -45,17 +45,27 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         ...(postData.thumbnail ? { image: postData.thumbnail } : {}),
     };
 
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.github.io/" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.github.io/blog/" },
+            { "@type": "ListItem", "position": 3, "name": postData.title, "item": `https://yuukub.github.io/blog/${slug}/` }
+        ]
+    };
+
     return (
         <div className="min-h-screen bg-background selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([articleJsonLd, breadcrumbJsonLd]) }}
             />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
             {/* Navigation */}
-            <header className="sticky top-4 z-50 w-full max-w-4xl mx-auto px-4 pointer-events-none mb-12">
+            <header className="sticky top-4 z-50 w-full max-w-4xl mx-auto px-4 pointer-events-none">
                 <div className="glass rounded-full px-6 py-2 flex items-center justify-between pointer-events-auto border border-white/10 shadow-xl group/nav">
                     <Link href="/" className="font-bold text-lg tracking-tight">
                         Saranyuu<span className="text-primary">.M</span>
@@ -77,7 +87,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 pt-24 pb-24 max-w-5xl">
+            <main className="container mx-auto px-4 pt-10 md:pt-24 pb-24 max-w-5xl">
                 <Link href="/blog">
                     <Button variant="ghost" size="sm" className="gap-1 mb-8 text-muted-foreground hover:text-primary">
                         <ChevronLeft className="h-4 w-4" />

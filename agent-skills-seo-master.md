@@ -31,9 +31,16 @@ export const metadata = {
 }
 ```
 
-### B. Schema.org (JSON-LD)
+### B. Schema.org (JSON-LD) & GEO
 
-Whenever creating a blog post or product, automatically suggest a JSON-LD script tag to help Google understand the content structure.
+**Generative Engine Optimization (GEO)** focuses on making content intelligible for AI.
+
+- **Mandatory Schemas:**
+  - `BreadcrumbList`: Shows structure to AI.
+  - `Article` / `BlogPosting`: For content visibility.
+  - `Person`: For E-E-A-T (Experience, Expertise, Authoritativeness, and Trustworthiness).
+
+- **Placement:** Insert JSON-LD via `<script type="application/ld+json">` in the component body.
 
 ### C. Performance (Core Web Vitals)
 
@@ -46,7 +53,19 @@ Whenever creating a blog post or product, automatically suggest a JSON-LD script
 - **Robots.txt:** Ensure it correctly points to the sitemap.
 - **Verification:** Remind the user to add the Google Search Console verification meta tag in the root `layout.tsx`.
 
-## 5. Pre-Commit Checklist
+## 5. Content Structure for AI (The Strapi Method)
+
+To optimize for AI Overviews and Featured Snippets:
+
+1.  **Lead with the Answer:** Key definition or value prop in the first 100 words.
+2.  **Pattern:**
+    - `<h2>` Question / Topic
+    - **Direct Answer:** 1 sentence.
+    - **Context:** 2-3 sentences.
+    - **Proof:** Stat, code, or citation.
+3.  **Semantic Containers:** Use `<article>`, `<nav>`, `<aside>` to help models understand relationships.
+
+## 6. Pre-Commit Checklist
 
 Before finalizing any code change:
 
@@ -54,4 +73,6 @@ Before finalizing any code change:
 - [ ] Is the Meta Description present and meaningful?
 - [ ] Is there a canonical URL to prevent duplicate content?
 - [ ] Are all images optimized for "Static Export" (`unoptimized: true`)?
-- [ ] Is the HTML structure semantic?
+- [ ] Is the HTML structure semantic (`<article>`, `<h1>`)?
+- [ ] **[GEO]** Is JSON-LD present and valid?
+- [ ] **[GEO]** Are Breadcrumbs implemented?

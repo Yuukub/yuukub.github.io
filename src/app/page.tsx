@@ -76,35 +76,12 @@ const getProjectColorClass = (color: string) => {
   }
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      name: "Saranyuu M.",
-      url: "https://yuukub.github.io/",
-    },
-    {
-      "@type": "Person",
-      name: "Saranyuu Meekumlang",
-      url: "https://yuukub.github.io/",
-      jobTitle: "Systems Architect & Cybersecurity Consultant",
-      sameAs: [
-        "https://github.com/Yuukub",
-        "https://linkedin.com/in/yuu-kun-2500ba303",
-        "https://facebook.com/saranyou.meekumlang",
-      ],
-    },
-  ],
-};
+
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background selection:bg-primary/20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+
       {/* Mesh Background */}
       <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
@@ -180,7 +157,7 @@ export default function Home() {
               </div>
               <div className="flex gap-4 relative z-10 mt-6">
                 <a href="https://github.com/Yuukub" className="hover:text-primary transition-colors"><Github className="h-5 w-5" /></a>
-                <a href="https://linkedin.com/in/yuu-kun-2500ba303" className="hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
+                <a href="https://www.linkedin.com/in/saranyoo-m" className="hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
                 <a href="https://facebook.com/saranyou.meekumlang" className="hover:text-primary transition-colors"><Facebook className="h-5 w-5" /></a>
               </div>
               {/* Abstract decorative element */}
@@ -467,7 +444,7 @@ export default function Home() {
                   ติดต่อร่วมงาน
                 </Button>
               </a>
-              <a href="https://linkedin.com/in/yuu-kun-2500ba303">
+              <a href="https://www.linkedin.com/in/saranyoo-m">
                 <Button size="lg" variant="outline" className="rounded-full h-14 px-10 gap-2 font-bold">
                   LinkedIn <Linkedin className="h-4 w-4" />
                 </Button>
