@@ -32,7 +32,7 @@ export default async function BlogPage() {
                         <div className="flex items-center gap-3 pl-2 border-l border-border/50">
                             <ModeToggle />
                             <a href="mailto:yuukun.eutopia@gmail.com">
-                                <Button size="sm" className="rounded-full px-5 hidden xs:flex">Contact</Button>
+                                <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
                             </a>
                         </div>
                     </nav>
