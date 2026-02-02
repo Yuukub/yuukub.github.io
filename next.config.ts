@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
-  output: "export",
+  // Only apply static export in production (for GitHub Pages)
+  // In development, we need dynamic routes for Keystatic CMS
+  ...(isProduction && { output: "export" }),
   trailingSlash: true,
   images: {
     unoptimized: true,

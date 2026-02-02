@@ -1,5 +1,6 @@
 ---
 layout: post
+slug: wordpress-security
 title: "เจาะลึกความปลอดภัย WordPress: วิเคราะห์กลไกการโจมตีและกลยุทธ์การป้องกันขั้นสูง"
 date: 2025-11-24
 thumbnail: "wordpress-security.png"

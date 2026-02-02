@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "เจาะลึก XSS (Cross-Site Scripting): จากพื้นฐานสู่การป้องกันระดับ Enterprise"
+slug: xss-deep-dive
+title: "เจาะลึก XSS (Cross-Site Scripting): จากทฤษฎีสู่การป้องกันในโลกจริง"
 date: "2025-12-02"
 thumbnail: "xss-deep-dive.png"
 tags: ["Cybersecurity", "Web Vulnerability", "XSS"]

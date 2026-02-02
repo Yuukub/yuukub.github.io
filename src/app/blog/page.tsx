@@ -83,11 +83,11 @@ export default async function BlogPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {allPostsData.map(({ slug, date, title, description, tags, readingTime, thumbnail }) => (
-                        <Link key={slug} href={`/blog/${slug}`} className="group">
-                            <Card className="h-full overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/20">
+                        <Link key={slug} href={`/blog/${slug}`} className="group h-full block">
+                            <Card className="h-full flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/20">
                                 {/* Thumbnail */}
                                 {thumbnail && (
-                                    <div className="aspect-video w-full overflow-hidden">
+                                    <div className="aspect-video w-full overflow-hidden shrink-0">
                                         <img
                                             src={thumbnail}
                                             alt={title}
@@ -96,7 +96,7 @@ export default async function BlogPage() {
                                     </div>
                                 )}
 
-                                <CardHeader className="pb-3">
+                                <CardHeader className="pb-0 shrink-0">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                                         <Calendar className="h-3 w-3" />
                                         <span>{format(new Date(date), "dd MMM yyyy", { locale: th })}</span>
@@ -104,18 +104,18 @@ export default async function BlogPage() {
                                         <Clock className="h-3 w-3" />
                                         <span>{readingTime}</span>
                                     </div>
-                                    <CardTitle className="text-lg leading-snug group-hover:text-primary transition-colors">
+                                    <CardTitle className="text-xl leading-snug group-hover:text-primary transition-colors line-clamp-3 min-h-[5.25rem]">
                                         {title}
                                     </CardTitle>
                                 </CardHeader>
 
-                                <CardContent className="pt-0">
+                                <CardContent className="pt-0 flex flex-col flex-grow">
                                     {description && (
                                         <CardDescription className="line-clamp-2 mb-4">
                                             {description}
                                         </CardDescription>
                                     )}
-                                    <div className="flex items-center justify-between gap-4">
+                                    <div className="mt-auto pt-4 flex items-center justify-between gap-4">
                                         <div className="flex flex-wrap gap-1.5">
                                             {Array.from(new Set(tags || [])).slice(0, 2).map((tag, index) => (
                                                 <Badge key={`${tag}-${index}`} variant="outline" className="text-[10px]">
