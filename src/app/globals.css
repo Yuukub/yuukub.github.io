@@ -166,9 +166,8 @@
 /* Premium Utilities */
 @layer utilities {
   .premium-card-hover {
-    transition: box-shadow 0.4s cubic-bezier(0.2, 0, 0, 1);
+    transition: box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1);
     transform: translateZ(0);
-    will-change: box-shadow;
 
     &:hover {
       box-shadow: 0 10px 30px -10px oklch(var(--primary) / 0.1);
