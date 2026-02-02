@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSortedPostsData } from "@/lib/blog";
+
+export const metadata: Metadata = {
+    title: "บทความและคลังความรู้เชิงเทคนิค",
+    description: "รวมบทความเจาะลึกด้านความปลอดภัย WordPress, Technical SEO และการพัฒนา Full-stack สมัยใหม่ โดย Saranyuu M.",
+    alternates: { canonical: "https://yuukub.github.io/blog/" },
+};
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

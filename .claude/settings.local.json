@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"c:\\\\Yuu Project\\\\yuukub.github.io\\\\src\\\\app\\\\robots.ts\")",
+      "Bash(del \"c:\\\\Yuu Project\\\\yuukub.github.io\\\\src\\\\app\\\\sitemap.ts\")"
+    ]
+  }
+}

@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+export const metadata: Metadata = {
+  title: "Saranyuu M. | Systems Architect & Cybersecurity Consultant",
+  description: "ผู้เชี่ยวชาญด้านความปลอดภัยระดับ Google Certified และ Full-stack Developer ออกแบบระบบด้วยหลัก Security-by-Design เพื่อการเติบโตทางธุรกิจที่มั่นคง",
+  alternates: { canonical: "https://yuukub.github.io/" },
+};
 import {
   Rocket,
   Globe,
@@ -69,9 +76,35 @@ const getProjectColorClass = (color: string) => {
   }
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "Saranyuu M.",
+      url: "https://yuukub.github.io/",
+    },
+    {
+      "@type": "Person",
+      name: "Saranyuu Meekumlang",
+      url: "https://yuukub.github.io/",
+      jobTitle: "Systems Architect & Cybersecurity Consultant",
+      sameAs: [
+        "https://github.com/Yuukub",
+        "https://linkedin.com/in/yuu-kun-2500ba303",
+        "https://facebook.com/saranyou.meekumlang",
+      ],
+    },
+  ],
+};
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-background selection:bg-primary/20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Mesh Background */}
       <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 

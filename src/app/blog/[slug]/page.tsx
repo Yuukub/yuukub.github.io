@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getPostData, getAllPostSlugs } from "@/lib/blog";
 import { Button } from "@/components/ui/button";
@@ -12,12 +13,44 @@ export async function generateStaticParams() {
     return await getAllPostSlugs();
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
+    const post = await getPostData(slug);
+    return {
+        title: post.title,
+        description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
+        alternates: { canonical: `https://yuukub.github.io/blog/${slug}/` },
+        openGraph: {
+            title: post.title,
+            description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
+            type: "article",
+            publishedTime: post.date,
+            authors: ["Saranyuu Meekumlang"],
+            ...(post.thumbnail ? { images: [{ url: post.thumbnail }] } : {}),
+        },
+    };
+}
+
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const postData = await getPostData(slug);
 
+    const articleJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: postData.title,
+        datePublished: postData.date,
+        author: { "@type": "Person", name: "Saranyuu Meekumlang" },
+        ...(postData.description ? { description: postData.description } : {}),
+        ...(postData.thumbnail ? { image: postData.thumbnail } : {}),
+    };
+
     return (
         <div className="min-h-screen bg-background selection:bg-primary/20 relative">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+            />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
