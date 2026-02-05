@@ -135,7 +135,7 @@ export default async function BlogPage() {
             </main>
 
             {/* Footer */}
-            <footer className="border-t py-12 bg-muted/30">
+            <footer className="border-t py-12 bg-background/95 backdrop-blur-sm relative z-20">
                 <div className="container mx-auto px-4 text-center">
                     <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Saranyuu M. สงวนลิขสิทธิ์</p>
                     <p className="mt-2 text-xs text-muted-foreground">Member of แว่น Talk มาร์เก็ตติ้ง</p>

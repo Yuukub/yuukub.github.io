@@ -455,7 +455,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-12 px-4 bg-muted/10">
+      <footer className="border-t py-12 px-4 bg-background/95 backdrop-blur-sm relative z-20">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-left">
             <h4 className="font-bold text-lg mb-2 underline decoration-primary/30 underline-offset-4">Saranyuu M.</h4>
