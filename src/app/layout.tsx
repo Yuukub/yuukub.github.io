@@ -56,6 +56,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { ParticlesBackground } from "@/components/particles-background";
 
 export default function RootLayout({
   children,
@@ -105,9 +106,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <ParticlesBackground />
           {children}
         </ThemeProvider>
       </body>
-    </html >
+    </html>
   );
 }
