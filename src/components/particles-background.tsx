@@ -67,8 +67,8 @@ export const ParticlesBackground: React.FC = () => {
 
             // Use a fallback when theme is not yet resolved
             const isDark = resolvedTheme === "dark"
-            const particleColor = isDark ? "rgba(100, 150, 255, 0.4)" : "rgba(60, 100, 255, 0.3)"
-            const lineColor = isDark ? "rgba(100, 150, 255, 0.15)" : "rgba(60, 100, 255, 0.12)"
+            const particleColor = isDark ? "rgba(140, 180, 255, 0.6)" : "rgba(80, 120, 255, 0.5)"
+            const lineColor = isDark ? "rgba(140, 180, 255, 0.25)" : "rgba(80, 120, 255, 0.2)"
 
             particles.forEach((p, i) => {
                 // Move
