@@ -57,8 +57,8 @@ export const ParticlesBackground: React.FC = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
             const isDark = resolvedTheme === "dark"
-            const particleColor = isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.15)"
-            const lineColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)"
+            const particleColor = isDark ? "rgba(100, 150, 255, 0.2)" : "rgba(60, 100, 255, 0.15)"
+            const lineColor = isDark ? "rgba(100, 150, 255, 0.08)" : "rgba(60, 100, 255, 0.08)"
 
             particles.forEach((p, i) => {
                 // Move
@@ -137,7 +137,7 @@ export const ParticlesBackground: React.FC = () => {
     return (
         <canvas
             ref={canvasRef}
-            className="fixed inset-0 z-[-5] pointer-events-none"
+            className="fixed inset-0 z-0 pointer-events-none opacity-60"
             style={{ background: "transparent" }}
         />
     )

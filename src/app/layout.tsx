@@ -107,7 +107,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ParticlesBackground />
-          {children}
+          <div className="relative z-10">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>
