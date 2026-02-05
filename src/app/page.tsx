@@ -40,7 +40,7 @@ const PROJECTS = [
     description: "ระบบบริหารจัดการงบประมาณค่าโฆษณา สำหรับเอเจนซี่และทีมมาร์เก็ตติ้ง แสดงผลแบบ Real-time พร้อมการจัดเก็บข้อมูลที่ปลอดภัย",
     tags: ["Next.js", "Prisma", "MySQL"],
     type: "เว็บแอปพลิเคชัน",
-    link: "https://github.com/Yuukub/Ads-budget-tracking",
+    link: "https://ads-budget-tracking.vercel.app",
     icon: <ChartBar className="h-4 w-4" />,
     color: "blue",
     featured: true
@@ -130,7 +130,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4 translate-y-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
             <a href="mailto:yuukun.eutopia@gmail.com">
-              <Button size="lg" className="rounded-full h-12 px-8 gap-2 premium-glow">
+              <Button size="lg" className="rounded-full h-12 px-8 gap-2 premium-glow animate-pulse-glow">
                 ติดต่อร่วมงาน <Mail className="h-4 w-4" />
               </Button>
             </a>
@@ -147,7 +147,7 @@ export default function Home() {
         <section className="mb-32">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:auto-rows-[160px]">
             {/* About Me */}
-            <Card className="md:col-span-8 md:row-span-2 p-8 flex flex-col justify-between group overflow-hidden relative animate-in fade-in slide-in-from-bottom-3 duration-600 delay-100 premium-card-hover transform-gpu">
+            <Card className="md:col-span-8 md:row-span-2 p-8 flex flex-col justify-between group overflow-hidden relative animate-in fade-in slide-in-from-bottom-3 duration-600 delay-100 hover-lift transform-gpu">
               <div className="relative z-10">
                 <h3 className="text-2xl font-bold mb-4">Engineering Security for the Future</h3>
                 <p className="text-muted-foreground leading-relaxed md:w-3/4">
@@ -185,7 +185,7 @@ export default function Home() {
             </Card>
 
             {/* Project Hub: A Single Scalable Box for All Work */}
-            <Card id="work" className="md:col-span-8 md:row-span-6 overflow-hidden border-border/40 group flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-600 delay-200 premium-card-hover transform-gpu">
+            <Card id="work" className="md:col-span-8 md:row-span-6 overflow-hidden border-border/40 group flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-600 delay-200 hover-lift transform-gpu">
               <div className="p-6 sm:p-8 border-b border-border/40 bg-muted/20 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2">
@@ -265,7 +265,7 @@ export default function Home() {
             </Card>
 
             {/* Core Tech & Vibe Coding */}
-            <Card className="md:col-span-4 md:row-span-3 p-8 flex flex-col animate-in fade-in slide-in-from-right-4 duration-600 delay-250 premium-card-hover transform-gpu">
+            <Card className="md:col-span-4 md:row-span-3 p-8 flex flex-col animate-in fade-in slide-in-from-right-4 duration-600 delay-250 hover-lift transform-gpu">
               <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-primary" /> Vibe Coding & Stack
               </h3>
@@ -288,7 +288,7 @@ export default function Home() {
 
             {/* Stats / Interest - Redesigned as Personal Insight */}
             <Link href="https://github.com/yuukub" target="_blank" rel="noopener noreferrer" className="md:col-span-4 md:row-span-1">
-              <Card className="p-6 h-full flex items-center justify-between group cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors border-primary/10 animate-in fade-in slide-in-from-right-3 duration-600 delay-300 premium-card-hover transform-gpu">
+              <Card className="p-6 h-full flex items-center justify-between group cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors border-primary/10 animate-in fade-in slide-in-from-right-3 duration-600 delay-300 hover-lift transform-gpu">
                 <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <TrendingUp className="h-5 w-5" />
@@ -305,7 +305,7 @@ export default function Home() {
             </Link>
 
             {/* Blog Call to Action */}
-            <Card className="md:col-span-4 md:row-span-2 p-8 flex flex-col justify-between border-primary/20 bg-muted/30 animate-in fade-in slide-in-from-right-3 duration-600 delay-350 premium-card-hover transform-gpu">
+            <Card className="md:col-span-4 md:row-span-2 p-8 flex flex-col justify-between border-primary/20 bg-muted/30 animate-in fade-in slide-in-from-right-3 duration-600 delay-350 hover-lift transform-gpu">
               <div className="space-y-4">
                 <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[10px]">บทความล่าสุด</Badge>
                 <h3 className="text-xl font-bold">แบ่งปันความรู้ด้านเทคนิค</h3>
@@ -341,7 +341,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Security Service */}
-            <Card className="p-8 border-cyan-500/20 bg-cyan-500/[0.02] hover:bg-cyan-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-100 premium-card-hover transform-gpu">
+            <Card className="p-8 border-cyan-500/20 bg-cyan-500/[0.02] hover:bg-cyan-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-100 hover-lift transform-gpu">
               <div className="h-12 w-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="h-6 w-6 text-cyan-600" />
               </div>
@@ -363,7 +363,7 @@ export default function Home() {
             </Card>
 
             {/* Development Service */}
-            <Card className="p-8 border-indigo-500/20 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-150 premium-card-hover transform-gpu">
+            <Card className="p-8 border-indigo-500/20 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-150 hover-lift transform-gpu">
               <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Code2 className="h-6 w-6 text-indigo-600" />
               </div>
@@ -385,7 +385,7 @@ export default function Home() {
             </Card>
 
             {/* Automation & Strategy */}
-            <Card className="p-8 border-amber-500/20 bg-amber-500/[0.02] hover:bg-amber-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-200 premium-card-hover transform-gpu">
+            <Card className="p-8 border-amber-500/20 bg-amber-500/[0.02] hover:bg-amber-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-200 hover-lift transform-gpu">
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Zap className="h-6 w-6 text-amber-600" />
               </div>
@@ -407,7 +407,7 @@ export default function Home() {
             </Card>
 
             {/* WordPress Migration */}
-            <Card className="p-8 border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-250 premium-card-hover transform-gpu">
+            <Card className="p-8 border-emerald-500/20 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] transition-colors group flex flex-col h-full animate-in fade-in slide-in-from-bottom-3 duration-600 delay-250 hover-lift transform-gpu">
               <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Rocket className="h-6 w-6 text-emerald-600" />
               </div>
