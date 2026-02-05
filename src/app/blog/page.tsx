@@ -19,7 +19,7 @@ export default async function BlogPage() {
     const allPostsData = await getSortedPostsData();
 
     return (
-        <div className="min-h-screen bg-background/80 selection:bg-primary/20 relative">
+        <div className="min-h-screen selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{

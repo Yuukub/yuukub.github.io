@@ -80,7 +80,7 @@ const getProjectColorClass = (color: string) => {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background/80 selection:bg-primary/20">
+    <div className="min-h-screen selection:bg-primary/20">
 
       {/* Mesh Background */}
       <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />

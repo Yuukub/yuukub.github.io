@@ -56,7 +56,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
     };
 
     return (
-        <div className="min-h-screen bg-background/80 selection:bg-primary/20 relative">
+        <div className="min-h-screen selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify([articleJsonLd, breadcrumbJsonLd]) }}
