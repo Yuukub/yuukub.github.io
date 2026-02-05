@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 
 interface Particle {
@@ -14,12 +14,21 @@ interface Particle {
 export const ParticlesBackground: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const { resolvedTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
 
     // Mouse position
     const mouse = useRef({ x: 0, y: 0 })
     const isMouseActive = useRef(false)
 
+    // Wait for client-side mount
     useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
+        // Don't run until mounted on client
+        if (!mounted) return
+
         const canvas = canvasRef.current
         if (!canvas) return
 
@@ -56,9 +65,10 @@ export const ParticlesBackground: React.FC = () => {
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+            // Use a fallback when theme is not yet resolved
             const isDark = resolvedTheme === "dark"
-            const particleColor = isDark ? "rgba(100, 150, 255, 0.2)" : "rgba(60, 100, 255, 0.15)"
-            const lineColor = isDark ? "rgba(100, 150, 255, 0.08)" : "rgba(60, 100, 255, 0.08)"
+            const particleColor = isDark ? "rgba(100, 150, 255, 0.4)" : "rgba(60, 100, 255, 0.3)"
+            const lineColor = isDark ? "rgba(100, 150, 255, 0.15)" : "rgba(60, 100, 255, 0.12)"
 
             particles.forEach((p, i) => {
                 // Move
@@ -132,13 +142,19 @@ export const ParticlesBackground: React.FC = () => {
             window.removeEventListener("mouseleave", handleMouseLeave)
             cancelAnimationFrame(animationFrameId)
         }
-    }, [resolvedTheme])
+    }, [mounted, resolvedTheme])
+
+    // Don't render anything on server
+    if (!mounted) return null
 
     return (
         <canvas
             ref={canvasRef}
-            className="fixed inset-0 z-0 pointer-events-none opacity-60"
-            style={{ background: "transparent" }}
+            className="fixed inset-0 pointer-events-none"
+            style={{
+                background: "transparent",
+                zIndex: -1
+            }}
         />
     )
 }
