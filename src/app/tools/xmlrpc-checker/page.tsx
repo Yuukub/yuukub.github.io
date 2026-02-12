@@ -69,7 +69,7 @@ export default function XmlRpcCheckerPage() {
                 <Card className="border-border/50 bg-muted/20 mb-8">
                     <CardHeader>
                         <CardTitle>Enter Website URL</CardTitle>
-                        <CardDescription>Enter the full URL of the WordPress site you want to check.</CardDescription>
+                        <CardDescription>กรอก URL ของเว็บไซต์ WordPress ที่คุณต้องการตรวจสอบ</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex gap-2">
