@@ -55,19 +55,28 @@ export default function PasswordGenerator() {
     }, [generatePassword]);
 
     useEffect(() => {
-        // Simple strength calculator
-        let score = 0;
-        if (password.length > 12) score++;
-        if (password.length > 18) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[0-9]/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
+        // More robust strength calculator (Entropy-based heuristic)
+        let entropy = 0;
+        const poolSize =
+            (options.lowercase ? 26 : 0) +
+            (options.uppercase ? 26 : 0) +
+            (options.numbers ? 10 : 0) +
+            (options.symbols ? 32 : 0);
 
-        if (score <= 2) setStrength({ label: "Weak", score: 1, color: "text-red-500", bg: "bg-red-500" });
-        else if (score <= 4) setStrength({ label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" });
-        else if (score <= 5) setStrength({ label: "Strong", score: 3, color: "text-emerald-500", bg: "bg-emerald-500" });
+        if (poolSize > 0 && password.length > 0) {
+            entropy = Math.floor(password.length * Math.log2(poolSize));
+        }
+
+        // Standard entropy thresholds:
+        // < 40: Weak
+        // 40-60: Medium
+        // 60-80: Strong
+        // > 80: Very Strong
+        if (entropy < 40) setStrength({ label: "Weak", score: 1, color: "text-red-500", bg: "bg-red-500" });
+        else if (entropy < 60) setStrength({ label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" });
+        else if (entropy < 80) setStrength({ label: "Strong", score: 3, color: "text-emerald-500", bg: "bg-emerald-500" });
         else setStrength({ label: "Very Strong", score: 4, color: "text-blue-500", bg: "bg-blue-500" });
-    }, [password]);
+    }, [password, options]);
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(password);
@@ -175,7 +184,7 @@ export default function PasswordGenerator() {
                                 <input
                                     type="range"
                                     min="8"
-                                    max="64"
+                                    max="32"
                                     value={length}
                                     onChange={(e) => setLength(parseInt(e.target.value))}
                                     className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
