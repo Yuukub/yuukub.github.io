@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 
 
-const SITE_URL = "https://yuukub.github.io";
+const SITE_URL = "https://yuukub.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -83,12 +83,12 @@ export default function RootLayout({
                 {
                   "@type": "WebSite",
                   name: "Saranyuu M.",
-                  url: "https://yuukub.github.io/",
+                  url: "https://yuukub.com/",
                 },
                 {
                   "@type": "Person",
                   name: "Saranyuu Meekumlang",
-                  url: "https://yuukub.github.io/",
+                  url: "https://yuukub.com/",
                   jobTitle: "Systems Architect & Cybersecurity Consultant",
                   sameAs: [
                     "https://github.com/Yuukub",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSortedPostsData } from "@/lib/blog";
+import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
     title: "บทความและคลังความรู้เชิงเทคนิค",
@@ -47,27 +48,7 @@ export default async function BlogPage() {
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
             {/* Navigation */}
-            <header className="sticky top-4 z-50 w-full max-w-4xl mx-auto px-4 pointer-events-none">
-                <div className="glass rounded-full px-6 py-2 flex items-center justify-between pointer-events-auto border border-white/10 shadow-xl group/nav">
-                    <Link href="/" className="font-bold text-lg tracking-tight">
-                        Saranyuu<span className="text-primary">.M</span>
-                    </Link>
-                    <nav className="flex items-center gap-6 text-sm font-medium">
-                        <Link href="/#work" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-                            Work
-                        </Link>
-                        <Link href="/blog" className="text-foreground transition-colors font-bold tracking-tight">
-                            Blog
-                        </Link>
-                        <div className="flex items-center gap-3 pl-2 border-l border-border/50">
-                            <ModeToggle />
-                            <a href="mailto:yuukun.eutopia@gmail.com">
-                                <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
-                            </a>
-                        </div>
-                    </nav>
-                </div>
-            </header>
+            <Navbar />
 
             <main className="container mx-auto px-4 pt-10 md:pt-24 pb-24 max-w-5xl">
                 <header className="max-w-4xl mb-12">

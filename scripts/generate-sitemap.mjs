@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-const SITE_URL = "https://yuukub.github.io";
+const SITE_URL = "https://yuukub.com";
 const postsDir = path.join(process.cwd(), "posts");
 
 const postFiles = fs.readdirSync(postsDir).filter((f) => f.endsWith(".md"));
