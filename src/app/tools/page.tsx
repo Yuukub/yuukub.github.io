@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
     title: "Tools | Saranyuu M.",
-    description: "Collection of security and utility tools for developers and system administrators.",
+    description: "รวมเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
 };
 
 const TOOLS = [
     {
         title: "WordPress XML-RPC Checker",
-        description: "Check if your WordPress site is vulnerable to XML-RPC attacks and get advice on how to secure it.",
+        description: "ตรวจสอบช่องโหว่ XML-RPC บน WordPress ของคุณ พร้อมแนะนำวิธีป้องกันและเพิ่มความปลอดภัย",
         icon: <ShieldCheck className="h-6 w-6 text-emerald-500" />,
         href: "/tools/xmlrpc-checker",
         tags: ["Security", "WordPress"],
@@ -22,7 +22,7 @@ const TOOLS = [
     },
     {
         title: "Hash Generator",
-        description: "Generate MD5 and SHA-256 hashes locally. Useful for WordPress password resets via phpMyAdmin.",
+        description: "สร้างรหัส MD5 และ SHA-256 ภายในเครื่องของคุณ ใช้สำหรับรีเซ็ตรหัสผ่าน WordPress ผ่าน phpMyAdmin",
         icon: <Hash className="h-6 w-6 text-blue-500" />,
         href: "/tools/hash-generator",
         tags: ["Security", "DevOps"],
@@ -30,7 +30,7 @@ const TOOLS = [
     },
     {
         title: "Password Generator",
-        description: "Create secure, cryptographically strong passwords with a built-in strength meter.",
+        description: "สร้างรหัสผ่านที่ปลอดภัยและคาดเดายาก (Secure Password) พร้อมระบบวัดความแข็งแรงในตัว",
         icon: <Lock className="h-6 w-6 text-purple-500" />,
         href: "/tools/password-generator",
         tags: ["Productivity", "Security"],
@@ -40,11 +40,11 @@ const TOOLS = [
 
 export default function ToolsPage() {
     return (
-        <div className="min-h-screen selection:bg-primary/20">
+        <div className="min-h-screen selection:bg-primary/20 bg-background text-foreground">
             <Navbar />
 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-5xl">
-                <section className="flex flex-col items-center text-center gap-6 mb-20">
+                <section className="flex flex-col items-center text-center gap-6 mb-20 border-b border-border/10 pb-20">
                     <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 text-primary px-4 py-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
                         Developer Tools & Utilities
                     </Badge>
@@ -56,23 +56,23 @@ export default function ToolsPage() {
                         </span>
                     </h1>
 
-                    <p className="text-lg text-muted-foreground max-w-2xl text-balance animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150">
-                        Practical tools designed to help you verify security and optimize your workflow. Free to use, built with privacy in mind.
+                    <p className="text-lg text-muted-foreground max-w-2xl text-balance animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150 leading-relaxed">
+                        รวมเครื่องมือสารพัดประโยชน์ที่ช่วยคุณตรวจสอบความปลอดภัยและเพิ่มประสิทธิภาพการทำงาน ใช้งานฟรี และให้ความสำคัญกับความเป็นส่วนตัวของคุณเป็นอันดับแรก (Privacy-First)
                     </p>
                 </section>
 
-                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-300">
                     {TOOLS.map((tool, index) => (
                         <Link key={tool.title} href={tool.href} className="group">
-                            <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-muted/20 border-border/50">
+                            <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-muted/20 border-border/50 backdrop-blur-sm">
                                 <div>
-                                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${tool.colorClass}`}>
+                                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 shadow-sm ${tool.colorClass}`}>
                                         {tool.icon}
                                     </div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        <h3 className="text-xl font-bold">{tool.title}</h3>
+                                        <h3 className="text-xl font-bold tracking-tight group-hover:text-primary transition-colors">{tool.title}</h3>
                                     </div>
-                                    <p className="text-sm text-muted-foreground mb-4">
+                                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                                         {tool.description}
                                     </p>
                                 </div>
@@ -80,12 +80,12 @@ export default function ToolsPage() {
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="flex gap-2">
                                         {tool.tags.map(tag => (
-                                            <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0.5 pointer-events-none">
+                                            <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0.5 pointer-events-none opacity-80 font-semibold tracking-wide uppercase">
                                                 {tag}
                                             </Badge>
                                         ))}
                                     </div>
-                                    <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                    <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors border border-transparent group-hover:border-primary/20">
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 </div>
