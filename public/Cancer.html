@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เจาะลึกประกันมะเร็ง BKI: กลยุทธ์ "เจอ จ่าย จบ" และจุดเด่นเรื่องเบี้ยคงที่ | Prakun 101</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bki-primary:#003399;--bki-secondary:#00AEEF;--bki-accent:#C8102E;--bki-dark:#001F4D;--bki-blue-light:#E6F4FF;--bki-gold:#D4A843;--bki-bg:#F8FAFC;--bki-card-bg:#FFFFFF;--bki-text:#102A43;--bki-text-light:#486581;--bki-border:#D9E2EC;--bki-success:#10B981;--bki-warning:#F59E0B;--shadow-md:0 4px 12px rgba(0,51,153,.08);--shadow-lg:0 12px 30px rgba(0,51,153,.12);--radius:16px;--radius-lg:24px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--bki-bg);color:var(--bki-text);line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* Header */
+.wp-header{background:rgba(255,255,255,.98);border-bottom:1px solid var(--bki-border);position:sticky;top:0;z-index:1000;backdrop-filter:blur(20px)}
+.wp-header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:75px}
+.wp-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.wp-logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--bki-primary),var(--bki-secondary));border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;font-family:'Prompt',sans-serif}
+.wp-logo-text{font-family:'Prompt',sans-serif;font-size:22px;font-weight:700;color:var(--bki-primary)}
+.wp-logo-text span{color:var(--bki-secondary)}
+.wp-nav{display:flex;align-items:center;gap:10px}
+.wp-nav a{text-decoration:none;color:var(--bki-text);font-size:14px;font-weight:500;padding:10px 18px;border-radius:10px;transition:0.3s}
+.wp-nav a:hover{background:var(--bki-blue-light);color:var(--bki-primary)}
+.wp-nav .active{background:var(--bki-accent);color:#fff!important}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--bki-dark) 0%,var(--bki-primary) 50%,#0056B3 100%);position:relative;overflow:hidden;padding:100px 24px 120px}
+.hero-pattern{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px}
+.hero-inner{max-width:1280px;margin:0 auto;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(200,16,46,0.15);border:1px solid rgba(200,16,46,0.3);padding:8px 24px;border-radius:50px;font-size:14px;color:#fff;margin-bottom:24px;font-weight:600}
+.hero h1{font-family:'Prompt',sans-serif;font-size:clamp(34px,5vw,54px);font-weight:800;color:#fff;line-height:1.2;margin-bottom:24px}
+.hero h1 em{font-style:normal;color:var(--bki-secondary)}
+.hero-desc{font-size:18px;color:rgba(255,255,255,0.9);max-width:850px;margin-bottom:48px;line-height:1.8}
+
+/* Content Sections */
+.main-content{max-width:1280px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+.section-alt{background:var(--bki-card-bg)}
+.section-title{font-family:'Prompt',sans-serif;font-size:32px;font-weight:700;color:var(--bki-primary);margin-bottom:16px;text-align:center}
+.section-text{max-width:950px;margin:0 auto 50px;text-align:center;font-size:17px;color:var(--bki-text-light)}
+
+/* Strategy Background */
+.context-box{background:white;padding:40px;border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-bottom:60px;border-left:8px solid var(--bki-accent)}
+.context-box h3{font-family:'Prompt';margin-bottom:15px;color:var(--bki-accent)}
+
+/* Cancer Plans Grid */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:40px 0}
+.plan-card{background:white;border-radius:var(--radius-lg);border:1px solid var(--bki-border);overflow:hidden;transition:0.4s;display:flex;flex-direction:column;box-shadow:var(--shadow-md)}
+.plan-card:hover{transform:translateY(-10px);box-shadow:var(--shadow-lg)}
+.plan-header{padding:30px;text-align:center;background:var(--bki-blue-light);border-bottom:1px solid var(--bki-border)}
+.plan-icon{font-size:48px;margin-bottom:15px}
+.plan-title{font-family:'Prompt';font-size:19px;color:var(--bki-primary);font-weight:700}
+.plan-tagline{font-size:13px;color:var(--bki-text-light);margin-top:5px}
+
+.plan-body{padding:30px;flex-grow:1}
+.plan-list{list-style:none}
+.plan-list li{margin-bottom:12px;padding-left:25px;position:relative;font-size:14.5px}
+.plan-list li::before{content:'✓';position:absolute;left:0;color:var(--bki-success);font-weight:bold}
+.plan-list li.highlight{color:var(--bki-accent);font-weight:600}
+
+/* Innovation Section */
+.innovation-box{background:var(--bki-dark);color:white;border-radius:var(--radius-lg);padding:60px;position:relative;overflow:hidden;margin-bottom:60px}
+.innovation-box::after{content:'';position:absolute;top:0;right:0;width:300px;height:100%;background:linear-gradient(90deg, transparent, rgba(0,174,239,0.1))}
+.innovation-tag{background:var(--bki-gold);color:var(--bki-dark);padding:5px 15px;border-radius:50px;font-size:12px;font-weight:800;display:inline-block;margin-bottom:20px}
+.innovation-content h2{font-family:'Prompt';font-size:32px;margin-bottom:20px;color:var(--bki-secondary)}
+.innovation-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px}
+.premium-benefit{background:rgba(255,255,255,0.05);padding:25px;border-radius:15px;border:1px dashed rgba(255,255,255,0.2)}
+.premium-benefit h4{color:var(--bki-gold);margin-bottom:10px;font-family:'Prompt'}
+
+/* Table */
+.table-wrapper{overflow-x:auto;margin-top:30px;border-radius:var(--radius);border:1px solid var(--bki-border);box-shadow:var(--shadow-md)}
+.comp-table{width:100%;border-collapse:collapse;background:white}
+.comp-table th{background:var(--bki-primary);color:white;padding:20px;font-family:'Prompt';font-size:15px}
+.comp-table td{padding:18px 20px;border-bottom:1px solid var(--bki-border);text-align:center;font-size:14.5px}
+.comp-table td:first-child{text-align:left;font-weight:600;background:var(--bki-blue-light);width:30%}
+
+/* Disclaimer */
+.footer{background:var(--bki-dark);color:rgba(255,255,255,0.6);padding:80px 24px 40px}
+.footer-inner{max-width:1280px;margin:0 auto}
+.footer-disclaimer{background:rgba(255,255,255,0.05);padding:35px;border-radius:15px;font-size:13.5px;line-height:1.9;margin-top:40px;border-left:6px solid var(--bki-accent)}
+
+@media(max-width:1024px){.plan-grid, .innovation-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="wp-header">
+  <div class="wp-header-inner">
+    <a class="wp-logo" href="#"><div class="wp-logo-icon">P</div><div class="wp-logo-text">Prakun <span>101</span></div></a>
+    <nav class="wp-nav">
+      <a href="#">หน้าหลัก</a><a href="#" class="active">ประกันมะเร็ง BKI</a><a href="#">ประกันตระกูล Care</a><a href="#">เปรียบเทียบแผน</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-pattern"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">Expert Insight: BKI Cancer Care</div>
+    <h1>สรุปแผน <em>ประกันโรคมะเร็ง BKI</em><br>บริหารความเสี่ยงด้วยเงินก้อน และจุดเด่นเรื่องเบี้ยคงที่</h1>
+    <p class="hero-desc">วิเคราะห์กลยุทธ์ "เจอ จ่าย จบ" เพื่ออิสรภาพทางการเงินในการเลือกแนวทางการรักษาที่เหมาะสม พร้อมจุดเด่นเรื่องการคงอัตราเบี้ยประกันตามอายุแรกเข้าที่ช่วยคุณวางแผนระยะยาวได้อย่างแม่นยำ</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="main-content">
+    <div class="context-box">
+      <h3>วิเคราะห์: ทำไม 'มะเร็ง' ถึงเป็นวิกฤตความมั่นคงทางการเงินอันดับ 1?</h3>
+      <p>โรคมะเร็งเป็นภาวะสุขภาพที่สร้างแรงสั่นสะเทือนต่อฐานะทางการเงินได้รุนแรงที่สุด กรุงเทพประกันภัยจึงพัฒนาโซลูชันที่เน้นความเรียบง่ายและส่งมอบเงินสดให้ถึงมือคุณเร็วที่สุดหลังการวินิจฉัย เพื่อเปลี่ยนความกังวลให้เป็นพลังในการรักษาและเข้าถึงเทคโนโลยีทางการแพทย์ที่ทันสมัย</p>
+    </div>
+
+    <h2 class="section-title">เจาะลึก 3 มิติความคุ้มครอง เพื่อทุกเป้าหมายการวางแผน</h2>
+    <p class="section-text">BKI ออกแบบแผนประกันมะเร็งที่ตอบสนองความต้องการที่แตกต่างกันของผู้เอาประกันภัย โดยแบ่งออกเป็น 3 รูปแบบหลัก ดังนี้:</p>
+
+    <div class="plan-grid">
+      <!-- Plan 1 -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-icon">💰</div>
+          <div class="plan-title">อิสระด้วยเงินก้อน (แบบที่ 1)</div>
+          <div class="plan-tagline">Freedom of Treatment</div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li class="highlight">รับเงินสินไหมทันทีเมื่อตรวจพบครั้งแรก (Lump Sum)</li>
+            <li>ครอบคลุมมะเร็งทุกชนิดและทุกระยะ</li>
+            <li>วงเงินสูงสุด 1,000,000 บาท</li>
+            <li>มะเร็งผิวหนังรับ 20% ของทุนประกัน</li>
+            <li>เลือก รพ. และเทคโนโลยีการรักษาได้เองทันที</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-icon">🏥</div>
+          <div class="plan-title">คุ้มครองเชิงรุก (แบบที่ 2)</div>
+          <div class="plan-tagline">Advanced Medical Support</div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li>รองรับค่าเคมีบำบัด (Chemo) และรังสีรักษา</li>
+            <li class="highlight">เพิ่มสิทธิประโยชน์สำหรับมะเร็งพิเศษเฉพาะเพศ</li>
+            <li>ครอบคลุมค่าผ่าตัดมะเร็งตามจริงในวงเงิน</li>
+            <li>เหมาะสำหรับผู้ที่กังวลเรื่องต้นทุนการรักษาสูง</li>
+            <li>ลดภาระค่าใช้จ่ายหลักในโรงพยาบาลโดยตรง</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Plan 3 -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-icon">🛡️</div>
+          <div class="plan-title">พยุงคุณภาพชีวิต (แบบที่ 3)</div>
+          <div class="plan-tagline">Income & Life Quality Support</div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li>เงินชดเชยรายวันกรณีพักรักษาตัวใน รพ.</li>
+            <li class="highlight">เงินช่วยเหลือรายเดือน (Monthly Aid)</li>
+            <li>งบประมาณสนับสนุนค่าพาหนะเดินทาง</li>
+            <li>ดูแลคุณภาพชีวิตครอบครัวในระยะยาว</li>
+            <li>ช่วยแบ่งเบาค่าใช้จ่ายแฝงที่มักถูกมองข้าม</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Fixed Premium Section -->
+<section class="section-alt section">
+  <div class="main-content">
+    <div class="innovation-box">
+      <div class="innovation-tag">BKI HIGHLIGHT</div>
+      <div class="innovation-content">
+        <h2>หัวใจสำคัญ: ความพิเศษเรื่องค่าเบี้ยคงที่ (Fixed Premium)</h2>
+        <p>หมดกังวลเรื่องเบี้ยประกันที่จะขยับสูงขึ้นตามอายุ ด้วยโครงสร้างการคำนวณเบี้ยที่ยึดตามอายุแรกเข้าเป็นหลัก</p>
+        
+        <div class="innovation-grid">
+          <div class="premium-benefit">
+            <h4>ความได้เปรียบด้านงบประมาณ</h4>
+            <p>หากคุณเริ่มทำประกันที่อายุ 30 ปี อัตราเบี้ยนั้นจะถูกคงไว้ตลอดไปตราบเท่าที่มีผลคุ้มครองต่อเนื่อง แม้อายุจะล่วงเลยไปถึง 50 หรือ 60 ปี ช่วยให้คุณบริหารเงินออมระยะยาวได้อย่างแม่นยำ</p>
+          </div>
+          <div class="premium-benefit" style="border-color: var(--bki-gold);">
+            <h4>วินัยในการรักษาสัญญา</h4>
+            <p>เงื่อนไขนี้ต้องการวินัยในการชำระเบี้ยอย่างสม่ำเสมอ หากกรมธรรม์ขาดการต่ออายุและต้องเริ่มสมัครใหม่ เบี้ยประกันจะถูกปรับขึ้นตามอายุ ณ ปัจจุบันทันที</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Summary -->
+<section class="section">
+  <div class="main-content">
+    <h2 class="section-title">บทสรุปการเปรียบเทียบแผนประกันมะเร็ง</h2>
+    <div class="table-wrapper">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>มิติความคุ้มครอง</th>
+            <th>แบบที่ 1 (เงินก้อน)</th>
+            <th>แบบที่ 2 (ค่ารักษา)</th>
+            <th>แบบที่ 3 (ชดเชยรายได้)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>จุดเด่นของแผน</td>
+            <td>รับเงินสด "เจอ จ่าย จบ" ทันที</td>
+            <td>เน้นค่าคีโม/ฉายแสง/ผ่าตัด</td>
+            <td>เน้นเงินช่วยเหลือรายเดือน</td>
+          </tr>
+          <tr>
+            <td>เบี้ยเริ่มต้น (โดยประมาณ)*</td>
+            <td>500 บาท / ปี</td>
+            <td>ขึ้นอยู่กับทุนประกันที่เลือก</td>
+            <td>ขึ้นอยู่กับทุนประกันที่เลือก</td>
+          </tr>
+          <tr>
+            <td>โครงสร้างเบี้ยประกัน</td>
+            <td style="color:var(--bki-success); font-weight:700;">คงที่ตามอายุแรกเข้า</td>
+            <td>ปรับตามช่วงอายุ</td>
+            <td>ปรับตามช่วงอายุ</td>
+          </tr>
+          <tr>
+            <td>สิทธิประโยชน์เสริม</td>
+            <td>เสรีภาพในการบริหารเงินรักษา</td>
+            <td>คุ้มครองมะเร็งเฉพาะเพศ</td>
+            <td>มีเงินพยุงรายได้ครอบครัว</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px; color:var(--bki-text-light); margin-top:15px; text-align:center;">*หมายเหตุ: อัตราเบี้ยประกันที่แน่นอนขึ้นอยู่กับการคำนวณของระบบ ณ วันที่สมัคร และทุนประกันที่เลือก</p>
+  </div>
+</section>
+
+<!-- FAQ & Rules Recap -->
+<section class="section section-alt">
+  <div class="main-content">
+    <h2 class="section-title">เกร็ดความรู้และข้อควรระวังสำหรับผู้บริโภค</h2>
+    <div class="context-box" style="border-left-color: var(--bki-warning); margin-top:40px;">
+      <h4 style="font-family:'Prompt'; margin-bottom:10px;">กูรูเตือน! ระวังเรื่อง "เศษอายุ" และระยะเวลารอคอย</h4>
+      <p style="font-size:14.5px;">ในวงการประกันวินาศภัย เศษอายุที่เกิน 6 เดือนจะถูกปัดขึ้นเป็น 1 ปีเต็มทันที หากคุณสมัครในขณะที่อายุ 30 ปี 7 เดือน ระบบจะนับเป็นอายุ 31 ปี การวางแผนสมัครก่อนถึงเกณฑ์ปัดเศษจึงเป็นเทคนิคที่ช่วยให้คุณประหยัดเบี้ยได้ในระยะยาว</p>
+      <ul style="margin-top:15px; font-size:14px; padding-left:20px;">
+        <li><strong>ระยะเวลารอคอย (Waiting Period):</strong> 90 วัน นับจากวันเริ่มคุ้มครอง</li>
+        <li><strong>เกณฑ์สุขภาพ:</strong> ต้องไม่เคยเป็นมะเร็งมาก่อน ไม่เป็นผู้ติดเชื้อ HIV และสูบบุหรี่ไม่เกินวันละ 10 มวน</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid" style="display:grid; grid-template-columns: 2fr 1fr; gap:60px; margin-bottom:40px;">
+      <div>
+        <div class="footer-logo">Prakun <span>101</span></div>
+        <p style="font-size:14.5px;">พื้นที่แบ่งปันความรู้ด้านประกันภัย เพื่อให้คนไทยเลือกความคุ้มครองที่คุ้มค่าที่สุด</p>
+      </div>
+      <div style="text-align:right;">
+        <h4 style="color:white; margin-bottom:10px;">กรุงเทพประกันภัย (BKI)</h4>
+        <p style="font-size:13px;">ศูนย์บริการข้อมูล<br>โทร. 02-285-8888</p>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <strong>คำแนะนำจากทีมงาน:</strong> สำหรับคนรุ่นใหม่ เราแนะนำแผนแบบที่ 1 (เงินก้อน) ที่มาพร้อมจุดเด่นเบี้ยคงที่ เพราะเป็นการ "ล็อคต้นทุนความเสี่ยง" ที่ทรงพลังที่สุดเมื่อเทียบเป็นมูลค่าตลอดอายุสัญญา | Prakun101.com ไม่ใช่ตัวแทนหรือนายหน้าประกันภัย ข้อมูลนี้จัดทำเพื่อการศึกษาเท่านั้น โปรดศึกษากรมธรรม์ฉบับจริงก่อนตัดสินใจ
+    </div>
+    <div style="text-align:center; margin-top:30px; font-size:12px; opacity:0.5;">© 2025 Prakun101.com - เจาะลึกประกันภัยไทยให้เป็นเรื่องง่าย</div>
+  </div>
+</footer>
+
+</body>
+</html>
