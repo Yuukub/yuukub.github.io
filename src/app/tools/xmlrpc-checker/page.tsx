@@ -24,7 +24,7 @@ export default function XmlRpcCheckerPage() {
 
         try {
             // Use environment variable for API URL (Cloudflare Worker) or default to local API
-            const apiUrl = process.env.NEXT_PUBLIC_XMLRPC_API_URL || "/api/check-xmlrpc";
+            const apiUrl = process.env.NEXT_PUBLIC_XMLRPC_API_URL || "https://xmlrpc-checker.sarnyou.workers.dev";
 
             const res = await fetch(apiUrl, {
                 method: "POST",
