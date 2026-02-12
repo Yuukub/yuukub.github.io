@@ -53,7 +53,7 @@ export default function XmlRpcCheckerPage() {
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/tools" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4">
-                        <ArrowLeft className="h-4 w-4 mr-1" /> Back to Tools
+                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
@@ -62,14 +62,14 @@ export default function XmlRpcCheckerPage() {
                         <h1 className="text-3xl font-bold tracking-tight">WordPress XML-RPC Checker</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        Check if your WordPress site has `xmlrpc.php` enabled. This file is often targeted by brute-force attacks and DDoS bots.
+                        ตรวจสอบว่าเว็บไซต์ WordPress ของคุณเปิดใช้งาน `xmlrpc.php` อยู่หรือไม่ ไฟล์นี้มักตกเป็นเป้าหมายของการโจมตีแบบ Brute-force และบอท DDoS
                     </p>
                 </div>
 
                 <Card className="border-border/50 bg-muted/20 mb-8">
                     <CardHeader>
-                        <CardTitle>Enter Website URL</CardTitle>
-                        <CardDescription>Enter the full URL of the WordPress site you want to check.</CardDescription>
+                        <CardTitle>กรอก URL ของเว็บไซต์</CardTitle>
+                        <CardDescription>กรอก URL ของเว็บไซต์ WordPress ที่คุณต้องการตรวจสอบ</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex gap-2">
@@ -80,13 +80,13 @@ export default function XmlRpcCheckerPage() {
                                 onKeyDown={(e) => e.key === "Enter" && checkXmlRpc()}
                             />
                             <Button onClick={checkXmlRpc} disabled={loading || !url}>
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check Now"}
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "ตรวจสอบทันที"}
                             </Button>
                         </div>
                         {error && (
                             <Alert variant="destructive">
                                 <ShieldAlert className="h-4 w-4" />
-                                <AlertTitle>Error</AlertTitle>
+                                <AlertTitle>ข้อผิดพลาด</AlertTitle>
                                 <AlertDescription>{error}</AlertDescription>
                             </Alert>
                         )}
@@ -95,7 +95,7 @@ export default function XmlRpcCheckerPage() {
 
                 {result && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h2 className="text-xl font-bold mb-4">Scan Results</h2>
+                        <h2 className="text-xl font-bold mb-4">ผลการตรวจสอบ</h2>
 
                         <Card className={`border-l-4 ${result.isEnabled ? 'border-l-red-500' : 'border-l-emerald-500'} bg-card shadow-lg`}>
                             <CardContent className="pt-6">
@@ -106,10 +106,10 @@ export default function XmlRpcCheckerPage() {
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
                                             <h3 className="font-bold text-lg">
-                                                {result.isEnabled ? "XML-RPC is Enabled" : "XML-RPC is Disabled or Protected"}
+                                                {result.isEnabled ? "เปิดใช้งาน XML-RPC" : "ปิดใช้งานหรือได้รับการป้องกัน"}
                                             </h3>
                                             <Badge variant={result.isEnabled ? "destructive" : "default"} className={!result.isEnabled ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
-                                                {result.isEnabled ? "Vulnerable" : "Secure"}
+                                                {result.isEnabled ? "ไม่ปลอดภัย (Vulnerable)" : "ปลอดภัย (Secure)"}
                                             </Badge>
                                         </div>
                                         <p className="text-muted-foreground">{result.message}</p>
@@ -122,7 +122,7 @@ export default function XmlRpcCheckerPage() {
                                 {result.isEnabled && (
                                     <div className="mt-6 pt-6 border-t border-border/50">
                                         <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                            <ShieldCheck className="h-4 w-4 text-primary" /> How to fix this?
+                                            <ShieldCheck className="h-4 w-4 text-primary" /> วิธีแก้ไข
                                         </h4>
                                         <div className="space-y-4 text-sm text-muted-foreground">
                                             <p>
