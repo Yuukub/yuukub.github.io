@@ -47,7 +47,10 @@ export default function XmlRpcCheckerPage() {
     };
 
     return (
-        <div className="min-h-screen selection:bg-primary/20 bg-background">
+        <div className="min-h-screen selection:bg-primary/20 relative">
+            {/* Mesh Background */}
+            <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
+
             <Navbar />
 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-3xl">
