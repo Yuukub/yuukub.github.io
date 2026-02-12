@@ -47,27 +47,27 @@ export default function ToolsPage() {
             <Navbar />
 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-5xl">
-                <section className="flex flex-col items-center text-center gap-6 mb-20 border-b border-border/10 pb-20">
-                    <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 text-primary px-4 py-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <section className="flex flex-col items-center text-center gap-6 mb-12 border-b border-border/10 pb-12">
+                    <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 text-primary px-4 py-1">
                         Developer Tools & Utilities
                     </Badge>
 
-                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
                         Premium Tools for<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">
                             Security & Productivity
                         </span>
                     </h1>
 
-                    <p className="text-lg text-muted-foreground max-w-2xl text-balance animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150 leading-relaxed">
+                    <p className="text-lg text-muted-foreground max-w-2xl text-balance leading-relaxed">
                         รวมเครื่องมือสารพัดประโยชน์ที่ช่วยคุณตรวจสอบความปลอดภัยและเพิ่มประสิทธิภาพการทำงาน ใช้งานฟรี และให้ความสำคัญกับความเป็นส่วนตัวของคุณเป็นอันดับแรก (Privacy-First)
                     </p>
                 </section>
 
-                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-300">
+                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {TOOLS.map((tool, index) => (
                         <Link key={tool.title} href={tool.href} className="group">
-                            <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-muted/20 border-border/50 backdrop-blur-sm">
+                            <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border/50 backdrop-blur-sm">
                                 <div>
                                     <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 shadow-sm ${tool.colorClass}`}>
                                         {tool.icon}
