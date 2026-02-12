@@ -19,12 +19,12 @@ function rename(src, dest) {
 const apiMoved = rename(activeApi, hiddenApi);
 const keystaticMoved = rename(activeKeystatic, hiddenKeystatic);
 
-try {
-    console.log('Running next build...');
-    execSync('next build', { stdio: 'inherit' });
+console.log('Running next build...');
+execSync('next build', { stdio: 'inherit' });
 } catch (error) {
     console.error('Build failed!');
-    process.exit(1);
+    // Don't exit here, let finally block run
+    process.exitCode = 1;
 } finally {
     // Restore folders
     if (apiMoved) rename(hiddenApi, activeApi);

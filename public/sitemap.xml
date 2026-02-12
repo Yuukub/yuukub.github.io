@@ -9,12 +9,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yuukub.github.io/blog/2025-11-24-WordPress-Security/</loc>
+    <loc>https://yuukub.github.io/blog/5-digital-security-tips-2026/</loc>
+    <lastmod>2026-02-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yuukub.github.io/blog/wordpress-security/</loc>
     <lastmod>2025-11-24</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://yuukub.github.io/blog/2025-12-2-xss-deep-dive/</loc>
+    <loc>https://yuukub.github.io/blog/xss-deep-dive/</loc>
     <lastmod>2025-12-02</lastmod>
     <priority>0.7</priority>
   </url>
