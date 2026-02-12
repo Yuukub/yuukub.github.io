@@ -62,14 +62,14 @@ export default function XmlRpcCheckerPage() {
                         <h1 className="text-3xl font-bold tracking-tight">WordPress XML-RPC Checker</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        ตรวจสอบว่าเว็บไซต์ WordPress ของคุณเปิดใช้งาน `xmlrpc.php` อยู่หรือไม่ ไฟล์นี้มักตกเป็นเป้าหมายของการโจมตีแบบ Brute-force และบอท DDoS
+                        ตรวจสอบเว็บไซต์ WordPress ของคุณว่าเปิดใช้งาน `xmlrpc.php` หรือไม่ ไฟล์นี้มักตกเป็นเป้าหมายของการโจมตีแบบ Brute-force และบอท DDoS
                     </p>
                 </div>
 
                 <Card className="border-border/50 bg-muted/20 mb-8">
                     <CardHeader>
-                        <CardTitle>กรอก URL ของเว็บไซต์</CardTitle>
-                        <CardDescription>กรอก URL ของเว็บไซต์ WordPress ที่คุณต้องการตรวจสอบ</CardDescription>
+                        <CardTitle>Enter Website URL</CardTitle>
+                        <CardDescription>Enter the full URL of the WordPress site you want to check.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex gap-2">
@@ -80,7 +80,7 @@ export default function XmlRpcCheckerPage() {
                                 onKeyDown={(e) => e.key === "Enter" && checkXmlRpc()}
                             />
                             <Button onClick={checkXmlRpc} disabled={loading || !url}>
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "ตรวจสอบทันที"}
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check Now"}
                             </Button>
                         </div>
                         {error && (
