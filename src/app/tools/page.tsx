@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, Hash, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -19,6 +19,22 @@ const TOOLS = [
         href: "/tools/xmlrpc-checker",
         tags: ["Security", "WordPress"],
         colorClass: "bg-emerald-500/10 text-emerald-500",
+    },
+    {
+        title: "Hash Generator",
+        description: "Generate MD5 and SHA-256 hashes locally. Useful for WordPress password resets via phpMyAdmin.",
+        icon: <Hash className="h-6 w-6 text-blue-500" />,
+        href: "/tools/hash-generator",
+        tags: ["Security", "DevOps"],
+        colorClass: "bg-blue-500/10 text-blue-500",
+    },
+    {
+        title: "Password Generator",
+        description: "Create secure, cryptographically strong passwords with a built-in strength meter.",
+        icon: <Lock className="h-6 w-6 text-purple-500" />,
+        href: "/tools/password-generator",
+        tags: ["Productivity", "Security"],
+        colorClass: "bg-purple-500/10 text-purple-500",
     },
 ];
 
