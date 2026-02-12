@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สรุปแผน Health IPD/OPD จากกรุงเทพประกันภัย (BKI) | Prakun 101</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bki-primary:#003399;--bki-secondary:#00AEEF;--bki-accent:#0072BC;--bki-dark:#001F4D;--bki-blue-light:#E6F4FF;--bki-gold:#D4A843;--bki-bg:#F8FAFC;--bki-card-bg:#FFFFFF;--bki-text:#102A43;--bki-text-light:#486581;--bki-border:#D9E2EC;--bki-success:#10B981;--bki-warning:#F59E0B;--shadow-md:0 4px 12px rgba(0,51,153,.08);--shadow-lg:0 12px 30px rgba(0,51,153,.12);--radius:16px;--radius-lg:24px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--bki-bg);color:var(--bki-text);line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* Header */
+.wp-header{background:rgba(255,255,255,.98);border-bottom:1px solid var(--bki-border);position:sticky;top:0;z-index:1000;backdrop-filter:blur(20px)}
+.wp-header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:75px}
+.wp-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.wp-logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--bki-primary),var(--bki-secondary));border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;font-family:'Prompt',sans-serif}
+.wp-logo-text{font-family:'Prompt',sans-serif;font-size:22px;font-weight:700;color:var(--bki-primary)}
+.wp-logo-text span{color:var(--bki-secondary)}
+.wp-nav{display:flex;align-items:center;gap:10px}
+.wp-nav a{text-decoration:none;color:var(--bki-text);font-size:14px;font-weight:500;padding:10px 18px;border-radius:10px;transition:0.3s}
+.wp-nav a:hover{background:var(--bki-blue-light);color:var(--bki-primary)}
+.wp-nav .active{background:var(--bki-accent);color:#fff!important}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--bki-dark) 0%,var(--bki-primary) 50%,#0056B3 100%);position:relative;overflow:hidden;padding:100px 24px 120px}
+.hero-pattern{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px}
+.hero-inner{max-width:1280px;margin:0 auto;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,174,239,0.2);border:1px solid rgba(0,174,239,0.4);padding:8px 24px;border-radius:50px;font-size:14px;color:#fff;margin-bottom:24px;font-weight:600}
+.hero h1{font-family:'Prompt',sans-serif;font-size:clamp(34px,5vw,54px);font-weight:800;color:#fff;line-height:1.2;margin-bottom:24px}
+.hero h1 em{font-style:normal;color:var(--bki-secondary)}
+.hero-desc{font-size:18px;color:rgba(255,255,255,0.9);max-width:850px;margin-bottom:48px;line-height:1.8}
+
+/* Content Sections */
+.main-content{max-width:1280px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+.section-alt{background:var(--bki-card-bg)}
+.section-title{font-family:'Prompt',sans-serif;font-size:32px;font-weight:700;color:var(--bki-primary);margin-bottom:16px;text-align:center}
+.section-text{max-width:950px;margin:0 auto 40px;text-align:center;font-size:17px;color:var(--bki-text-light)}
+
+/* Context Box */
+.context-box{background:white;padding:40px;border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-bottom:60px;border-left:8px solid var(--bki-secondary)}
+.context-box h3{font-family:'Prompt';margin-bottom:15px;color:var(--bki-primary)}
+
+/* Product Cards Grid */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:40px 0}
+.plan-card{background:white;border-radius:var(--radius-lg);border:1px solid var(--bki-border);overflow:hidden;transition:0.4s;display:flex;flex-direction:column;box-shadow:var(--shadow-md)}
+.plan-card:hover{transform:translateY(-10px);box-shadow:var(--shadow-lg)}
+.plan-header{padding:30px;text-align:center;background:var(--bki-blue-light);border-bottom:1px solid var(--bki-border)}
+.plan-tier{font-family:'Prompt';font-size:20px;color:var(--bki-primary);font-weight:800}
+.plan-limit{font-size:24px;font-weight:800;color:var(--bki-accent);margin:10px 0}
+.plan-limit span{font-size:14px;font-weight:400;color:var(--bki-text-light)}
+
+.plan-body{padding:30px;flex-grow:1}
+.plan-list{list-style:none}
+.plan-list li{margin-bottom:12px;padding-left:25px;position:relative;font-size:14.5px}
+.plan-list li::before{content:'✓';position:absolute;left:0;color:var(--bki-success);font-weight:bold}
+.plan-list li.highlight{color:var(--bki-primary);font-weight:700}
+
+/* Telemedicine Section */
+.eco-box{background:var(--bki-dark);color:white;border-radius:var(--radius-lg);padding:60px;position:relative;overflow:hidden;margin-bottom:60px}
+.eco-content{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;position:relative;z-index:2}
+.eco-tag{background:var(--bki-secondary);color:white;padding:5px 15px;border-radius:50px;font-size:12px;font-weight:800;display:inline-block;margin-bottom:20px}
+.eco-title{font-family:'Prompt';font-size:28px;margin-bottom:20px;color:var(--bki-secondary)}
+.eco-feature{display:flex;gap:15px;margin-bottom:20px}
+.eco-icon{font-size:32px;flex-shrink:0}
+
+/* Table Section */
+.premium-section{padding:80px 0;background:var(--bki-bg)}
+.table-wrapper{overflow-x:auto;margin-top:30px;border-radius:var(--radius);border:1px solid var(--bki-border);box-shadow:var(--shadow-md)}
+.comp-table{width:100%;border-collapse:collapse;background:white}
+.comp-table th{background:var(--bki-primary);color:white;padding:20px;font-family:'Prompt';font-size:15px;text-align:center}
+.comp-table th:first-child{text-align:left;background:var(--bki-dark)}
+.comp-table td{padding:18px 20px;border-bottom:1px solid var(--bki-border);text-align:center;font-size:14.5px}
+.comp-table td:first-child{text-align:left;font-weight:600;background:var(--bki-blue-light);width:25%}
+.comp-table tr.highlight-row td{background:#FEFCE8;font-weight:700;color:var(--bki-accent)}
+
+/* Analysis Card */
+.analysis-box{background:white;padding:35px;border-radius:var(--radius-lg);border:1px solid var(--bki-border);box-shadow:var(--shadow-md);margin-top:40px}
+.analysis-title{font-family:'Prompt';color:var(--bki-primary);font-weight:700;margin-bottom:15px;display:flex;align-items:center;gap:10px}
+
+/* Footer */
+.footer{background:var(--bki-dark);color:rgba(255,255,255,0.6);padding:80px 24px 40px}
+.footer-inner{max-width:1280px;margin:0 auto}
+.footer-disclaimer{background:rgba(255,255,255,0.05);padding:35px;border-radius:15px;font-size:13.5px;line-height:1.9;margin-top:40px;border-left:6px solid var(--bki-secondary)}
+
+@media(max-width:1024px){.plan-grid, .eco-content{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="wp-header">
+  <div class="wp-header-inner">
+    <a class="wp-logo" href="#"><div class="wp-logo-icon">P</div><div class="wp-logo-text">Prakun <span>101</span></div></a>
+    <nav class="wp-nav">
+      <a href="#">หน้าหลัก</a><a href="#" class="active">Health IPD/OPD</a><a href="#">ประกันมะเร็ง</a><a href="#">เปรียบเทียบแผน</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-pattern"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">Health Insurance Guide: BKI Series</div>
+    <h1>สรุปแผน <em>Health IPD/OPD BKI</em><br>คุ้มครองครบ จบในประกันเดียว</h1>
+    <p class="hero-desc">ตอบโจทย์คนยุคใหม่และชาวฟรีแลนซ์ ด้วยประกันสุขภาพที่เข้าใจง่าย ไม่ซับซ้อน รวมทั้งการนอนโรงพยาบาลและการหาหมอทั่วไปไว้ในวงเงินเหมาจ่ายใบเดียว</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="main-content">
+    <div class="context-box">
+      <h3>ทำไมแผนนี้ถึงฮิตในกลุ่มคนทำ Freelance?</h3>
+      <p>แผน Health IPD/OPD ถูกออกแบบมาเพื่อลบภาพจำของประกันที่ต้องถือหลายใบหรือซื้อสัญญาเพิ่มเติมยุ่งยาก โดยใช้แนวคิด <strong>"คุ้มครอง ครบ จบ ในประกันเดียว"</strong> เหมาะมากสำหรับผู้ที่ไม่มีสวัสดิการพนักงาน หรือต้องการแผนที่จัดการง่ายด้วยวงเงินเหมาจ่าย (Lump Sum) ต่อปี</p>
+    </div>
+
+    <h2 class="section-title">เจาะลึก 3 ระดับความคุ้มครอง</h2>
+    <p class="section-text">เลือกแผนที่ใช่ตามความต้องการและงบประมาณ พร้อมวงเงินที่ยืดหยุ่นครอบคลุมทุกรายการรักษา</p>
+
+    <div class="plan-grid">
+      <!-- Plan 1 -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-tier">แผน 1</div>
+          <div class="plan-limit">300,000 <span>บาท/ปี</span></div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li class="highlight">หาหมอผู้ป่วยนอก (OPD) 1,000 บาท/ครั้ง</li>
+            <li>สิทธิ์หาหมอสูงสุด 30 ครั้งต่อปี</li>
+            <li>วงเงินเหมาจ่าย ไม่ต้องจำย่อย</li>
+            <li>รวมบริการหาหมอออนไลน์ (Telemedicine)</li>
+            <li>เหมาะสำหรับเริ่มวางแผนความเสี่ยง</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="plan-card">
+        <div class="plan-header" style="background:var(--bki-blue-light); border-bottom: 2px solid var(--bki-secondary);">
+          <div class="plan-tier">แผน 2</div>
+          <div class="plan-limit">700,000 <span>บาท/ปี</span></div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li class="highlight">หาหมอผู้ป่วยนอก (OPD) 1,500 บาท/ครั้ง</li>
+            <li>สิทธิ์หาหมอสูงสุด 30 ครั้งต่อปี</li>
+            <li>ครอบคลุมทั้งค่าห้อง ค่าแพทย์ และค่าผ่าตัด</li>
+            <li>ดูแลต่อเนื่องด้วยสิทธิ์ตรวจติดตามผล (Follow-up)</li>
+            <li>แผนยอดนิยมที่คุ้มค่าที่สุด</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Plan 3 -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-tier">แผน 3</div>
+          <div class="plan-limit">1,000,000 <span>บาท/ปี</span></div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-list">
+            <li class="highlight">หาหมอผู้ป่วยนอก (OPD) 2,000 บาท/ครั้ง</li>
+            <li>สิทธิ์หาหมอสูงสุด 30 ครั้งต่อปี</li>
+            <li>วงเงินสูงสุดเพื่อความอุ่นใจระดับล้าน</li>
+            <li>ครอบคลุมเทคโนโลยีการรักษาที่ทันสมัย</li>
+            <li>เหมาะสำหรับผู้ที่ต้องการความคุ้มครองระดับสูง</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Telemedicine Section -->
+<section class="section-alt">
+  <div class="main-content section">
+    <div class="eco-box">
+      <div class="eco-content">
+        <div>
+          <div class="eco-tag">ความพิเศษที่เพิ่มเข้ามา</div>
+          <h2 class="eco-title">หาหมอออนไลน์ผ่าน Clicknic App</h2>
+          <p style="opacity:0.9; margin-bottom:30px;">เทคโนโลยีที่ช่วยให้ชีวิตง่ายขึ้น ไม่ต้องเดินทาง ไม่ต้องรอคิว ลดความเสี่ยงในการรับเชื้อที่โรงพยาบาล</p>
+          <div class="eco-feature">
+            <div class="eco-icon">🩺</div>
+            <div>
+              <strong>ปรึกษาแพทย์ผ่านวิดีโอคอล</strong>
+              <p style="font-size:14px; opacity:0.8;">คุยกับแพทย์ผู้เชี่ยวชาญเพื่อวินิจฉัยโรคเบื้องต้นได้ทันที</p>
+            </div>
+          </div>
+          <div class="eco-feature">
+            <div class="eco-icon">💊</div>
+            <div>
+              <strong>รับยาถึงบ้าน ไม่ต้องควักเงินจ่ายเอง</strong>
+              <p style="font-size:14px; opacity:0.8;">จัดส่งยาฟรีถึงบ้านทั่วประเทศ โดยหักจากวงเงิน OPD ในกรมธรรม์ได้เลย</p>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div style="display:inline-block; background:white; padding:30px; border-radius:30px; box-shadow:0 0 40px rgba(0,174,239,0.3);">
+            <div style="font-size:50px;">📲</div>
+            <p style="color:var(--bki-primary); font-weight:800; margin-top:10px;">Clicknic App</p>
+            <p style="color:var(--bki-text-light); font-size:12px;">Partner of Bangkok Insurance</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Premium Table Section -->
+<section class="premium-section">
+  <div class="main-content">
+    <h2 class="section-title">เช็คเบี้ยประกันรายปี (ตามช่วงอายุ)</h2>
+    <p class="section-text">ตารางเบี้ยประกันภัยแบบปรับตามอายุ (Age-banded) ที่รวมภาษีและอากรเรียบร้อยแล้ว</p>
+    
+    <div class="table-wrapper">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>ช่วงอายุ (ปี)</th>
+            <th>แผน 1 (3 แสน)</th>
+            <th>แผน 2 (7 แสน)</th>
+            <th>แผน 3 (1 ล้าน)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>16 - 20</td><td>12,800 บาท</td><td>18,700 บาท</td><td>26,200 บาท</td></tr>
+          <tr><td>21 - 25</td><td>13,500 บาท</td><td>19,600 บาท</td><td>27,300 บาท</td></tr>
+          <tr><td>26 - 30</td><td>15,100 บาท</td><td>21,900 บาท</td><td>30,100 บาท</td></tr>
+          <tr class="highlight-row"><td>31 - 35</td><td>16,800 บาท</td><td>25,400 บาท</td><td>35,000 บาท</td></tr>
+          <tr class="highlight-row"><td>36 - 40</td><td>18,600 บาท</td><td>29,300 บาท</td><td>40,500 บาท</td></tr>
+          <tr><td>41 - 45</td><td>19,900 บาท</td><td>31,700 บาท</td><td>43,600 บาท</td></tr>
+          <tr><td>46 - 50</td><td>20,500 บาท</td><td>32,600 บาท</td><td>44,700 บาท</td></tr>
+          <tr><td>51 - 55</td><td>24,600 บาท</td><td>36,800 บาท</td><td>47,500 บาท</td></tr>
+          <tr><td>56 - 60</td><td>28,300 บาท</td><td>41,300 บาท</td><td>57,400 บาท</td></tr>
+          <tr><td>61 - 70*</td><td>28,300 บาท</td><td>41,300 บาท</td><td>57,400 บาท</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px; color:var(--bki-text-light); margin-top:15px; text-align:center;">*อายุ 61-70 ปี สำหรับกรณีต่ออายุ (Renewal) เท่านั้น</p>
+
+    <div class="analysis-box">
+      <div class="analysis-title">🔍 วิเคราะห์ความคุ้มค่าโดยกูรู Prakun 101</div>
+      <p style="font-size:14.5px; color:var(--bki-text-light);">
+        หากสังเกตในตารางเบี้ย จะเห็นว่า **ช่วงอายุ 31-40 ปี** เป็นจุดที่มีการปรับฐานเบี้ยประกันค่อนข้างสูง (High Jump) สอดคล้องกับพฤติกรรมวัยทำงานที่ความเครียดสะสมเริ่มส่งผลต่อร่างกาย
+        <br><br>
+        <strong>กลยุทธ์แนะนำ:</strong> การเลือกทำประกันในช่วงอายุ 16-30 ปี เป็นจุดที่คุ้มค่าที่สุด เพราะเบี้ยยังไม่แพงและคุณจะได้รับสิทธิ์ความคุ้มครองครบถ้วน ก่อนที่จะมีประวัติสุขภาพในอนาคตที่อาจถูกนำมาเป็นเงื่อนไขยกเว้นได้
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Rules & FAQ Recap -->
+<section class="section">
+  <div class="main-content">
+    <h2 class="section-title">เรื่องที่ผู้เอาประกันห้ามมองข้าม</h2>
+    <div class="context-box" style="border-left-color: var(--bki-warning); margin-top:40px;">
+      <h4 style="font-family:'Prompt'; margin-bottom:10px;">ระวัง! เรื่อง "เศษอายุ" และ "ระยะรอคอย"</h4>
+      <p style="font-size:14.5px;">ประกันวินาศภัยมักปัดเศษอายุที่เกิน 6 เดือนขึ้นเป็น 1 ปีเต็มทันที (เช่น อายุ 30 ปี 6 เดือน 1 วัน ระบบจะนับเบี้ยที่เรทอายุ 31 ปี) ดังนั้นการตัดสินใจสมัครก่อนถึงเกณฑ์ปัดเศษอายุจึงช่วยเซฟเงินในกระเป๋าได้มากกว่า</p>
+      <ul style="margin-top:15px; font-size:14px; padding-left:20px;">
+        <li><strong>ระยะเวลารอคอย:</strong> 30 วันสำหรับโรคทั่วไป และ 120 วันสำหรับโรคเรื้อรังสะสมตามกำหนด</li>
+        <li><strong>สิทธิ์ OPD:</strong> ใช้ได้สูงสุด 30 ครั้งต่อปี (รวมการใช้ผ่าน Telemedicine)</li>
+        <li><strong>การแถลงสุขภาพ:</strong> ต้องเปิดเผยข้อมูลประวัติสุขภาพตามความเป็นจริง เพื่อความสมบูรณ์ของกรมธรรม์</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid" style="display:grid; grid-template-columns: 2fr 1fr; gap:60px; margin-bottom:40px;">
+      <div>
+        <div class="footer-logo">Prakun <span>101</span></div>
+        <p style="font-size:14.5px;">พื้นที่แบ่งปันความรู้ด้านประกันภัย เพื่อให้คุณเลือกสิ่งที่คุ้มค่าที่สุด</p>
+      </div>
+      <div style="text-align:right;">
+        <h4 style="color:white; margin-bottom:10px;">กรุงเทพประกันภัย (BKI)</h4>
+        <p style="font-size:13px;">สอบถามข้อมูลเพิ่มเติม<br>โทร. 02-285-8888</p>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <strong>คำแนะนำสรุป:</strong> แผน <strong>Health IPD/OPD</strong> คือทางเลือกที่ลงตัวสำหรับคนที่ต้องการความเรียบง่ายและยืดหยุ่น โดยเฉพาะการใช้สิทธิ์ผ่าน Telemedicine ที่ช่วยประหยัดเวลาและลดค่าใช้จ่ายแฝงได้จริง | Prakun101.com ไม่ใช่ตัวแทนหรือนายหน้าประกันภัย ข้อมูลนี้จัดทำเพื่อการศึกษาเท่านั้น โปรดศึกษากรมธรรม์ฉบับจริงก่อนตัดสินใจ
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
