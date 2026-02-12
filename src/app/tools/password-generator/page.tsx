@@ -5,7 +5,8 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, RefreshCw, CheckCircle2, Lock, Shield, Eye, EyeOff } from "lucide-react";
+import { Copy, RefreshCw, CheckCircle2, Lock, Shield, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function PasswordGenerator() {
     const [password, setPassword] = useState("");
@@ -79,7 +80,10 @@ export default function PasswordGenerator() {
             <Navbar />
 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-2xl">
-                <div className="mb-12 text-center">
+                <div className="mb-12 text-center flex flex-col items-center">
+                    <Link href="/tools" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
+                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                    </Link>
                     <Badge variant="outline" className="mb-4">Privacy-First Tool</Badge>
                     <h1 className="text-4xl font-extrabold tracking-tight mb-4">Secure Password Generator</h1>
                     <p className="text-lg text-muted-foreground">

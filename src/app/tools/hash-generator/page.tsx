@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Hash, RefreshCw, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Copy, Hash, RefreshCw, CheckCircle2, ShieldAlert, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 // SIMPLE MD5 Implementation
 function md5(string: string) {
@@ -73,6 +74,9 @@ export default function HashGenerator() {
 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-4xl">
                 <div className="mb-12">
+                    <Link href="/tools" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
+                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                    </Link>
                     <Badge variant="outline" className="mb-4">Security Utility</Badge>
                     <h1 className="text-4xl font-extrabold tracking-tight mb-4">Hash Generator</h1>
                     <p className="text-lg text-muted-foreground">
