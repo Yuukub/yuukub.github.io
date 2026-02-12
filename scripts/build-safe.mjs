@@ -19,8 +19,9 @@ function rename(src, dest) {
 const apiMoved = rename(activeApi, hiddenApi);
 const keystaticMoved = rename(activeKeystatic, hiddenKeystatic);
 
-console.log('Running next build...');
-execSync('next build', { stdio: 'inherit' });
+try {
+    console.log('Running next build...');
+    execSync('next build', { stdio: 'inherit' });
 } catch (error) {
     console.error('Build failed!');
     // Don't exit here, let finally block run
