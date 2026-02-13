@@ -115,7 +115,6 @@ if ( !username_exists( $user_name ) && !email_exists( $user_email ) ) {
 } else {
     echo "<h3>ผิดพลาด: มี Username หรือ Email นี้อยู่ในระบบแล้ว</h3>";
 }
-?>
 ```
 ### **ขั้นตอน**
 1.  **สร้างไฟล์:** สร้างไฟล์ชื่อ `emergency-access.php` ในคอมพิวเตอร์และวางโค้ดข้างบนลงไป
