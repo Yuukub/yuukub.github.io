@@ -27,7 +27,7 @@ async function initDecoder(format: string): Promise<any> {
         }
         case 'png': {
             const module = await import('@jsquash/png/decode');
-            await (module as any).init(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            await module.init({ locateFile: () => `${WASM_BASE}/squoosh_png_bg.wasm` });
             return (module as any).decode || (module as any).default;
         }
         case 'webp': {
@@ -54,7 +54,7 @@ async function initEncoder(format: string): Promise<any> {
         }
         case 'png': {
             const module = await import('@jsquash/png/encode');
-            await (module as any).init(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            await module.init({ locateFile: () => `${WASM_BASE}/squoosh_png_bg.wasm` });
             return (module as any).encode || (module as any).default;
         }
         case 'webp': {

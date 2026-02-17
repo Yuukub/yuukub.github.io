@@ -80,54 +80,12 @@ export default function ImageConverterPage() {
     const [isConverting, setIsConverting] = useState(false);
     const [convertedCount, setConvertedCount] = useState(0);
     const [dragActive, setDragActive] = useState(false);
-    const [isCoiEnabled, setIsCoiEnabled] = useState(false);
 
     const workerRef = useRef<Worker | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Initialize worker and COI
+    // Initialize worker
     useEffect(() => {
-        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-            // Check current status
-            if (window.crossOriginIsolated) {
-                setIsCoiEnabled(true);
-            }
-
-            // Register with specific scope
-            navigator.serviceWorker
-                .register("/sw-coi.js", { scope: "/tools/image-converter/" })
-                .then((registration) => {
-                    console.log("COI SW registered:", registration.scope);
-
-                    // If a new worker is activated, we might need a reload to apply headers
-                    registration.addEventListener("updatefound", () => {
-                        const newWorker = registration.installing;
-                        newWorker?.addEventListener("statechange", () => {
-                            if (
-                                newWorker.state === "activated" &&
-                                !window.crossOriginIsolated
-                            ) {
-                                window.location.reload();
-                            }
-                        });
-                    });
-
-                    // Also check if we should reload if registration is already active but headers aren't applied
-                    if (registration.active && !window.crossOriginIsolated) {
-                        // Small delay to ensure SW is actually controlling the page
-                        setTimeout(() => {
-                            if (!window.crossOriginIsolated) {
-                                // Double check if we are already under SW control
-                                if (navigator.serviceWorker.controller) {
-                                    window.location.reload();
-                                }
-                            }
-                        }, 500);
-                    }
-                })
-                .catch((err) => console.error("COI SW failed:", err));
-        }
-
         return () => {
             workerRef.current?.terminate();
         };
@@ -214,9 +172,10 @@ export default function ImageConverterPage() {
             }))
         );
 
-        // Create a fresh worker for each batch
+        // Create a fresh worker for each batch with module type support
         const worker = new Worker(
-            new URL("@/workers/image.worker.ts", import.meta.url)
+            new URL("@/workers/image.worker.ts", import.meta.url),
+            { type: "module" }
         );
         workerRef.current = worker;
 
@@ -301,6 +260,24 @@ export default function ImageConverterPage() {
                         setConvertedCount(completed);
                         resolve();
                     }
+                };
+
+                worker.onerror = (err) => {
+                    console.error("Worker error:", err);
+                    setQueue((prev) =>
+                        prev.map((q) =>
+                            q.id === item.id
+                                ? {
+                                    ...q,
+                                    status: "error" as FileStatus,
+                                    errorMessage: "Worker error: " + (err.message || "เกิดข้อผิดพลาดในการโหลดโมดูล"),
+                                }
+                                : q
+                        )
+                    );
+                    completed++;
+                    setConvertedCount(completed);
+                    resolve();
                 };
 
                 worker.postMessage({
@@ -470,16 +447,9 @@ export default function ImageConverterPage() {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <label className="text-sm font-medium">Output Format</label>
-                                        {isCoiEnabled ? (
-                                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] py-0 h-5 flex gap-1 items-center">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                Multi-threading Active
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="text-muted-foreground border-border/50 text-[10px] py-0 h-5">
-                                                Standard Speed
-                                            </Badge>
-                                        )}
+                                        <Badge variant="outline" className="text-muted-foreground border-border/50 text-[10px] py-0 h-5">
+                                            Standard Speed
+                                        </Badge>
                                     </div>
                                     <div className="grid grid-cols-4 gap-2">
                                         {formatOptions.map((opt) => (
