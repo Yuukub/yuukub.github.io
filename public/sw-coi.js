@@ -5,7 +5,16 @@ self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("fetch", (event) => {
-    // Only intercept requests for resources within our scope or sub-resources
+    // Only intercept GET requests to avoid issues with POST/PUT etc.
+    if (event.request.method !== "GET") {
+        return;
+    }
+
+    // Skip certain resources that don't need these headers or cause issues (like Cloudflare RUM)
+    if (event.request.url.includes("cdn-cgi/rum")) {
+        return;
+    }
+
     if (event.request.cache === "only-if-cached" && event.request.mode !== "same-origin") {
         return;
     }
@@ -13,6 +22,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
+                // If response is opaque or error-like (status 0), return as-is
                 if (response.status === 0) {
                     return response;
                 }
@@ -29,9 +39,10 @@ self.addEventListener("fetch", (event) => {
                     headers: newHeaders,
                 });
             })
-            .catch((e) => {
-                // In case of error, just return the original fetch attempt or let it fail
-                return fetch(event.request);
+            .catch((err) => {
+                // Log and propagate error without trying to re-fetch the used request
+                console.error("COI SW Fetch Error:", err);
+                throw err;
             })
     );
 });
