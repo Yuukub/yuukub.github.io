@@ -28,6 +28,26 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <loc>${SITE_URL}/blog/</loc>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>${SITE_URL}/tools/</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/tools/image-converter/</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/tools/xmlrpc-checker/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/tools/hash-generator/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/tools/password-generator/</loc>
+    <priority>0.8</priority>
+  </url>
 ${postEntries.join("\n")}
 </urlset>
 `;

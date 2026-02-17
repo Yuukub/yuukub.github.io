@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar";
 export const metadata: Metadata = {
     title: "บทความและคลังความรู้เชิงเทคนิค",
     description: "รวมบทความเจาะลึกด้านความปลอดภัย WordPress, Technical SEO และการพัฒนา Full-stack สมัยใหม่ โดย Saranyuu M.",
-    alternates: { canonical: "https://yuukub.github.io/blog/" },
+    alternates: { canonical: "https://yuukub.com/blog/" },
 };
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,13 +32,13 @@ export default async function BlogPage() {
                                 "@type": "ListItem",
                                 "position": 1,
                                 "name": "Home",
-                                "item": "https://yuukub.github.io/"
+                                "item": "https://yuukub.com/"
                             },
                             {
                                 "@type": "ListItem",
                                 "position": 2,
                                 "name": "Blog",
-                                "item": "https://yuukub.github.io/blog/"
+                                "item": "https://yuukub.com/blog/"
                             }
                         ]
                     })

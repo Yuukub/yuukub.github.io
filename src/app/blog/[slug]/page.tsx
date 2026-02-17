@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title: post.title,
         description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
-        alternates: { canonical: `https://yuukub.github.io/blog/${slug}/` },
+        alternates: { canonical: `https://yuukub.com/blog/${slug}/` },
         openGraph: {
             title: post.title,
             description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
@@ -50,9 +50,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.github.io/" },
-            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.github.io/blog/" },
-            { "@type": "ListItem", "position": 3, "name": postData.title, "item": `https://yuukub.github.io/blog/${slug}/` }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.com/blog/" },
+            { "@type": "ListItem", "position": 3, "name": postData.title, "item": `https://yuukub.com/blog/${slug}/` }
         ]
     };
 
