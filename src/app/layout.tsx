@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: "Saranyuu M. | Systems Architect & Cybersecurity Consultant",
     template: "%s | Saranyuu M.",
   },
-  description: "ผู้เชี่ยวชาญด้านความปลอดภัยระดับ Google Certified และ Full-stack Developer ที่ออกแบบระบบด้วยหลักความเป็นส่วนตัวและความมั่นคงปลอดภัย (Security-by-Design)",
+  description: "ผู้เชี่ยวชาญด้านความปลอดภัย Google Certified และ Full-stack Developer ที่ออกแบบระบบด้วยหลักความเป็นส่วนตัวและความปลอดภัย (Security-by-Design)",
   keywords: ["Systems Architect", "Cybersecurity Consultant", "WordPress Security", "Technical SEO", "Full-stack Developer", "AI Automation"],
   alternates: {
     canonical: SITE_URL,
