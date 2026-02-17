@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = {
   title: "Saranyuu M. | Systems Architect & Cybersecurity Consultant",
   description: "ผู้เชี่ยวชาญด้านความปลอดภัยระดับ Google Certified และ Full-stack Developer ออกแบบระบบด้วยหลัก Security-by-Design เพื่อการเติบโตทางธุรกิจที่มั่นคง",
-  alternates: { canonical: "https://yuukub.github.io/" },
+  alternates: { canonical: "https://yuukub.com/" },
 };
 import {
   Rocket,

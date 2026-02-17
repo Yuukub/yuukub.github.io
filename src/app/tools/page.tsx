@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "Tools | Saranyuu M.",
     description: "รวมเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
+    alternates: { canonical: "https://yuukub.com/tools/" },
 };
 
 const TOOLS = [
