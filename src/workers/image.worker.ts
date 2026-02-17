@@ -18,26 +18,36 @@ let pngModule: any = null;
 let webpDecModule: any = null;
 let webpEncModule: any = null;
 
+async function fetchWasm(url: string): Promise<ArrayBuffer> {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch WASM: ${url} (${response.status})`);
+    return await response.arrayBuffer();
+}
+
 async function initDecoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
             const module = await import('@jsquash/jpeg/decode');
-            await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_dec.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/mozjpeg_dec.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).decode || (module as any).default;
         }
         case 'png': {
             const module = await import('@jsquash/png/decode');
-            await module.init({ locateFile: () => `${WASM_BASE}/squoosh_png_bg.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            await (module as any).init(wasmBinary);
             return (module as any).decode || (module as any).default;
         }
         case 'webp': {
             const module = await import('@jsquash/webp/decode');
-            await module.init({ locateFile: () => `${WASM_BASE}/webp_dec.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/webp_dec.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).decode || (module as any).default;
         }
         case 'avif': {
             const module = await import('@jsquash/avif/decode');
-            await module.init({ locateFile: () => `${WASM_BASE}/avif_dec.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/avif_dec.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).decode || (module as any).default;
         }
         default:
@@ -49,22 +59,26 @@ async function initEncoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
             const module = await import('@jsquash/jpeg/encode');
-            await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_enc.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/mozjpeg_enc.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).encode || (module as any).default;
         }
         case 'png': {
             const module = await import('@jsquash/png/encode');
-            await module.init({ locateFile: () => `${WASM_BASE}/squoosh_png_bg.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            await (module as any).init(wasmBinary);
             return (module as any).encode || (module as any).default;
         }
         case 'webp': {
             const module = await import('@jsquash/webp/encode');
-            await module.init({ locateFile: () => `${WASM_BASE}/webp_enc.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/webp_enc.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).encode || (module as any).default;
         }
         case 'avif': {
             const module = await import('@jsquash/avif/encode');
-            await module.init({ locateFile: () => `${WASM_BASE}/avif_enc.wasm` });
+            const wasmBinary = await fetchWasm(`${WASM_BASE}/avif_enc.wasm`);
+            await module.init({ wasmBinary });
             return (module as any).encode || (module as any).default;
         }
         default:
