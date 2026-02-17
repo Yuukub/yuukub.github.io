@@ -561,11 +561,6 @@ export default function ImageConverterPage() {
                                                 }
                                                 className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-orange-500"
                                             />
-                                            <p className="text-[11px] leading-relaxed text-muted-foreground/80 bg-orange-500/5 p-2.5 rounded-lg border border-orange-500/10">
-                                                <span className="font-bold text-orange-600 dark:text-orange-400">💡 Tip:</span> การแปลงเป็น AVIF ใช้พลังประมวลผลสูงมากและใช้เวลานานกว่าปกติ หากต้องการความรวดเร็วแนะนำให้ใช้
-                                                <span className="font-semibold text-foreground mx-1">Effort 1-3</span>
-                                                หรือเลือกใช้ <span className="font-semibold text-foreground">WebP</span> แทนซึ่งให้ความเร็วสูงกว่าในคุณภาพที่ใกล้เคียงกัน
-                                            </p>
                                         </div>
                                     )}
                             </div>
