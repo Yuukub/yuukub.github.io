@@ -336,7 +336,14 @@ export default function ImageConverterPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `converted-images.zip`;
+
+        // Current time in HH.mm format
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        const timeStr = `${hours}.${minutes}`;
+
+        a.download = `converted-images-${timeStr}.zip`;
         a.click();
         URL.revokeObjectURL(url);
     };
