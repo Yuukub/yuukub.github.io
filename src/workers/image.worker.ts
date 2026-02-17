@@ -18,72 +18,54 @@ let pngModule: any = null;
 let webpDecModule: any = null;
 let webpEncModule: any = null;
 
-async function initDecoder(format: string) {
+async function initDecoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
-            if (!jpegDecModule) {
-                const module = await import('@jsquash/jpeg/decode');
-                await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_dec.wasm` });
-                jpegDecModule = module;
-            }
-            return jpegDecModule;
+            const module = await import('@jsquash/jpeg/decode');
+            await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_dec.wasm` });
+            return (module as any).decode || (module as any).default;
         }
         case 'png': {
             const module = await import('@jsquash/png/decode');
-            await module.init(`${WASM_BASE}/squoosh_png_bg.wasm`);
-            return { decode: module.default };
+            await (module as any).init(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            return (module as any).decode || (module as any).default;
         }
         case 'webp': {
-            if (!webpDecModule) {
-                const module = await import('@jsquash/webp/decode');
-                await module.init({ locateFile: () => `${WASM_BASE}/webp_dec.wasm` });
-                webpDecModule = module;
-            }
-            return webpDecModule;
+            const module = await import('@jsquash/webp/decode');
+            await module.init({ locateFile: () => `${WASM_BASE}/webp_dec.wasm` });
+            return (module as any).decode || (module as any).default;
         }
         case 'avif': {
-            if (!avifDecModule) {
-                const module = await import('@jsquash/avif/decode');
-                await module.init({ locateFile: () => `${WASM_BASE}/avif_dec.wasm` });
-                avifDecModule = module;
-            }
-            return avifDecModule;
+            const module = await import('@jsquash/avif/decode');
+            await module.init({ locateFile: () => `${WASM_BASE}/avif_dec.wasm` });
+            return (module as any).decode || (module as any).default;
         }
         default:
             throw new Error(`Unsupported input format: ${format}`);
     }
 }
 
-async function initEncoder(format: string) {
+async function initEncoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
-            if (!jpegEncModule) {
-                const module = await import('@jsquash/jpeg/encode');
-                await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_enc.wasm` });
-                jpegEncModule = module;
-            }
-            return jpegEncModule;
+            const module = await import('@jsquash/jpeg/encode');
+            await module.init({ locateFile: () => `${WASM_BASE}/mozjpeg_enc.wasm` });
+            return (module as any).encode || (module as any).default;
         }
         case 'png': {
             const module = await import('@jsquash/png/encode');
-            await module.init(`${WASM_BASE}/squoosh_png_bg.wasm`);
-            return { encode: module.default };
+            await (module as any).init(`${WASM_BASE}/squoosh_png_bg.wasm`);
+            return (module as any).encode || (module as any).default;
         }
         case 'webp': {
-            if (!webpEncModule) {
-                const module = await import('@jsquash/webp/encode');
-                await module.init({ locateFile: () => `${WASM_BASE}/webp_enc.wasm` });
-                webpEncModule = module;
-            }
-            return webpEncModule;
+            const module = await import('@jsquash/webp/encode');
+            await module.init({ locateFile: () => `${WASM_BASE}/webp_enc.wasm` });
+            return (module as any).encode || (module as any).default;
         }
         case 'avif': {
-            if (!avifEncModule) {
-                const module = await import('@jsquash/avif/encode');
-                await module.init({ locateFile: () => `${WASM_BASE}/avif_enc.wasm` });
-                avifEncModule = module;
-            }
-            return avifEncModule;
+            const module = await import('@jsquash/avif/encode');
+            await module.init({ locateFile: () => `${WASM_BASE}/avif_enc.wasm` });
+            return (module as any).encode || (module as any).default;
         }
         default:
             throw new Error(`Unsupported output format: ${format}`);
@@ -108,12 +90,12 @@ self.onmessage = async (e: MessageEvent) => {
     try {
         // Step 1: Decode
         self.postMessage({ type: 'progress', id, message: `กำลังถอดรหัส ${inputFormat.toUpperCase()}...` });
-        const decoder = await initDecoder(inputFormat);
-        const imageData: ImageData = await decoder.decode(imageBuffer);
+        const decode = await initDecoder(inputFormat);
+        const imageData: ImageData = await decode(imageBuffer);
 
         // Step 2: Encode
         self.postMessage({ type: 'progress', id, message: `กำลังเข้ารหัส ${outputFormat.toUpperCase()}...` });
-        const encoder = await initEncoder(outputFormat);
+        const encode = await initEncoder(outputFormat);
 
         let encodeOptions: any = {};
         if (outputFormat === 'webp') {
@@ -128,7 +110,7 @@ self.onmessage = async (e: MessageEvent) => {
         }
         // PNG doesn't typically have quality options
 
-        const encodedData: ArrayBuffer = await encoder.encode(imageData, encodeOptions);
+        const encodedData: ArrayBuffer = await encode(imageData, encodeOptions);
 
         // Step 3: Create Blob and send back
         const blob = new Blob([encodedData], { type: getMimeType(outputFormat) });
