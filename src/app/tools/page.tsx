@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ArrowRight, Hash, Lock } from "lucide-react";
+import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -35,6 +35,14 @@ const TOOLS = [
         href: "/tools/password-generator",
         tags: ["Productivity", "Security"],
         colorClass: "bg-purple-500/10 text-purple-500",
+    },
+    {
+        title: "Image Converter",
+        description: "แปลงรูป JPG, PNG, WebP, AVIF ไปมาได้อย่างอิสระ รองรับหลายไฟล์ ประมวลผลในเครื่อง 100%",
+        icon: <ImageIcon className="h-6 w-6 text-orange-500" />,
+        href: "/tools/image-converter",
+        tags: ["Media", "Productivity"],
+        colorClass: "bg-orange-500/10 text-orange-500",
     },
 ];
 
