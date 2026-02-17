@@ -7,8 +7,8 @@ import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-    title: "รวมเครื่องมือและยูทิลิตี้",
-    description: "รวมเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
+    title: "Premium Tools for Security & Productivity รวมเครื่องมือและยูทิลิตี้",
+    description: "รวมหลากหลายเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
     alternates: { canonical: "https://yuukub.com/tools/" },
 };
 
