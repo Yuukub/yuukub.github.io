@@ -10,8 +10,18 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // For user/org pages (username.github.io), no basePath needed
-  // basePath: "", // Uncomment and set if deploying to a project page
+  // Transpile @jsquash modules specifically
+  transpilePackages: ['@jsquash/avif', '@jsquash/jpeg', '@jsquash/webp', '@jsquash/png'],
+
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      crypto: false,
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
