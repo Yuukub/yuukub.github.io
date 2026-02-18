@@ -9,6 +9,7 @@ import { Calendar, ChevronLeft, Tag as TagIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Navbar } from "@/components/navbar";
+import { AdUnit } from "@/components/ad-unit";
 
 export async function generateStaticParams() {
     return await getAllPostSlugs();
@@ -127,16 +128,19 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             prose-code:before:content-none prose-code:after:content-none"
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
+
+                    <Separator className="my-10 opacity-50" />
+
+                    {/* AdSense Unit */}
+                    <AdUnit
+                        slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Blog Post Bottom
+                        format="auto"
+                        responsive={true}
+                        className="min-h-[250px] bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"
+                    />
                 </article>
             </main>
 
-            {/* Footer */}
-            <footer className="border-t py-12 mt-16 bg-background/95 backdrop-blur-sm relative z-20">
-                <div className="container mx-auto px-4 text-center">
-                    <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Saranyuu M. สงวนลิขสิทธิ์</p>
-                    <p className="mt-2 text-xs text-muted-foreground">Member of แว่น Talk มาร์เก็ตติ้ง</p>
-                </div>
-            </footer>
         </div>
     );
 }

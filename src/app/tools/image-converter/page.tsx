@@ -15,11 +15,12 @@ import {
     CheckCircle2,
     XCircle,
     ArrowRight,
-    Shield,
     PackageOpen,
     FileImage,
+    Shield,
     Clock,
 } from "lucide-react";
+import { AdUnit } from "@/components/ad-unit";
 import Link from "next/link";
 
 /* ─── Types ────────────────────────────────────────────────── */
@@ -780,7 +781,14 @@ export default function ImageConverterPage() {
                         </p>
                     </div>
                 </div>
-            </main>
-        </div>
+
+                <AdUnit
+                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Image Converter Bottom
+                    format="auto"
+                    responsive={true}
+                    className="min-h-[250px] mt-20 bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"
+                />
+            </main >
+        </div >
     );
 }

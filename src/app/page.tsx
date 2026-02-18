@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
 };
 import {
   Rocket,
-  Globe,
   ShieldCheck,
   Code2,
   Smartphone,
@@ -23,14 +21,11 @@ import {
   Linkedin,
   Facebook,
   TrendingUp,
-  Layout,
   Layers,
   Zap,
   Award,
   ArrowRight,
   ChartBar,
-  Database,
-  Lock,
   ExternalLink,
   Cpu
 } from "lucide-react";
@@ -435,19 +430,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t py-12 px-4 bg-background/95 backdrop-blur-sm relative z-20">
-        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="text-left">
-            <h4 className="font-bold text-lg mb-2 underline decoration-primary/30 underline-offset-4">Saranyuu M.</h4>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} สงวนลิขสิทธิ์ตามกฎหมาย</p>
-          </div>
-          <p className="text-xs text-muted-foreground max-w-xs md:text-right border-l md:border-l-0 md:border-r border-border/50 pl-4 md:pl-0 md:pr-4">
-            ความปลอดภัย. การตลาด. การพัฒนา. <br />
-            แนวทางด้านเทคนิคแบบรวมศูนย์เพื่อการเติบโตทางดิจิทัล
-          </p>
-        </div>
-      </footer>
     </div >
   );
 }

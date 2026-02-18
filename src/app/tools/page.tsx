@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdUnit } from "@/components/ad-unit";
 
 export const metadata: Metadata = {
     title: "Premium Tools for Security & Productivity รวมเครื่องมือและยูทิลิตี้",
@@ -72,6 +73,13 @@ export default function ToolsPage() {
                         รวมเครื่องมือสารพัดประโยชน์ที่ช่วยคุณตรวจสอบความปลอดภัยและเพิ่มประสิทธิภาพการทำงาน ใช้งานฟรี และให้ความสำคัญกับความเป็นส่วนตัวของคุณเป็นอันดับแรก (Privacy-First)
                     </p>
                 </section>
+
+                <AdUnit
+                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Tools Page Top
+                    format="auto"
+                    responsive={true}
+                    className="min-h-[150px] mb-12 bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"
+                />
 
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {TOOLS.map((tool, index) => (

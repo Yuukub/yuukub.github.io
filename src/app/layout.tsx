@@ -57,6 +57,8 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { ParticlesBackground } from "@/components/particles-background";
+import { Footer } from "@/components/footer";
+import Script from "next/script";
 
 export default function RootLayout({
   children,
@@ -107,10 +109,19 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ParticlesBackground />
-          <div className="relative z-10">
-            {children}
+          <div className="relative z-10 min-h-screen flex flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
           </div>
         </ThemeProvider>
+        <Script
+          id="adsbygoogle-init"
+          strategy="lazyOnload"
+          crossOrigin="anonymous"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx`}
+        />
       </body>
     </html>
   );
