@@ -101,7 +101,7 @@ export async function getPostData(slug: string): Promise<PostData> {
     const processedContent = await unified()
         .use(remarkParse)
         .use(remarkGfm)
-        .use(remarkFootnotes, { inlineNotes: true })
+        .use(remarkFootnotes as any, { inlineNotes: true })
         .use(remarkRehype)
         .use(rehypeHighlight)
         .use(rehypeStringify)
