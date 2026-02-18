@@ -21,8 +21,8 @@ const keystaticMoved = rename(activeKeystatic, hiddenKeystatic);
 
 try {
     console.log('Running next build...');
-    // Use npx to ensure 'next' is found even if not in global PATH
-    execSync('npx next build', { stdio: 'inherit' });
+    // Use npx and explicitly specify --webpack for Next.js 16 compatibility with custom configs
+    execSync('npx next build --webpack', { stdio: 'inherit' });
 } catch (error) {
     console.error('Build failed!');
     // Don't exit here, let finally block run
