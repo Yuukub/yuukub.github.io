@@ -108,9 +108,15 @@ export async function getPostData(slug: string): Promise<PostData> {
         .process(contentWithFixedImages);
 
     // Wrap tables in a div for responsive scrolling and background styling
+    // and transform GitHub-style alerts [!TIP] into styled divs
     const contentHtml = processedContent.toString()
         .replace(/<table>/g, '<div class="table-wrapper"><table>')
-        .replace(/<\/table>/g, '</table></div>');
+        .replace(/<\/table>/g, '</table></div>')
+        .replace(/<blockquote>\s*<p>\[!(TIP|IMPORTANT|NOTE|WARNING|CAUTION)\]/gi, (match, type) => {
+            const title = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+            return `<div class="alert-block alert-${type.toLowerCase()}"><p class="alert-title">${title}</p><p>`;
+        })
+        .replace(/<\/blockquote>/g, '</div>');
 
     // Calculate reading time
     const wordsPerMinute = 200;

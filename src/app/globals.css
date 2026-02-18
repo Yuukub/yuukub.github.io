@@ -205,14 +205,18 @@
   @apply border-t border-border mt-16 pt-8 text-[13px] text-muted-foreground/80;
 }
 
-.prose .footnotes h2 {
-  @apply text-sm font-bold mb-6 text-foreground/90 uppercase tracking-wider;
-  display: block;
+/* Ensure the heading is visible - some parsers might not include an h2, 
+   so we use ::before on the section if needed or just style the existing one */
+.prose .footnotes h2,
+.prose .footnotes::before {
+  content: "References & Notes";
+  @apply block text-xs font-bold mb-6 text-foreground/70 uppercase tracking-widest;
 }
 
-.prose .footnotes h2::before {
-  content: "References & Notes";
-  visibility: visible;
+.prose .footnotes h2 {
+  font-size: 0;
+  /* Hide original text if any to replace with content */
+  margin: 0;
 }
 
 .prose .footnotes ol {
@@ -224,15 +228,69 @@
 }
 
 .prose .footnote-backref {
-  @apply ml-1 text-primary hover:underline font-bold no-underline inline-flex items-center;
+  @apply ml-1 text-primary hover:underline font-bold no-underline inline-flex items-center opacity-70 hover:opacity-100;
 }
 
 .prose .footnote-ref {
-  @apply text-primary no-underline font-bold px-0.5 hover:underline vertical-align: super;
+  @apply text-primary no-underline font-bold px-0.5 hover:underline;
+  vertical-align: super;
   font-size: 0.75em;
 }
 
-/* --- End Table Styling --- */
+/* --- Alert / Callout Blocks --- */
+.prose .alert-block {
+  @apply my-8 p-6 rounded-2xl border-l-4 shadow-sm bg-card/30 backdrop-blur-sm;
+}
+
+.prose .alert-title {
+  @apply font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wider;
+}
+
+.prose .alert-block p:last-child {
+  @apply m-0;
+}
+
+.prose .alert-tip {
+  @apply border-emerald-500/50 bg-emerald-500/5 text-emerald-900/80 dark:text-emerald-400/80;
+}
+
+.prose .alert-tip .alert-title {
+  @apply text-emerald-600 dark:text-emerald-400;
+}
+
+.prose .alert-note {
+  @apply border-blue-500/50 bg-blue-500/5 text-blue-900/80 dark:text-blue-400/80;
+}
+
+.prose .alert-note .alert-title {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.prose .alert-important {
+  @apply border-purple-500/50 bg-purple-500/5 text-purple-900/80 dark:text-purple-400/80;
+}
+
+.prose .alert-important .alert-title {
+  @apply text-purple-600 dark:text-purple-400;
+}
+
+.prose .alert-warning {
+  @apply border-amber-500/50 bg-amber-500/5 text-amber-900/80 dark:text-amber-400/80;
+}
+
+.prose .alert-warning .alert-title {
+  @apply text-amber-600 dark:text-amber-400;
+}
+
+.prose .alert-caution {
+  @apply border-red-500/50 bg-red-500/5 text-red-900/80 dark:text-red-400/80;
+}
+
+.prose .alert-caution .alert-title {
+  @apply text-red-600 dark:text-red-400;
+}
+
+/* --- End Table & Alert Styling --- */
 
 /* Premium Utilities */
 @layer utilities {
