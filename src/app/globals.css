@@ -165,21 +165,17 @@
 }
 
 /* --- Premium Table Styling --- */
-.prose table {
-  @apply w-full border-collapse border border-border/50 rounded-xl overflow-hidden shadow-sm my-8;
-  /* Table layout fix for background colors */
-  display: table;
-  @apply min-w-full;
+.prose .table-wrapper {
+  @apply w-full border border-border/50 rounded-xl overflow-hidden shadow-sm my-8 relative bg-card/50;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Wrapper for Responsive Scroll - we'll try to target the auto-generated table wrapper if possible, 
-   but for now we'll make the table itself scrollable if possible or just use display: block back with min-w-full */
-@media (max-width: 768px) {
-  .prose table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+.prose table {
+  @apply w-full border-collapse m-0;
+  display: table;
+  @apply min-w-full;
 }
 
 .prose thead {
@@ -196,7 +192,7 @@
 
 /* Row Stripping */
 .prose tr:nth-child(even) {
-  @apply bg-muted/20;
+  @apply bg-muted/10;
 }
 
 /* Hover Effect */
@@ -204,29 +200,36 @@
   @apply bg-primary/5 transition-colors;
 }
 
-/* Footnotes Styling (remark-gfm v4+) */
-.prose section[data-footnotes] {
-  @apply border-t border-border mt-16 pt-8 text-xs text-muted-foreground;
+/* Footnotes Styling */
+.prose .footnotes {
+  @apply border-t border-border mt-16 pt-8 text-[13px] text-muted-foreground/80;
 }
 
-.prose section[data-footnotes] h2 {
-  @apply text-sm font-bold mb-4 text-foreground;
+.prose .footnotes h2 {
+  @apply text-sm font-bold mb-6 text-foreground/90 uppercase tracking-wider;
+  display: block;
 }
 
-.prose section[data-footnotes] ol {
-  @apply list-decimal pl-5;
+.prose .footnotes h2::before {
+  content: "References & Notes";
+  visibility: visible;
 }
 
-.prose section[data-footnotes] li {
-  @apply mb-2;
+.prose .footnotes ol {
+  @apply list-decimal pl-5 space-y-4;
 }
 
-.prose [data-footnote-backref] {
-  @apply ml-1 text-primary hover:underline font-bold no-underline inline-block scale-110;
+.prose .footnotes li {
+  @apply leading-relaxed;
 }
 
-.prose [data-footnote-ref] {
-  @apply text-primary no-underline font-bold px-0.5 hover:underline;
+.prose .footnote-backref {
+  @apply ml-1 text-primary hover:underline font-bold no-underline inline-flex items-center;
+}
+
+.prose .footnote-ref {
+  @apply text-primary no-underline font-bold px-0.5 hover:underline vertical-align: super;
+  font-size: 0.75em;
 }
 
 /* --- End Table Styling --- */

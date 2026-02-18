@@ -4,6 +4,7 @@ import matter from 'gray-matter';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
+import remarkFootnotes from 'remark-footnotes';
 import remarkRehype from 'remark-rehype';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeStringify from 'rehype-stringify';
@@ -100,11 +101,16 @@ export async function getPostData(slug: string): Promise<PostData> {
     const processedContent = await unified()
         .use(remarkParse)
         .use(remarkGfm)
+        .use(remarkFootnotes as any, { inlineNotes: true })
         .use(remarkRehype)
         .use(rehypeHighlight)
         .use(rehypeStringify)
         .process(contentWithFixedImages);
-    const contentHtml = processedContent.toString();
+
+    // Wrap tables in a div for responsive scrolling and background styling
+    const contentHtml = processedContent.toString()
+        .replace(/<table>/g, '<div class="table-wrapper"><table>')
+        .replace(/<\/table>/g, '</table></div>');
 
     // Calculate reading time
     const wordsPerMinute = 200;
