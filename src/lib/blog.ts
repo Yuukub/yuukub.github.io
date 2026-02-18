@@ -112,11 +112,10 @@ export async function getPostData(slug: string): Promise<PostData> {
     const contentHtml = processedContent.toString()
         .replace(/<table>/g, '<div class="table-wrapper"><table>')
         .replace(/<\/table>/g, '</table></div>')
-        .replace(/<blockquote>\s*<p>\[!(TIP|IMPORTANT|NOTE|WARNING|CAUTION)\]/gi, (match, type) => {
+        .replace(/<blockquote>\s*<p>\[!(TIP|IMPORTANT|NOTE|WARNING|CAUTION)\]([\s\S]*?)<\/blockquote>/gi, (match, type, content) => {
             const title = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-            return `<div class="alert-block alert-${type.toLowerCase()}"><p class="alert-title">${title}</p><p>`;
-        })
-        .replace(/<\/blockquote>/g, '</div>');
+            return `<div class="alert-block alert-${type.toLowerCase()}"><p class="alert-title">${title}</p>${content}</div>`;
+        });
 
     // Calculate reading time
     const wordsPerMinute = 200;
