@@ -166,10 +166,20 @@
 
 /* --- Premium Table Styling --- */
 .prose table {
-  @apply w-full border-collapse border border-border/50 rounded-xl overflow-hidden shadow-sm;
-  display: block;
-  overflow-x: auto; /* Responsive Scroll */
-  -webkit-overflow-scrolling: touch;
+  @apply w-full border-collapse border border-border/50 rounded-xl overflow-hidden shadow-sm my-8;
+  /* Table layout fix for background colors */
+  display: table;
+  @apply min-w-full;
+}
+
+/* Wrapper for Responsive Scroll - we'll try to target the auto-generated table wrapper if possible, 
+   but for now we'll make the table itself scrollable if possible or just use display: block back with min-w-full */
+@media (max-width: 768px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .prose thead {
@@ -194,21 +204,29 @@
   @apply bg-primary/5 transition-colors;
 }
 
-/* Footnotes Styling */
-.footnotes {
-    @apply border-t border-border mt-16 pt-8 text-xs text-muted-foreground;
+/* Footnotes Styling (remark-gfm v4+) */
+.prose section[data-footnotes] {
+  @apply border-t border-border mt-16 pt-8 text-xs text-muted-foreground;
 }
 
-.footnotes ol {
-    @apply list-decimal pl-5;
+.prose section[data-footnotes] h2 {
+  @apply text-sm font-bold mb-4 text-foreground;
 }
 
-.footnotes li {
-    @apply mb-2;
+.prose section[data-footnotes] ol {
+  @apply list-decimal pl-5;
 }
 
-.footnote-backref {
-    @apply ml-1 text-primary hover:underline font-bold;
+.prose section[data-footnotes] li {
+  @apply mb-2;
+}
+
+.prose [data-footnote-backref] {
+  @apply ml-1 text-primary hover:underline font-bold no-underline inline-block scale-110;
+}
+
+.prose [data-footnote-ref] {
+  @apply text-primary no-underline font-bold px-0.5 hover:underline;
 }
 
 /* --- End Table Styling --- */
@@ -245,20 +263,47 @@
   }
 
   /* Staggered animation delays */
-  .delay-0 { animation-delay: 0ms; }
-  .delay-75 { animation-delay: 75ms; }
-  .delay-150 { animation-delay: 150ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
-  .delay-600 { animation-delay: 600ms; }
-  .delay-700 { animation-delay: 700ms; }
+  .delay-0 {
+    animation-delay: 0ms;
+  }
+
+  .delay-75 {
+    animation-delay: 75ms;
+  }
+
+  .delay-150 {
+    animation-delay: 150ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .delay-600 {
+    animation-delay: 600ms;
+  }
+
+  .delay-700 {
+    animation-delay: 700ms;
+  }
 
   /* Smooth hover lift effect */
   .hover-lift {
     transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1);
   }
+
   .hover-lift:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px -8px oklch(0 0 0 / 0.15);
@@ -270,8 +315,15 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-8px);
+    }
   }
 
   /* Pulse glow for CTAs */
@@ -280,8 +332,15 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px -5px oklch(var(--primary) / 0.3); }
-    50% { box-shadow: 0 0 40px -5px oklch(var(--primary) / 0.5); }
+
+    0%,
+    100% {
+      box-shadow: 0 0 20px -5px oklch(var(--primary) / 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 40px -5px oklch(var(--primary) / 0.5);
+    }
   }
 }
 
