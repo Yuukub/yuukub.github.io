@@ -105,7 +105,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
                         {/* Cover Image */}
                         {postData.thumbnail && (
-                            <div className="mt-8 aspect-[21/9] w-full overflow-hidden rounded-xl border border-border/50 shadow-md">
+                            <div className="mt-8 aspect-video w-full overflow-hidden rounded-xl border border-border/50 shadow-md">
                                 <img
                                     src={postData.thumbnail}
                                     alt={postData.title}
