@@ -164,6 +164,55 @@
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
 }
 
+/* --- Premium Table Styling --- */
+.prose table {
+  @apply w-full border-collapse border border-border/50 rounded-xl overflow-hidden shadow-sm;
+  display: block;
+  overflow-x: auto; /* Responsive Scroll */
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose thead {
+  @apply bg-muted/50 border-b border-border;
+}
+
+.prose th {
+  @apply text-left p-4 font-bold text-sm text-foreground whitespace-nowrap;
+}
+
+.prose td {
+  @apply p-4 text-sm text-muted-foreground border-b border-border/30;
+}
+
+/* Row Stripping */
+.prose tr:nth-child(even) {
+  @apply bg-muted/20;
+}
+
+/* Hover Effect */
+.prose tr:hover {
+  @apply bg-primary/5 transition-colors;
+}
+
+/* Footnotes Styling */
+.footnotes {
+    @apply border-t border-border mt-16 pt-8 text-xs text-muted-foreground;
+}
+
+.footnotes ol {
+    @apply list-decimal pl-5;
+}
+
+.footnotes li {
+    @apply mb-2;
+}
+
+.footnote-backref {
+    @apply ml-1 text-primary hover:underline font-bold;
+}
+
+/* --- End Table Styling --- */
+
 /* Premium Utilities */
 @layer utilities {
   .premium-card-hover {
