@@ -3,7 +3,7 @@ layout: post
 slug: reset-wordpress-password-methods
 title: "รวมวิธีกู้คืนและเปลี่ยนรหัสผ่าน WordPress เมื่อเข้าหลังบ้านไม่ได้ (ฉบับสมบูรณ์ 2026)"
 date: 2026-02-12
-thumbnail: "wp-password-reset.png"
+thumbnail: "wp-password-reset.webp"
 tags: [wordpress, security, tutorial, phpmyadmin, ftp]
 description: "ลืมรหัสผ่าน WordPress? รวมวิธีกู้คืนรหัสผ่านด้วยวิธีต่างๆ ตั้งแต่การใช้ phpMyAdmin ไปจนถึงการแก้โค้ดผ่าน FTP และการใช้ WP-CLI พร้อมเทคนิคการใช้ MD5 Fallback"
 ---
