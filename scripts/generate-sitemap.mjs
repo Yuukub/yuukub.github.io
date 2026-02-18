@@ -29,6 +29,14 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>${SITE_URL}/about/</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/privacy-policy/</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>${SITE_URL}/tools/</loc>
     <priority>0.9</priority>
   </url>
