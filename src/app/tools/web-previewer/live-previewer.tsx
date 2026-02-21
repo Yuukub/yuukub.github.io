@@ -209,7 +209,7 @@ ${interceptScript}
                             <Button
                                 variant="ghost" size="icon"
                                 onClick={() => setViewport("desktop")}
-                                className={`h-8 w-8 rounded-full ${viewport === "desktop" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
+                                className="h-8 w-8 rounded-full hover:bg-muted/50"
                             >
                                 <Monitor className="h-4 w-4" />
                             </Button>
