@@ -2,7 +2,7 @@
 layout: post
 slug: sqli-deep-dive-2026
 title: "SQL Injection (SQLi) ไม่ใช่เรื่องไกลตัว เจาะลึกวิธีแฮกเกอร์ดูดฐานข้อมูลและวิธีอุดรอยรั่วในปี 2026"
-date: 2026-02-18
+date: 2026-02-20
 thumbnail: "sqli-2026.webp"
 tags: ["Cybersecurity", "Web Vulnerability", "SQL", "Database", "Security"]
 description: "เจาะลึกกลไกการโจมตีฐานข้อมูลที่อันตรายและทรงพลังที่สุด ตั้งแต่การแทรกคำสั่งพื้นฐานไปจนถึง Blind SQLi พร้อมวิธีเขียนโค้ดเพื่อป้องกันเนื้อหาสำคัญของระบบแบบอยู่หมัด"
