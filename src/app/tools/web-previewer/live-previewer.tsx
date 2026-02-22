@@ -348,27 +348,30 @@ ${interceptScript}
                                 </div>
                             </div>
 
-                            <div className="flex-1 relative min-h-[350px] lg:min-h-0">
-                                <Editor
-                                    height="100%"
-                                    language={activeTab === 'js' ? 'javascript' : activeTab}
-                                    theme="vs-dark"
-                                    value={activeTab === 'html' ? html : activeTab === 'css' ? css : js}
-                                    onChange={(value) => {
-                                        if (value !== undefined) {
-                                            if (activeTab === 'html') setHtml(value);
-                                            else if (activeTab === 'css') setCss(value);
-                                            else setJs(value);
-                                        }
-                                    }}
-                                    options={{
-                                        minimap: { enabled: false },
-                                        fontSize: 14,
-                                        wordWrap: "on",
-                                        formatOnPaste: true,
-                                        tabSize: 4,
-                                    }}
-                                />
+                            <div className="flex-1 relative min-h-[350px] lg:min-h-0 w-full overflow-hidden">
+                                <div className="absolute inset-0">
+                                    <Editor
+                                        height="100%"
+                                        language={activeTab === 'js' ? 'javascript' : activeTab}
+                                        theme="vs-dark"
+                                        value={activeTab === 'html' ? html : activeTab === 'css' ? css : js}
+                                        onChange={(value) => {
+                                            if (value !== undefined) {
+                                                if (activeTab === 'html') setHtml(value);
+                                                else if (activeTab === 'css') setCss(value);
+                                                else setJs(value);
+                                            }
+                                        }}
+                                        options={{
+                                            minimap: { enabled: false },
+                                            fontSize: 14,
+                                            wordWrap: "on",
+                                            formatOnPaste: true,
+                                            tabSize: 4,
+                                            automaticLayout: true,
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </Card>
                     )}
