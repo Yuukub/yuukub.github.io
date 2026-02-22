@@ -309,11 +309,11 @@ ${interceptScript}
                 </section>
 
                 {/* Main Workspace Area */}
-                <div className={`flex-1 flex ${isHorizontal ? 'flex-col lg:flex-row' : 'flex-col'} gap-6 min-h-[600px] mb-8`}>
+                <div className={`flex-1 flex ${isHorizontal ? 'flex-col lg:flex-row' : 'flex-col'} gap-6 min-h-[800px] mb-8`}>
 
                     {/* Editor Pane (Left/Top) */}
                     {showEditor && (
-                        <Card className={`flex-1 flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 min-h-[350px] md:min-h-[400px] ${isHorizontal ? 'lg:max-w-[40%] lg:min-h-0' : ''}`}>
+                        <Card className={`flex-1 flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 min-h-[500px] lg:min-h-0 ${isHorizontal ? 'lg:max-w-[40%]' : ''}`}>
                             <div className="flex items-center justify-between px-2 py-2 bg-[#252526] border-b border-zinc-800">
                                 <div className="flex gap-1">
                                     <button
@@ -426,7 +426,7 @@ ${interceptScript}
                         {/* Iframe Container */}
                         <div className="flex-1 bg-zinc-100/50 dark:bg-zinc-950/50 p-2 md:p-4 flex justify-center overflow-hidden">
                             <div className={`transition-all duration-300 h-full bg-white rounded-md shadow-lg border border-border/50 flex flex-col ${getViewportClass()}`}>
-                                <div className="flex-1 w-full bg-white rounded-b-md overflow-hidden min-h-[500px] lg:min-h-[700px]">
+                                <div className="flex-1 w-full bg-white rounded-b-md overflow-hidden min-h-[400px] md:min-h-[500px] lg:min-h-[700px]">
                                     <iframe
                                         srcDoc={getCombinedCode()}
                                         title="preview"
