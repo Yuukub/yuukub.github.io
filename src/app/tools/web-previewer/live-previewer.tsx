@@ -313,7 +313,7 @@ ${interceptScript}
 
                     {/* Editor Pane (Left/Top) */}
                     {showEditor && (
-                        <Card className={`flex-1 flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 ${isHorizontal ? 'lg:max-w-[40%]' : 'min-h-[400px]'}`}>
+                        <Card className={`flex-1 flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 min-h-[350px] md:min-h-[400px] ${isHorizontal ? 'lg:max-w-[40%] lg:min-h-0' : ''}`}>
                             <div className="flex items-center justify-between px-2 py-2 bg-[#252526] border-b border-zinc-800">
                                 <div className="flex gap-1">
                                     <button
