@@ -1,7 +1,7 @@
 ---
 layout: post
 slug: webp-guide-and-converter
-title: "เจาะลึก WebP: สถาปัตยกรรมบีบอัดภาพระดับ Next-Gen และเทคนิค Optimization ที่คุณอาจไม่เคยรู้"
+title: "เจาะลึก WebP สถาปัตยกรรมบีบอัดภาพระดับ Next-Gen และเทคนิค Optimization ที่คุณอาจไม่เคยรู้"
 date: 2026-02-18
 thumbnail: "webp-guide.webp"
 tags: [web-performance, webp, image-optimization, deep-tech, algorithm]
@@ -10,7 +10,7 @@ description: "วิเคราะห์โครงสร้างไฟล์
 
 ในยุคที่ **Core Web Vitals** กลายเป็นตัวชี้วัดความเป็นความตายของ SEO การเลือกไฟล์รูปภาพไม่ใช่แค่เรื่องของ "ความชัด" แต่เป็นเรื่องของ **Mathematics & efficiency** [^1]
 
-บทความนี้จะพาคุณดำดิ่งลงไปในระดับ Byte ของไฟล์ **WebP** เพื่อทำความเข้าใจว่าทำไม Technology จาก Google ตัวนี้ ถึงสามารถเอาชนะ JPEG ที่ครองโลกมานับทศวรรษได้ และผมมีเครื่องมือ **Local WebAssembly Converter** มาแจกให้ลองใช้งานกันฟรีๆ ท้ายบทความครับ
+บทความนี้ผมจะพาลงลึกระดับ Byte ของไฟล์ **WebP** เพื่องัดแงะดูว่าทำไมเทคโนโลยีจาก Google ตัวนี้ถึงสามารถเอาชนะ JPEG ที่ครองโลกมาเป็นสิบปีได้ และช่วงท้ายผมมีเครื่องมือ **Local WebAssembly Converter** มาแจกให้ลองเล่นกันฟรีๆ ด้วยครับ
 
 ---
 
@@ -18,7 +18,7 @@ description: "วิเคราะห์โครงสร้างไฟล์
 
 ---
 
-## 1. The Engineering Behind WebP: VP8's Legacy
+## 1. The Engineering Behind WebP VP8 Legacy
 
 WebP ไม่ได้ถูกสร้างขึ้นมาใหม่จากศูนย์ แต่มันคือ **Keyframe** ของวิดีโอ Codec **VP8** ที่ถูกแยกออกมาเป็นภาพนิ่ง ความลับของความเล็กจิ๋วอยู่ที่กลไกการบีบอัดที่ซับซ้อนกว่า JPEG แบบคนละชั้น:
 
@@ -41,9 +41,9 @@ WebP ใช้ **Intra-prediction modes** เพื่อ "เดา" ค่า�
 
 ---
 
-## 2. Lossless WebP: The Entropy Coding Beast
+## 2. Lossless WebP The Entropy Coding Beast
 
-สำหรับโหมด Lossless (ไม่สูญเสียคุณภาพ) WebP ใช้เทคนิคที่เรียกว่า **Entropy Coding** ผสมผสานกับการแปลงค่าสี:
+สำหรับโหมด Lossless (ไม่สูญเสียคุณภาพ) WebP ใช้เทคนิคที่เรียกว่า **Entropy Coding** ผสมผสานกับการแปลงค่าสี
 
 1.  **Color Transform:** เปลี่ยนค่าสีจาก RGB เป็น YUV เพื่อแยกความสว่าง (Luma) ออกจากสี (Chroma) ทำให้บีบอัดได้ดีกว่า
 2.  **Spatial Transform:** ใช้ค่าสีของเพื่อนบ้านเพื่อลดความซ้ำซ้อน (Dedup)
@@ -51,7 +51,7 @@ WebP ใช้ **Intra-prediction modes** เพื่อ "เดา" ค่า�
 
 ---
 
-## 3. Benchmark: WebP vs The World
+## 3. Benchmark WebP vs The World
 
 มาดูกันชัดๆ ว่าเมื่อเทียบกับคู่แข่ง WebP ยืนอยู่จุดไหน (ทดสอบที่ค่าความชัดระดับ Visual Lossless หรือ SSIM ~0.95):
 

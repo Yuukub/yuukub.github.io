@@ -2,7 +2,7 @@
 layout: post
 slug: xss-deep-dive
 title: "เจาะลึก XSS (Cross-Site Scripting): จากทฤษฎีสู่การป้องกันในโลกจริง"
-date: "2025-12-02"
+date: 2025-12-02
 thumbnail: "xss-deep-dive.webp"
 tags: ["Cybersecurity", "Web Vulnerability", "XSS"]
 description: "เจาะลึกกลไกการทำงานของ XSS ตั้งแต่ระดับพื้นฐานไปจนถึงเทคนิคการ Bypass ระบบป้องกัน และผลกระทบเชิงลึกต่อความปลอดภัยของข้อมูลและอันดับ SEO"
@@ -49,7 +49,7 @@ description: "เจาะลึกกลไกการทำงานของ
 * **Hex/Unicode Encoding:** การเปลี่ยนตัวอักษรเป็นรหัสตัวเลขที่ระบบตรวจสอบไม่รู้จัก
 
   
-```JavaScript
+```javascript
 
 // การใช้ String concatenation เพื่อพรางคำสั่ง eval
 window['ev'+'al']('al' + 'ert(document.cookie)');
@@ -79,7 +79,7 @@ XSS ส่งผลเสียหายมากกว่าแค่เรื�
 1. **Context-Aware Encoding:** ต้อง Encode ข้อมูลให้เหมาะสมกับตำแหน่งที่จะไปแสดงผลเสมอ เช่น HTML Entity สำหรับเนื้อหาทั่วไป และ JavaScript Escape สำหรับการใช้ในตัวแปรสคริปต์
 2. **Content Security Policy (CSP):** การประกาศนโยบายความปลอดภัยผ่าน HTTP Header เพื่อจำกัดสิทธิ์ว่าเบราว์เซอร์สามารถรันสคริปต์จากแหล่งใดได้บ้าง
 3. **HttpOnly Cookie Flag:** การตั้งค่าไม่ให้ JavaScript สามารถอ่านค่าคุกกี้ที่สำคัญได้ เพื่อตัดวงจรการขโมย Session
-```PHP
+```php
 // การป้องกันใน WordPress ด้วยการ Escape ข้อมูลตามบริบท
 echo esc_html($user_input);  // สำหรับเนื้อหาใน HTML
 echo esc_attr($user_input);  // สำหรับค่าใน Attribute เช่น value=""
