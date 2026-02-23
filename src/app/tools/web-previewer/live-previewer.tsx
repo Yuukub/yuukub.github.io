@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useRef, ChangeEvent, useCallback } from "react";
 import Editor from "@monaco-editor/react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { AdUnit } from "@/components/ad-unit";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,15 @@ import {
     Code2,
     Maximize2,
     Minimize2,
-    ArrowLeft
+    ArrowLeft,
+    Share2,
+    Copy,
+    Check,
+    X,
+    Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { saveSnippet, loadSnippet, getClientIp } from "@/lib/supabase-snippets";
 
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -69,15 +76,89 @@ export function LiveWebPreviewer() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // --- Share Feature State ---
+    const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+    const [shareUrl, setShareUrl] = useState<string>("");
+    const [shareError, setShareError] = useState<string>("");
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [loadedFromShare, setLoadedFromShare] = useState(false);
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     // Debounce to prevent lag while typing
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedHtml(html);
             setDebouncedCss(css);
             setDebouncedJs(js);
-        }, 500); // 500ms debounce
+        }, 500);
         return () => clearTimeout(handler);
     }, [html, css, js]);
+
+    // --- Load shared snippet from URL on mount ---
+    useEffect(() => {
+        const snippetId = searchParams.get("id");
+        if (!snippetId) return;
+
+        (async () => {
+            const result = await loadSnippet(snippetId);
+            if ("error" in result) {
+                setShareError(result.error);
+                setShowShareModal(true);
+                return;
+            }
+            setHtml(result.html_code);
+            setCss(result.css_code);
+            setJs(result.js_code);
+            setLoadedFromShare(true);
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // --- Handle Share Button Click ---
+    const handleShare = useCallback(async () => {
+        setShareStatus("loading");
+        setShareError("");
+        setShowShareModal(true);
+
+        try {
+            const ip = await getClientIp();
+            const result = await saveSnippet(
+                { html_code: html, css_code: css, js_code: js },
+                ip
+            );
+
+            if ("error" in result) {
+                setShareStatus("error");
+                setShareError(result.error);
+                return;
+            }
+
+            const url = `${window.location.origin}${window.location.pathname}?id=${result.id}`;
+            setShareUrl(url);
+            setShareStatus("success");
+
+            // อัพเดต URL โดยไม่ reload หน้า
+            router.replace(`?id=${result.id}`, { scroll: false });
+        } catch {
+            setShareStatus("error");
+            setShareError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
+        }
+    }, [html, css, js, router]);
+
+    // --- Copy URL to Clipboard ---
+    const handleCopy = useCallback(async () => {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }, [shareUrl]);
+
+    const closeModal = useCallback(() => {
+        setShowShareModal(false);
+        setShareStatus("idle");
+        setShareError("");
+    }, []);
 
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -245,7 +326,7 @@ ${interceptScript}
                     <iframe
                         srcDoc={getCombinedCode()}
                         title="preview-fullscreen"
-                        sandbox="allow-scripts allow-modals allow-popups allow-forms allow-same-origin"
+                        sandbox="allow-scripts allow-modals"
                         className="w-full flex-1 border-0 bg-white"
                     />
                 </div>
@@ -281,7 +362,7 @@ ${interceptScript}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <input
                             type="file"
                             accept=".html,.txt"
@@ -305,6 +386,23 @@ ${interceptScript}
                             {showEditor ? <EyeOff className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
                             {showEditor ? "ซ่อนกล่องข้อความโค้ด" : "แสดงกล่องข้อความโค้ด"}
                         </Button>
+                        {/* Share Button */}
+                        <Button
+                            variant="outline"
+                            onClick={handleShare}
+                            disabled={shareStatus === "loading"}
+                            className="gap-2 border-fuchsia-500/30 text-fuchsia-600 hover:bg-fuchsia-500/10 hover:text-fuchsia-600"
+                        >
+                            {shareStatus === "loading"
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <Share2 className="h-4 w-4" />}
+                            แชร์โค้ด
+                        </Button>
+                        {loadedFromShare && (
+                            <Badge variant="outline" className="text-fuchsia-500 border-fuchsia-500/20 bg-fuchsia-500/10">
+                                โหลดจากลิงก์แชร์
+                            </Badge>
+                        )}
                     </div>
                 </section>
 
@@ -433,7 +531,7 @@ ${interceptScript}
                                     <iframe
                                         srcDoc={getCombinedCode()}
                                         title="preview"
-                                        sandbox="allow-scripts allow-modals allow-popups allow-forms allow-same-origin"
+                                        sandbox="allow-scripts allow-modals"
                                         className="w-full h-full border-0"
                                     />
                                 </div>
@@ -449,6 +547,80 @@ ${interceptScript}
                     responsive={true}
                     className="min-h-[150px] bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted shrink-0"
                 />
+
+                {/* ===== Share Modal ===== */}
+                {showShareModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                        onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+                    >
+                        <div className="bg-background border border-border/80 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+                            <button
+                                onClick={closeModal}
+                                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+
+                            {/* Loading State */}
+                            {shareStatus === "loading" && (
+                                <div className="flex flex-col items-center gap-3 py-4">
+                                    <Loader2 className="h-10 w-10 text-fuchsia-500 animate-spin" />
+                                    <p className="text-muted-foreground text-sm">กำลังบันทึกโค้ดของคุณ...</p>
+                                </div>
+                            )}
+
+                            {/* Success State */}
+                            {shareStatus === "success" && (
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                                            <Check className="h-4 w-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold">แชร์โค้ดสำเร็จ!</h3>
+                                            <p className="text-xs text-muted-foreground">ลิงก์นี้จะหมดอายุภายใน 7 วัน</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 bg-muted/50 rounded-lg p-1 border border-border/50">
+                                        <input
+                                            readOnly
+                                            value={shareUrl}
+                                            className="flex-1 bg-transparent text-sm px-2 py-1 outline-none text-foreground min-w-0 truncate"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            onClick={handleCopy}
+                                            className="shrink-0 gap-1.5 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+                                        >
+                                            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                                            {copied ? "คัดลอกแล้ว!" : "คัดลอก"}
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground text-center">
+                                        ⚠️ โค้ดที่แชร์เป็นสาธารณะ ห้ามใส่ข้อมูลส่วนตัวหรือรหัสผ่าน
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Error State */}
+                            {shareStatus === "error" && (
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                                            <X className="h-4 w-4 text-red-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold">ไม่สามารถแชร์โค้ดได้</h3>
+                                            <p className="text-xs text-red-500">{shareError}</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="outline" size="sm" onClick={closeModal}>ปิด</Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
