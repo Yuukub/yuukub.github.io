@@ -2,7 +2,7 @@
 layout: post
 slug: webp-guide-and-converter
 title: "เจาะลึก WebP สถาปัตยกรรมบีบอัดภาพระดับ Next-Gen และเทคนิค Optimization ที่คุณอาจไม่เคยรู้"
-date: 2026-02-18
+date: 2026-01-08
 thumbnail: "webp-guide.webp"
 tags: [web-performance, webp, image-optimization, deep-tech, algorithm]
 description: "วิเคราะห์โครงสร้างไฟล์ WebP แบบ Deep Dive เทียบ Huffman vs Arithmetic Coding และเบื้องหลังอัลกอริทึมที่จะช่วยให้เว็บโหลดเร็วขึ้นระดับ Millisecond"

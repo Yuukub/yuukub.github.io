@@ -2,7 +2,7 @@
 layout: post
 slug: wp-brute-force-attack-defense
 title: "วิธีรับมือกับ Brute Force Attack เหล่า BOT ที่เข้ามาถล่มเว็บ WordPress ในหน้า Login ของคุณ"
-date: 2026-02-22
+date: 2026-01-26
 thumbnail: "wp-bruteforce.webp"
 tags: ["WordPress", "Cybersecurity", "Brute Force", "Security", "Login"]
 description: "เจาะลึกเทคนิคที่บอทใช้ถล่มเดารหัสผ่านหน้าเว็บ WordPress และเปิดตำราการตั้งรับขั้นสุดยอด เพื่อให้หน้าล็อกอินของคุณรอดพ้นจากการถูกยึดแบบเบ็ดเสร็จ"

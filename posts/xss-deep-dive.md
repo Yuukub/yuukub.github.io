@@ -2,7 +2,7 @@
 layout: post
 slug: xss-deep-dive
 title: "เจาะลึก XSS (Cross-Site Scripting): จากทฤษฎีสู่การป้องกันในโลกจริง"
-date: 2025-12-02
+date: 2025-12-11
 thumbnail: "xss-deep-dive.webp"
 tags: ["Cybersecurity", "Web Vulnerability", "XSS"]
 description: "เจาะลึกกลไกการทำงานของ XSS ตั้งแต่ระดับพื้นฐานไปจนถึงเทคนิคการ Bypass ระบบป้องกัน และผลกระทบเชิงลึกต่อความปลอดภัยของข้อมูลและอันดับ SEO"

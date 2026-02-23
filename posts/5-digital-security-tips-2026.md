@@ -2,7 +2,7 @@
 layout: post
 slug: 5-digital-security-tips-2026
 title: "5 ยุทธวิธี Cybersecurity ขั้นสูง อัปเกรดความปลอดภัยดิจิทัลรับมือภัยคุกคามปี 2026"
-date: 2026-02-03
+date: 2025-12-20
 thumbnail: "5-ways-to-upgrade-digital-security-2026.webp"
 tags: ["Cybersecurity", "InfoSec", "Privacy", "2FA", "Ransomware"]
 description: "เจาะลึกแนวทางการป้องกันภัยไซเบอร์ระดับ Expert ตั้งแต่ NIST Password Guidelines, FIDO2/WebAuthn ไปจนถึงการรับมือ AI Voice Cloning และ Immutable Backups"

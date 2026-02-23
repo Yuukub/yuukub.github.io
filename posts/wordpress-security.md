@@ -2,7 +2,7 @@
 layout: post
 slug: wordpress-security
 title: "เจาะลึกความปลอดภัย WordPress วิเคราะห์กลไกการโจมตีและกลยุทธ์การป้องกันขั้นสูง"
-date: 2025-11-24
+date: 2025-12-02
 thumbnail: "wordpress-security.webp"
 tags: [wordpress, cyber-security, infosec, penetration-testing, hardening]
 description: "บทความเชิงลึกเกี่ยวกับการวิเคราะห์ช่องโหว่ระดับโครงสร้างของ WordPress เทคนิคการโจมตีที่แฮกเกอร์ใช้ และการเสริมความแข็งแกร่งให้กับระบบในระดับมืออาชีพ"
