@@ -1,13 +1,23 @@
 // lib/supabase-snippets.ts
 // ฟังก์ชันติดต่อกับ Supabase สำหรับระบบ Share Code
-// กำหนดค่า NEXT_PUBLIC_SUPABASE_URL และ NEXT_PUBLIC_SUPABASE_ANON_KEY ใน .env.local
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Lazy-init: สร้าง Client เฉพาะตอนที่ฟังก์ชันถูกเรียกบน Client-side
+// ป้องกัน 'supabaseUrl is required' error ตอน Next.js prerender
+let _supabase: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase(): SupabaseClient {
+    if (!_supabase) {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (!url || !key) {
+            throw new Error("Supabase environment variables are not configured.");
+        }
+        _supabase = createClient(url, key);
+    }
+    return _supabase;
+}
 
 // ---- Types ----
 export interface SnippetPayload {
@@ -43,7 +53,7 @@ export async function saveSnippet(
     if (payload.css_code.length > 50_000) return { error: "CSS code is too large (max 50KB)" };
     if (payload.js_code.length > 50_000) return { error: "JS code is too large (max 50KB)" };
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from("shared_snippets")
         .insert({
             html_code: payload.html_code,
@@ -73,7 +83,7 @@ export async function loadSnippet(id: string): Promise<SnippetResult | { error: 
         return { error: "Invalid snippet ID format" };
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from("shared_snippets")
         .select("id, html_code, css_code, js_code, created_at, expires_at")
         .eq("id", id)

@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getSortedPostsData } from "@/lib/blog";
 import { Navbar } from "@/components/navbar";
+import { Badge } from "@/components/ui/badge";
+import { Newspaper } from "lucide-react";
+import { BlogList } from "@/components/blog-list";
 
 export const metadata: Metadata = {
     title: "บทความและคลังความรู้เชิงเทคนิค",
     description: "รวมบทความเจาะลึกด้านความปลอดภัย WordPress, Technical SEO และการพัฒนา Full-stack สมัยใหม่ โดย Saranyuu M.",
     alternates: { canonical: "https://yuukub.com/blog/" },
 };
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Calendar, ArrowRight, Newspaper, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
 
 export default async function BlogPage() {
     const allPostsData = await getSortedPostsData();
@@ -28,18 +23,8 @@ export default async function BlogPage() {
                         "@context": "https://schema.org",
                         "@type": "BreadcrumbList",
                         "itemListElement": [
-                            {
-                                "@type": "ListItem",
-                                "position": 1,
-                                "name": "Home",
-                                "item": "https://yuukub.com/"
-                            },
-                            {
-                                "@type": "ListItem",
-                                "position": 2,
-                                "name": "Blog",
-                                "item": "https://yuukub.com/blog/"
-                            }
+                            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.com/" },
+                            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.com/blog/" }
                         ]
                     })
                 }}
@@ -62,57 +47,8 @@ export default async function BlogPage() {
                     </p>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {allPostsData.map(({ slug, date, title, description, tags, readingTime, thumbnail }) => (
-                        <Link key={slug} href={`/blog/${slug}`} className="group h-full block">
-                            <Card className="h-full flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/20">
-                                {/* Thumbnail */}
-                                {thumbnail && (
-                                    <div className="aspect-video w-full overflow-hidden shrink-0">
-                                        <img
-                                            src={thumbnail}
-                                            alt={title}
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                        />
-                                    </div>
-                                )}
-
-                                <CardHeader className="pb-0 shrink-0">
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                        <Calendar className="h-3 w-3" />
-                                        <span>{format(new Date(date), "dd MMM yyyy", { locale: th })}</span>
-                                        <span>•</span>
-                                        <Clock className="h-3 w-3" />
-                                        <span>{readingTime}</span>
-                                    </div>
-                                    <CardTitle className="text-xl leading-snug group-hover:text-primary transition-colors line-clamp-3 min-h-[5.25rem]">
-                                        {title}
-                                    </CardTitle>
-                                </CardHeader>
-
-                                <CardContent className="pt-0 flex flex-col flex-grow">
-                                    {description && (
-                                        <CardDescription className="line-clamp-2 mb-4">
-                                            {description}
-                                        </CardDescription>
-                                    )}
-                                    <div className="mt-auto pt-4 flex items-center justify-between gap-4">
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {Array.from(new Set(tags || [])).slice(0, 2).map((tag, index) => (
-                                                <Badge key={`${tag}-${index}`} variant="outline" className="text-[10px]">
-                                                    {tag}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                        <span className="flex items-center gap-1 text-xs font-medium text-primary whitespace-nowrap shrink-0">
-                                            อ่านต่อ <ArrowRight className="h-3 w-3" />
-                                        </span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
+                {/* Client component handles search + pagination */}
+                <BlogList posts={allPostsData} />
             </main>
         </div>
     );
