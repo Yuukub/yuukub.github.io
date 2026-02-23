@@ -116,8 +116,21 @@ export function LiveWebPreviewer() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // รีเซ็ต shareUrl ทุกครั้งที่โค้ดเปลี่ยน เพื่อบังคับสร้าง snippet ใหม่
+    useEffect(() => {
+        setShareUrl("");
+        setShareStatus("idle");
+    }, [html, css, js]);
+
     // --- Handle Share Button Click ---
     const handleShare = useCallback(async () => {
+        // ถ้ามี link อยู่แล้ว (code ยังไม่เปลี่ยน) ให้แสดง modal เฉยๆ ไม่สร้าง row ใหม่
+        if (shareUrl) {
+            setShareStatus("success");
+            setShowShareModal(true);
+            return;
+        }
+
         setShareStatus("loading");
         setShareError("");
         setShowShareModal(true);
@@ -145,7 +158,7 @@ export function LiveWebPreviewer() {
             setShareStatus("error");
             setShareError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
         }
-    }, [html, css, js, router]);
+    }, [html, css, js, router, shareUrl]);
 
     // --- Copy URL to Clipboard ---
     const handleCopy = useCallback(async () => {
@@ -156,8 +169,7 @@ export function LiveWebPreviewer() {
 
     const closeModal = useCallback(() => {
         setShowShareModal(false);
-        setShareStatus("idle");
-        setShareError("");
+        // ไม่รีเซ็ต shareUrl เพื่อให้เปิด modal ซ้ำแล้วยัง copy ได้
     }, []);
 
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
