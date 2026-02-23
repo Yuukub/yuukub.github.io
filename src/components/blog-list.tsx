@@ -53,19 +53,21 @@ export function BlogList({ posts }: BlogListProps) {
     return (
         <>
             {/* Search Bar */}
-            <div className="relative mb-8 max-w-lg">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <input
-                    type="search"
-                    value={query}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="ค้นหาบทความ, แท็ก หรือคำอธิบาย..."
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                />
+            <div className="mb-8 max-w-lg">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        placeholder="ค้นหาบทความ, แท็ก หรือคำอธิบาย..."
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    />
+                </div>
                 {query && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                        {filtered.length} บทความ
-                    </span>
+                    <p className="text-xs text-muted-foreground mt-1.5 pl-1">
+                        พบ {filtered.length} บทความ
+                    </p>
                 )}
             </div>
 
