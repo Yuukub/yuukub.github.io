@@ -8,7 +8,7 @@ export function Footer() {
                     <div className="flex gap-6 mt-4 text-xs font-medium">
                         <a href="/about" className="text-muted-foreground hover:text-primary transition-colors">About Us</a>
                         <a href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
-                        <a href="mailto:contact@yuukub.com" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
+                        <a href="mailto:sarnyou@gmail.com" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground max-w-xs md:text-right border-l-0 md:border-r border-border/50 md:pr-4">
