@@ -42,7 +42,7 @@ export function AdUnit({
             <ins
                 className="adsbygoogle block"
                 style={{ display: "block", ...style }}
-                data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" // TODO: Replace with actual client ID
+                data-ad-client="ca-pub-1635737019041674"
                 data-ad-slot={slotId}
                 data-ad-format={format}
                 data-full-width-responsive={responsive}

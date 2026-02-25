@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, Clock, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { AdUnit } from "@/components/ad-unit";
 
 interface Post {
     slug: string;
@@ -131,6 +132,12 @@ export function BlogList({ posts }: BlogListProps) {
                     </Button>
                 </div>
             )}
+
+            {/* AdSense Unit */}
+            <AdUnit
+                slotId="2863984675"
+                className="mt-12"
+            />
 
             {/* Pagination */}
             {totalPages > 1 && (

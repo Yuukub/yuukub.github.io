@@ -135,7 +135,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
                 {/* AdSense Unit - Moved Outside Card */}
                 <AdUnit
-                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Blog Post Bottom
+                    slotId="2863984675"
                     format="auto"
                     responsive={true}
                     className="min-h-[250px] bg-card/30 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-border/50 shadow-sm"

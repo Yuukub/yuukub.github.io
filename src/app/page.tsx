@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   description: "ผู้เชี่ยวชาญด้านความปลอดภัยระดับ Google Certified และ Full-stack Developer ออกแบบระบบด้วยหลัก Security-by-Design เพื่อการเติบโตทางธุรกิจที่มั่นคง",
   alternates: { canonical: "https://yuukub.com/" },
 };
+import { AdUnit } from "@/components/ad-unit";
 import {
   Rocket,
   ShieldCheck,
@@ -297,6 +298,12 @@ export default function Home() {
             </Card>
           </div>
         </section>
+
+        {/* AdSense Unit */}
+        <AdUnit
+          slotId="2863984675"
+          className="mb-32"
+        />
 
 
 

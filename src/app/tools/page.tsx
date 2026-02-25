@@ -83,10 +83,10 @@ export default function ToolsPage() {
                 </section>
 
                 <AdUnit
-                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Tools Page Top
+                    slotId="2863984675"
                     format="auto"
                     responsive={true}
-                    className="min-h-[150px] mb-12 bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"
+                    className="min-h-[150px] mb-12 bg-card/30 backdrop-blur-sm rounded-xl flex items-center justify-center border border-border/50 shadow-sm"
                 />
 
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
