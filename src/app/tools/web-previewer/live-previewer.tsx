@@ -93,6 +93,11 @@ export function LiveWebPreviewer() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isInspectMode, setIsInspectMode] = useState(false);
     const [inspectedEl, setInspectedEl] = useState<{ tag: string; classes: string[]; width: number; height: number } | null>(null);
+    const [cssJumpResult, setCssJumpResult] = useState<{
+        className: string;
+        matches: { tab: 'css' | 'html'; line: number; preview: string }[];
+        notFound: boolean;
+    } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const fullscreenIframeRef = useRef<HTMLIFrameElement>(null);
@@ -259,49 +264,115 @@ export function LiveWebPreviewer() {
         fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
     }, [isInspectMode]);
 
-    // --- Jump to CSS class (ใช้ Regex เพื่อป้องกัน .btn match .btn-primary) ---
+    // --- Jump to CSS class (ใช้ Regex, collect ALL matches, แสดง picker ถ้าหลายอัน) ---
     const jumpToCss = useCallback((className: string) => {
         setShowEditor(true);
+        setCssJumpResult(null); // reset
 
-        // Escape special regex chars ใน className
         const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Match .className ที่ตามด้วย whitespace, {, ,, :, >, +, ~, [, หรือ end
         const cssRegex = `\\.${escaped}(?=[\\s,{>+~:[\\]|$)])`;
 
-        const tryFind = (editor: MonacoEditor.IStandaloneCodeEditor, useRegex: boolean, pattern: string) => {
+        // รวบรวม matches จาก model ปัจจุบัน
+        const collectMatches = (
+            editor: MonacoEditor.IStandaloneCodeEditor,
+            tab: 'css' | 'html'
+        ): { tab: 'css' | 'html'; line: number; preview: string }[] => {
             const model = editor.getModel();
-            if (!model) return false;
-            const matches = model.findMatches(pattern, false, useRegex, true, null, true);
-            if (matches.length > 0) {
-                const range = matches[0].range;
-                editor.revealLineInCenter(range.startLineNumber);
-                editor.setSelection(range);
-                editor.focus();
-                return true;
-            }
-            return false;
+            if (!model) return [];
+            const regexMatches = model.findMatches(cssRegex, false, true, true, null, true);
+            const plainMatches = regexMatches.length > 0 ? regexMatches
+                : model.findMatches(`.${className}`, false, false, true, null, true);
+            return plainMatches.map(m => ({
+                tab,
+                line: m.range.startLineNumber,
+                preview: model.getLineContent(m.range.startLineNumber).trim().slice(0, 60),
+            }));
         };
 
-        // Step 1: ลอง CSS tab ก่อน (regex)
-        setActiveTab("css");
+        // เปิด CSS tab ก่อนแล้วค้นหา
+        setActiveTab('css');
         setTimeout(() => {
             const editor = editorRef.current;
             if (!editor) return;
+            const cssMatches = collectMatches(editor, 'css');
 
-            // ลอง regex ก่อน ถ้าไม่เจอ fallback plain text
-            let found = tryFind(editor, true, cssRegex) || tryFind(editor, false, `.${className}`);
-            if (found) return;
-
-            // Step 2: ไม่เจอใน CSS tab → ลอง HTML tab (<style>)
-            setActiveTab("html");
+            // ค้นหาใน HTML tab ต่อ (สำหรับ class ใน <style>)
+            setActiveTab('html');
             setTimeout(() => {
                 const editor2 = editorRef.current;
                 if (!editor2) return;
-                const foundInHtml = tryFind(editor2, true, cssRegex) || tryFind(editor2, false, `.${className}`);
-                if (!foundInHtml) editor2.focus();
+                const htmlMatches = collectMatches(editor2, 'html');
+                const allMatches = [...cssMatches, ...htmlMatches];
+
+                if (allMatches.length === 0) {
+                    // ไม่เจอเลย → แจ้ง notFound
+                    setCssJumpResult({ className, matches: [], notFound: true });
+                    editor2.focus();
+                } else if (allMatches.length === 1) {
+                    // เจออันเดียว → กระโดดตรง
+                    const m = allMatches[0];
+                    setActiveTab(m.tab);
+                    setTimeout(() => {
+                        const ed = editorRef.current;
+                        if (!ed) return;
+                        ed.revealLineInCenter(m.line);
+                        ed.setSelection({ startLineNumber: m.line, startColumn: 1, endLineNumber: m.line, endColumn: ed.getModel()!.getLineLength(m.line) + 1 });
+                        ed.focus();
+                    }, 150);
+                } else {
+                    // เจอหลายอัน → เปิด picker
+                    setCssJumpResult({ className, matches: allMatches, notFound: false });
+                    // กระโดดไปอันแรกก่อน
+                    const first = allMatches[0];
+                    setActiveTab(first.tab);
+                    setTimeout(() => {
+                        const ed = editorRef.current;
+                        if (!ed) return;
+                        ed.revealLineInCenter(first.line);
+                        ed.setSelection({ startLineNumber: first.line, startColumn: 1, endLineNumber: first.line, endColumn: ed.getModel()!.getLineLength(first.line) + 1 });
+                        ed.focus();
+                    }, 150);
+                }
             }, 150);
         }, 150);
     }, []);
+
+    // --- กระโดดไปยัง line เฉพาะใน tab ที่ระบุ ---
+    const jumpToExactLine = useCallback((tab: 'css' | 'html', line: number) => {
+        setActiveTab(tab);
+        setShowEditor(true);
+        setTimeout(() => {
+            const editor = editorRef.current;
+            if (!editor) return;
+            editor.revealLineInCenter(line);
+            editor.setSelection({
+                startLineNumber: line, startColumn: 1,
+                endLineNumber: line, endColumn: editor.getModel()!.getLineLength(line) + 1
+            });
+            editor.focus();
+        }, 150);
+    }, []);
+
+    // --- สร้าง CSS class ใหม่ต่อท้าย CSS editor ---
+    const createCssClass = useCallback((className: string) => {
+        const snippet = `\n.${className} {\n  \n}`;
+        setCss(prev => prev + snippet);
+        setActiveTab('css');
+        setShowEditor(true);
+        setCssJumpResult(null);
+        // กระโดดไปบรรทัดสุดท้ายหลัง debounce
+        setTimeout(() => {
+            const editor = editorRef.current;
+            if (!editor) return;
+            const model = editor.getModel();
+            if (!model) return;
+            const lastLine = model.getLineCount();
+            editor.revealLineInCenter(lastLine);
+            editor.setPosition({ lineNumber: lastLine - 1, column: 3 });
+            editor.focus();
+        }, 600); // รอ debounce + tab switch
+    }, []);
+
 
 
     // --- Inspect Mode: receive element info from iframe ---
@@ -940,6 +1011,57 @@ ${inspectScript}
                                     </div>
                                 ) : (
                                     <p className="text-xs text-muted-foreground italic">ไม่มี CSS class บน element นี้</p>
+                                )}
+
+                                {/* cssJumpResult sub-panel: picker (หลาย match) หรือ create (ไม่เจอ) */}
+                                {cssJumpResult && (
+                                    <div className="mt-2.5 pt-2.5 border-t border-blue-500/20">
+                                        {cssJumpResult.notFound ? (
+                                            /* ไม่พบ class ใน CSS เลย */
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="text-xs text-amber-400/80">
+                                                    ไม่พบ <span className="font-mono">.{cssJumpResult.className}</span> ใน CSS
+                                                </span>
+                                                <button
+                                                    onClick={() => createCssClass(cssJumpResult.className)}
+                                                    className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all font-mono"
+                                                >
+                                                    <span className="text-sm font-bold">+</span> สร้าง .{cssJumpResult.className} {"{ }"}
+                                                </button>
+                                                <button onClick={() => setCssJumpResult(null)} className="text-muted-foreground hover:text-foreground ml-auto">
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            /* พบหลาย match → แสดง picker */
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                                        พบ {cssJumpResult.matches.length} ตำแหน่งของ <span className="font-mono text-indigo-300">.{cssJumpResult.className}</span> — เลือกบรรทัดที่ต้องการ
+                                                    </span>
+                                                    <button onClick={() => setCssJumpResult(null)} className="text-muted-foreground hover:text-foreground">
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    {cssJumpResult.matches.map((m, i) => (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => jumpToExactLine(m.tab, m.line)}
+                                                            className="flex items-center gap-2 text-left text-[11px] px-2.5 py-1.5 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group"
+                                                        >
+                                                            <span className="shrink-0 text-[10px] font-mono bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded">
+                                                                {m.tab.toUpperCase()} :{m.line}
+                                                            </span>
+                                                            <span className="font-mono text-muted-foreground group-hover:text-foreground truncate transition-colors">
+                                                                {m.preview}
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         )}
