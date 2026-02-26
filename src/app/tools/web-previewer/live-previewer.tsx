@@ -264,78 +264,65 @@ export function LiveWebPreviewer() {
         fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
     }, [isInspectMode]);
 
+    // --- ค้นหา class ในข้อความ (raw string) คืนรายการ line + preview ---
+    const searchClassInText = useCallback((
+        text: string,
+        className: string,
+        tab: 'css' | 'html'
+    ): { tab: 'css' | 'html'; line: number; preview: string }[] => {
+        const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Regex: .className ตามด้วย whitespace / { / , / : / > / + / ~ / [ หรือ end of string
+        const pattern = new RegExp(`\\.${escaped}(?=[\\s,{>+~:[\\]|$)])`, 'g');
+        const lines = text.split('\n');
+        const results: { tab: 'css' | 'html'; line: number; preview: string }[] = [];
+        lines.forEach((lineContent, idx) => {
+            if (pattern.test(lineContent)) {
+                results.push({ tab, line: idx + 1, preview: lineContent.trim().slice(0, 60) });
+            }
+            pattern.lastIndex = 0; // reset regex state
+        });
+        return results;
+    }, []);
+
     // --- Jump to CSS class (ใช้ Regex, collect ALL matches, แสดง picker ถ้าหลายอัน) ---
     const jumpToCss = useCallback((className: string) => {
         setShowEditor(true);
         setCssJumpResult(null); // reset
 
-        const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const cssRegex = `\\.${escaped}(?=[\\s,{>+~:[\\]|$)])`;
+        // ค้นหาจาก raw string ทันที (แก้บัค race condition ตอนสลับแท็บ)
+        const cssMatches = searchClassInText(css, className, 'css');
+        const htmlMatches = searchClassInText(html, className, 'html');
+        const allMatches = [...cssMatches, ...htmlMatches];
 
-        // รวบรวม matches จาก model ปัจจุบัน
-        const collectMatches = (
-            editor: MonacoEditor.IStandaloneCodeEditor,
-            tab: 'css' | 'html'
-        ): { tab: 'css' | 'html'; line: number; preview: string }[] => {
-            const model = editor.getModel();
-            if (!model) return [];
-            const regexMatches = model.findMatches(cssRegex, false, true, true, null, true);
-            const plainMatches = regexMatches.length > 0 ? regexMatches
-                : model.findMatches(`.${className}`, false, false, true, null, true);
-            return plainMatches.map(m => ({
-                tab,
-                line: m.range.startLineNumber,
-                preview: model.getLineContent(m.range.startLineNumber).trim().slice(0, 60),
-            }));
-        };
-
-        // เปิด CSS tab ก่อนแล้วค้นหา
-        setActiveTab('css');
-        setTimeout(() => {
-            const editor = editorRef.current;
-            if (!editor) return;
-            const cssMatches = collectMatches(editor, 'css');
-
-            // ค้นหาใน HTML tab ต่อ (สำหรับ class ใน <style>)
-            setActiveTab('html');
+        if (allMatches.length === 0) {
+            // ไม่เจอเลย → แจ้ง notFound
+            setCssJumpResult({ className, matches: [], notFound: true });
+        } else if (allMatches.length === 1) {
+            // เจออันเดียว → กระโดดตรง
+            const m = allMatches[0];
+            setActiveTab(m.tab);
             setTimeout(() => {
-                const editor2 = editorRef.current;
-                if (!editor2) return;
-                const htmlMatches = collectMatches(editor2, 'html');
-                const allMatches = [...cssMatches, ...htmlMatches];
-
-                if (allMatches.length === 0) {
-                    // ไม่เจอเลย → แจ้ง notFound
-                    setCssJumpResult({ className, matches: [], notFound: true });
-                    editor2.focus();
-                } else if (allMatches.length === 1) {
-                    // เจออันเดียว → กระโดดตรง
-                    const m = allMatches[0];
-                    setActiveTab(m.tab);
-                    setTimeout(() => {
-                        const ed = editorRef.current;
-                        if (!ed) return;
-                        ed.revealLineInCenter(m.line);
-                        ed.setSelection({ startLineNumber: m.line, startColumn: 1, endLineNumber: m.line, endColumn: ed.getModel()!.getLineLength(m.line) + 1 });
-                        ed.focus();
-                    }, 150);
-                } else {
-                    // เจอหลายอัน → เปิด picker
-                    setCssJumpResult({ className, matches: allMatches, notFound: false });
-                    // กระโดดไปอันแรกก่อน
-                    const first = allMatches[0];
-                    setActiveTab(first.tab);
-                    setTimeout(() => {
-                        const ed = editorRef.current;
-                        if (!ed) return;
-                        ed.revealLineInCenter(first.line);
-                        ed.setSelection({ startLineNumber: first.line, startColumn: 1, endLineNumber: first.line, endColumn: ed.getModel()!.getLineLength(first.line) + 1 });
-                        ed.focus();
-                    }, 150);
-                }
-            }, 150);
-        }, 150);
-    }, []);
+                const ed = editorRef.current;
+                if (!ed) return;
+                ed.revealLineInCenter(m.line);
+                ed.setSelection({ startLineNumber: m.line, startColumn: 1, endLineNumber: m.line, endColumn: (ed.getModel()?.getLineLength(m.line) ?? 0) + 1 });
+                ed.focus();
+            }, 100);
+        } else {
+            // เจอหลายอัน → เปิด picker
+            setCssJumpResult({ className, matches: allMatches, notFound: false });
+            // กระโดดไปอันแรกก่อน
+            const first = allMatches[0];
+            setActiveTab(first.tab);
+            setTimeout(() => {
+                const ed = editorRef.current;
+                if (!ed) return;
+                ed.revealLineInCenter(first.line);
+                ed.setSelection({ startLineNumber: first.line, startColumn: 1, endLineNumber: first.line, endColumn: (ed.getModel()?.getLineLength(first.line) ?? 0) + 1 });
+                ed.focus();
+            }, 100);
+        }
+    }, [css, html, searchClassInText]);
 
     // --- กระโดดไปยัง line เฉพาะใน tab ที่ระบุ ---
     const jumpToExactLine = useCallback((tab: 'css' | 'html', line: number) => {
