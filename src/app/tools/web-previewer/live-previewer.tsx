@@ -259,59 +259,62 @@ export function LiveWebPreviewer() {
         fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
     }, [isInspectMode]);
 
-    // --- Jump to CSS class: ค้นหาใน CSS tab ก่อน ถ้าไม่เจอค้นหาใน HTML tab ด้วย ---
+    // --- Jump to CSS class (ใช้ Regex เพื่อป้องกัน .btn match .btn-primary) ---
     const jumpToCss = useCallback((className: string) => {
         setShowEditor(true);
-        const searchTerms = [`.${className} {`, `.${className}{`, `.${className} `, `.${className}\n`, `.${className}`];
 
-        // ฟังก์ชันค้นหาใน model ที่ editor กำลังแสดงอยู่
-        const tryFind = (editor: MonacoEditor.IStandaloneCodeEditor) => {
+        // Escape special regex chars ใน className
+        const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Match .className ที่ตามด้วย whitespace, {, ,, :, >, +, ~, [, หรือ end
+        const cssRegex = `\\.${escaped}(?=[\\s,{>+~:[\\]|$)])`;
+
+        const tryFind = (editor: MonacoEditor.IStandaloneCodeEditor, useRegex: boolean, pattern: string) => {
             const model = editor.getModel();
             if (!model) return false;
-            for (const term of searchTerms) {
-                const matches = model.findMatches(term, false, false, true, null, true);
-                if (matches.length > 0) {
-                    const range = matches[0].range;
-                    editor.revealLineInCenter(range.startLineNumber);
-                    editor.setSelection(range);
-                    editor.focus();
-                    return true;
-                }
+            const matches = model.findMatches(pattern, false, useRegex, true, null, true);
+            if (matches.length > 0) {
+                const range = matches[0].range;
+                editor.revealLineInCenter(range.startLineNumber);
+                editor.setSelection(range);
+                editor.focus();
+                return true;
             }
             return false;
         };
 
-        // Step 1: ลอง CSS tab ก่อน
+        // Step 1: ลอง CSS tab ก่อน (regex)
         setActiveTab("css");
         setTimeout(() => {
             const editor = editorRef.current;
             if (!editor) return;
-            const found = tryFind(editor);
+
+            // ลอง regex ก่อน ถ้าไม่เจอ fallback plain text
+            let found = tryFind(editor, true, cssRegex) || tryFind(editor, false, `.${className}`);
             if (found) return;
 
-            // Step 2: ไม่เจอใน CSS tab → ลอง HTML tab (class อาจอยู่ใน <style>)
+            // Step 2: ไม่เจอใน CSS tab → ลอง HTML tab (<style>)
             setActiveTab("html");
             setTimeout(() => {
                 const editor2 = editorRef.current;
                 if (!editor2) return;
-                const foundInHtml = tryFind(editor2);
-                // ถ้าเจอใน HTML ก็โอเค ถ้าไม่เจอทั้งคู่ก็แค่ focus html editor
+                const foundInHtml = tryFind(editor2, true, cssRegex) || tryFind(editor2, false, `.${className}`);
                 if (!foundInHtml) editor2.focus();
             }, 150);
         }, 150);
     }, []);
 
+
     // --- Inspect Mode: receive element info from iframe ---
     useEffect(() => {
         const handler = (e: MessageEvent) => {
             if (e.data?.type === "inspect:click") {
-                const { outerHTML, classes, tag, width, height } = e.data;
+                const { outerHTML, classes, tag, width, height, htmlSearch } = e.data;
                 if (!outerHTML) return;
 
                 // Update inspected element state (CSS Panel)
                 setInspectedEl({ tag: (tag || "div").toLowerCase(), classes: classes || [], width: width || 0, height: height || 0 });
 
-                // If HTML source exists, jump to it
+                // Jump to element in HTML tab
                 if (editorRef.current) {
                     setActiveTab("html");
                     setShowEditor(true);
@@ -320,14 +323,49 @@ export function LiveWebPreviewer() {
                         if (!editor) return;
                         const model = editor.getModel();
                         if (!model) return;
-                        const openTagMatch = outerHTML.match(/^<[^>]+>/);
-                        const searchText = openTagMatch ? openTagMatch[0] : outerHTML.slice(0, 80);
-                        const matches = model.findMatches(searchText, false, false, true, null, true);
-                        if (matches.length > 0) {
-                            const range = matches[0].range;
-                            editor.revealLineInCenter(range.startLineNumber);
-                            editor.setSelection(range);
-                            editor.focus();
+
+                        let found = false;
+
+                        // Strategy 1: ถ้ามี htmlSearch ที่แม่นยำ (id หรือ unique attribute)
+                        if (htmlSearch && !found) {
+                            // html search ใช้ regex เพื่อ match แบบ case-insensitive
+                            const escaped = htmlSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const m = model.findMatches(escaped, false, false, false, null, true);
+                            if (m.length > 0) {
+                                editor.revealLineInCenter(m[0].range.startLineNumber);
+                                editor.setSelection(m[0].range);
+                                editor.focus();
+                                found = true;
+                            }
+                        }
+
+                        // Strategy 2: ใช้ opening tag จาก outerHTML (trim เอา attrs ที่ยาวเกินออก)
+                        if (!found) {
+                            const openTagMatch = outerHTML.match(/^<[^>]{1,200}>/);
+                            if (openTagMatch) {
+                                // ถอด whitespace ซ้ำซ้อนเพื่อให้ match ง่ายขึ้น
+                                const trimmedTag = openTagMatch[0].replace(/\s+/g, ' ').trim();
+                                const m = model.findMatches(trimmedTag, false, false, true, null, true);
+                                if (m.length > 0) {
+                                    editor.revealLineInCenter(m[0].range.startLineNumber);
+                                    editor.setSelection(m[0].range);
+                                    editor.focus();
+                                    found = true;
+                                }
+                            }
+                        }
+
+                        // Strategy 3: fallback — หา tag + class แบบ loose
+                        if (!found && classes?.length > 0) {
+                            const tagLower = (tag || "div").toLowerCase();
+                            const cls = classes[0];
+                            const fallback = `${tagLower}.*class=["'].*${cls}`;
+                            const m = model.findMatches(fallback, false, true, false, null, true);
+                            if (m.length > 0) {
+                                editor.revealLineInCenter(m[0].range.startLineNumber);
+                                editor.setSelection(m[0].range);
+                                editor.focus();
+                            }
                         }
                     }, 150);
                 }
@@ -465,13 +503,38 @@ export function LiveWebPreviewer() {
         const classes = getClasses(el);
         let snippet = el.outerHTML;
         if (snippet.length > 500) snippet = snippet.slice(0, 500);
+
+        // สร้าง htmlSearch ที่แม่นยำที่สุด สำหรับค้นหาใน Monaco Editor
+        let htmlSearch = null;
+        if (el.id) {
+            // ถ้ามี id → แม่นยำที่สุด
+            htmlSearch = 'id="' + el.id + '"';
+        } else {
+            // สร้าง attribute string จาก outerHTML ที่ normalize แล้ว
+            // เพื่อให้ไม่เจอ element ผิดเมื่อมี class เดียวกัน
+            const openTag = snippet.match(/^<[^\s>]+([^>]*)>/);
+            if (openTag) {
+                // ใช้ first attribute ที่ไม่ใช่ class (ถ้ามี) รวมกับ class แรก
+                const attrsStr = openTag[1];
+                // ลอง extract data-* attr หรือ name หรือ type
+                const dataAttr = attrsStr.match(/(?:data-[\\w-]+|name|type|href|src)="([^"]*?)"/);
+                if (dataAttr) {
+                    htmlSearch = dataAttr[0];
+                } else if (classes.length > 0) {
+                    // ใช้ class ทั้งหมดเพื่อสร้าง unique string
+                    htmlSearch = 'class="' + classes.join(' ') + '"';
+                }
+            }
+        }
+
         window.parent.postMessage({
             type: 'inspect:click',
             outerHTML: snippet,
             tag: el.tagName,
             classes: classes,
             width: Math.round(rect.width),
-            height: Math.round(rect.height)
+            height: Math.round(rect.height),
+            htmlSearch: htmlSearch
         }, '*');
     }
 
