@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, CheckCircle2, Lock, Shield, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { AdUnit } from "@/components/ad-unit";
 
 export default function PasswordGenerator() {
     const [password, setPassword] = useState("");
@@ -225,6 +226,14 @@ export default function PasswordGenerator() {
                         </p>
                     </div>
                 </div>
+
+                {/* Bottom Ad Unit */}
+                <AdUnit
+                    slotId="2863984675"
+                    format="auto"
+                    responsive={true}
+                    className="mt-12 min-h-[150px] bg-muted/10 rounded-xl py-8 border border-dashed border-muted shrink-0"
+                />
             </main>
         </div>
     );

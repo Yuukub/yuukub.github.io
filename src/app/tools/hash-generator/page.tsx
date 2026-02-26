@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Hash, CheckCircle2, ShieldAlert, ArrowLeft, Terminal } from "lucide-react";
 import Link from "next/link";
+import { AdUnit } from "@/components/ad-unit";
 
 // SIMPLE MD5 Implementation
 function md5(string: string) {
@@ -192,6 +193,14 @@ export default function HashGenerator() {
                         </Card>
                     </div>
                 </div>
+
+                {/* Bottom Ad Unit */}
+                <AdUnit
+                    slotId="2863984675"
+                    format="auto"
+                    responsive={true}
+                    className="mt-12 min-h-[150px] bg-muted/10 rounded-xl py-8 border border-dashed border-muted shrink-0"
+                />
             </main>
         </div>
     );

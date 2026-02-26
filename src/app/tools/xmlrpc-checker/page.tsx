@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ShieldAlert, Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AdUnit } from "@/components/ad-unit";
 
 export default function XmlRpcCheckerPage() {
     const [url, setUrl] = useState("");
@@ -157,6 +158,14 @@ deny from all
                         </Card>
                     </div>
                 )}
+
+                {/* Bottom Ad Unit */}
+                <AdUnit
+                    slotId="2863984675"
+                    format="auto"
+                    responsive={true}
+                    className="mt-12 min-h-[150px] bg-muted/10 rounded-xl py-8 border border-dashed border-muted shrink-0"
+                />
             </main>
         </div>
     );
