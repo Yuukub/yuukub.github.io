@@ -786,7 +786,7 @@ export default function ImageConverterPage() {
                     slotId="2863984675"
                     format="auto"
                     responsive={true}
-                    className="min-h-[250px] mt-20 bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"
+                    className="min-h-[250px] mt-20 bg-muted/10 rounded-xl py-20 border border-dashed border-muted"
                 />
             </main >
         </div >

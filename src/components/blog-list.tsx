@@ -136,7 +136,7 @@ export function BlogList({ posts }: BlogListProps) {
             {/* AdSense Unit */}
             <AdUnit
                 slotId="2863984675"
-                className="mt-12"
+                className="mt-12 py-12"
             />
 
             {/* Pagination */}

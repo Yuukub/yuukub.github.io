@@ -302,7 +302,7 @@ export default function Home() {
         {/* AdSense Unit */}
         <AdUnit
           slotId="2863984675"
-          className="mb-32"
+          className="mb-32 py-12"
         />
 
 

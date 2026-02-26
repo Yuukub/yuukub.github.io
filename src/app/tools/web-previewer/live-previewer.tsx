@@ -766,7 +766,7 @@ ${inspectScript}
                     slotId="2863984675"
                     format="auto"
                     responsive={true}
-                    className="min-h-[150px] bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted shrink-0"
+                    className="min-h-[150px] bg-muted/10 rounded-xl py-8 border border-dashed border-muted shrink-0"
                 />
 
                 {/* ===== Share Modal ===== */}

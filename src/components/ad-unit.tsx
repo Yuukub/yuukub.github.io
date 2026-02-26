@@ -35,11 +35,10 @@ export function AdUnit({
 
         const pushAd = () => {
             if (pushed.current) return;
-            const width = containerRef.current?.offsetWidth ?? 0;
+            const width = containerRef.current?.clientWidth ?? 0;
 
-            // AdSense ต้องการความกว้างอย่างน้อย ~250px ถึงจะเลือกโฆษณาลงได้
-            // ถ้ากว้างน้อยกว่านี้ (เช่น 0 หรือ 1px) ให้รอ ResizeObserver ทำงาน
-            if (width < 250) return;
+            // ป้องกัน Error availableWidth=0 โดยรอจนกว่าจะมีพื้นที่แสดงผลจริงๆ (> 0)
+            if (width <= 0) return;
 
             pushed.current = true;
             try {
@@ -67,7 +66,7 @@ export function AdUnit({
         <div ref={containerRef} className={`ad-container my-8 text-center overflow-hidden ${className}`}>
             <ins
                 className="adsbygoogle block"
-                style={{ display: "block", textAlign: "center", ...style }}
+                style={{ display: "block", textAlign: "center", width: "100%", height: "auto", ...style }}
                 data-ad-client="ca-pub-1635737019041674"
                 data-ad-slot={slotId}
                 data-ad-format={format}
