@@ -308,67 +308,65 @@ export function LiveWebPreviewer() {
     useEffect(() => {
         const handler = (e: MessageEvent) => {
             if (e.data?.type === "inspect:click") {
-                const { outerHTML, classes, tag, width, height, htmlSearch } = e.data;
+                const { outerHTML, classes, tag, width, height, lineNumber } = e.data;
                 if (!outerHTML) return;
 
                 // Update inspected element state (CSS Panel)
                 setInspectedEl({ tag: (tag || "div").toLowerCase(), classes: classes || [], width: width || 0, height: height || 0 });
 
                 // Jump to element in HTML tab
-                if (editorRef.current) {
-                    setActiveTab("html");
-                    setShowEditor(true);
-                    setTimeout(() => {
-                        const editor = editorRef.current;
-                        if (!editor) return;
-                        const model = editor.getModel();
-                        if (!model) return;
+                setActiveTab("html");
+                setShowEditor(true);
+                setTimeout(() => {
+                    const editor = editorRef.current;
+                    if (!editor) return;
+                    const model = editor.getModel();
+                    if (!model) return;
 
-                        let found = false;
+                    // ✨ Strategy 1: ใช้ lineNumber ตรงๆ (แม่นยำ ~100%)
+                    if (lineNumber && lineNumber > 0) {
+                        editor.revealLineInCenter(lineNumber);
+                        editor.setSelection({
+                            startLineNumber: lineNumber,
+                            startColumn: 1,
+                            endLineNumber: lineNumber,
+                            endColumn: model.getLineLength(lineNumber) + 1
+                        });
+                        editor.focus();
+                        return;
+                    }
 
-                        // Strategy 1: ถ้ามี htmlSearch ที่แม่นยำ (id หรือ unique attribute)
-                        if (htmlSearch && !found) {
-                            // html search ใช้ regex เพื่อ match แบบ case-insensitive
-                            const escaped = htmlSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            const m = model.findMatches(escaped, false, false, false, null, true);
+                    // Strategy 2: Fallback — ค้นหา id ถ้าไม่มี lineNumber
+                    const { htmlSearch } = e.data;
+                    let found = false;
+                    if (htmlSearch) {
+                        const escaped = htmlSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const m = model.findMatches(escaped, false, false, false, null, true);
+                        if (m.length > 0) {
+                            editor.revealLineInCenter(m[0].range.startLineNumber);
+                            editor.setSelection(m[0].range);
+                            editor.focus();
+                            found = true;
+                        }
+                    }
+
+                    // Strategy 3: Fallback — opening tag
+                    if (!found) {
+                        const openTagMatch = outerHTML.match(/^<[^>]{1,200}>/);
+                        if (openTagMatch) {
+                            const cleaned = openTagMatch[0]
+                                .replace(/\s+/g, ' ')
+                                .replace(/\s*data-inspect-line="\d+"\s*/g, ' ') // ลบแอต annotation ออก
+                                .trim();
+                            const m = model.findMatches(cleaned, false, false, true, null, true);
                             if (m.length > 0) {
                                 editor.revealLineInCenter(m[0].range.startLineNumber);
                                 editor.setSelection(m[0].range);
                                 editor.focus();
-                                found = true;
                             }
                         }
-
-                        // Strategy 2: ใช้ opening tag จาก outerHTML (trim เอา attrs ที่ยาวเกินออก)
-                        if (!found) {
-                            const openTagMatch = outerHTML.match(/^<[^>]{1,200}>/);
-                            if (openTagMatch) {
-                                // ถอด whitespace ซ้ำซ้อนเพื่อให้ match ง่ายขึ้น
-                                const trimmedTag = openTagMatch[0].replace(/\s+/g, ' ').trim();
-                                const m = model.findMatches(trimmedTag, false, false, true, null, true);
-                                if (m.length > 0) {
-                                    editor.revealLineInCenter(m[0].range.startLineNumber);
-                                    editor.setSelection(m[0].range);
-                                    editor.focus();
-                                    found = true;
-                                }
-                            }
-                        }
-
-                        // Strategy 3: fallback — หา tag + class แบบ loose
-                        if (!found && classes?.length > 0) {
-                            const tagLower = (tag || "div").toLowerCase();
-                            const cls = classes[0];
-                            const fallback = `${tagLower}.*class=["'].*${cls}`;
-                            const m = model.findMatches(fallback, false, true, false, null, true);
-                            if (m.length > 0) {
-                                editor.revealLineInCenter(m[0].range.startLineNumber);
-                                editor.setSelection(m[0].range);
-                                editor.focus();
-                            }
-                        }
-                    }, 150);
-                }
+                    }
+                }, 150);
             }
         };
         window.addEventListener("message", handler);
@@ -392,6 +390,24 @@ export function LiveWebPreviewer() {
             }
         };
         reader.readAsText(file);
+    };
+
+    // --- Pre-annotate HTML with line numbers for accurate Inspect Mode ---
+    const annotateHtmlWithLineNumbers = (html: string): string => {
+        const lines = html.split('\n');
+        const result: string[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            const lineNum = i + 1;
+            const annotated = lines[i].replace(
+                /<([a-zA-Z][a-zA-Z0-9-]*)([^>]*?)(\s*\/?)>/g,
+                (match, tagName, attrs, selfClose) => {
+                    if (attrs.includes('data-inspect-line')) return match;
+                    return `<${tagName}${attrs} data-inspect-line="${lineNum}"${selfClose}>`;
+                }
+            );
+            result.push(annotated);
+        }
+        return result.join('\n');
     };
 
     const getCombinedCode = () => {
@@ -504,27 +520,21 @@ export function LiveWebPreviewer() {
         let snippet = el.outerHTML;
         if (snippet.length > 500) snippet = snippet.slice(0, 500);
 
-        // สร้าง htmlSearch ที่แม่นยำที่สุด สำหรับค้นหาใน Monaco Editor
+        // ✨ อ่าน data-inspect-line จาก element หรือ ancestor ที่ใกล้ที่สุด (แม่นยำ~100%)
+        let lineNumber = null;
+        let current = el;
+        while (current && current !== document.body) {
+            const line = current.getAttribute('data-inspect-line');
+            if (line) { lineNumber = parseInt(line, 10); break; }
+            current = current.parentElement;
+        }
+
+        // Fallback: htmlSearch (id หรือ class string)
         let htmlSearch = null;
         if (el.id) {
-            // ถ้ามี id → แม่นยำที่สุด
             htmlSearch = 'id="' + el.id + '"';
-        } else {
-            // สร้าง attribute string จาก outerHTML ที่ normalize แล้ว
-            // เพื่อให้ไม่เจอ element ผิดเมื่อมี class เดียวกัน
-            const openTag = snippet.match(/^<[^\s>]+([^>]*)>/);
-            if (openTag) {
-                // ใช้ first attribute ที่ไม่ใช่ class (ถ้ามี) รวมกับ class แรก
-                const attrsStr = openTag[1];
-                // ลอง extract data-* attr หรือ name หรือ type
-                const dataAttr = attrsStr.match(/(?:data-[\\w-]+|name|type|href|src)="([^"]*?)"/);
-                if (dataAttr) {
-                    htmlSearch = dataAttr[0];
-                } else if (classes.length > 0) {
-                    // ใช้ class ทั้งหมดเพื่อสร้าง unique string
-                    htmlSearch = 'class="' + classes.join(' ') + '"';
-                }
-            }
+        } else if (classes.length > 0) {
+            htmlSearch = 'class="' + classes.join(' ') + '"';
         }
 
         window.parent.postMessage({
@@ -534,6 +544,7 @@ export function LiveWebPreviewer() {
             classes: classes,
             width: Math.round(rect.width),
             height: Math.round(rect.height),
+            lineNumber: lineNumber,
             htmlSearch: htmlSearch
         }, '*');
     }
@@ -565,8 +576,11 @@ export function LiveWebPreviewer() {
 `;
 
         // Bug #3: ใช้ regex case-insensitive สำหรับ matching HTML tags
+        // ✨ Annotate HTML with line numbers ก่อน inject เข้า iframe
+        const annotatedHtml = annotateHtmlWithLineNumbers(debouncedHtml);
+
         if (/<\/body>/i.test(debouncedHtml)) {
-            let combined = debouncedHtml;
+            let combined = annotatedHtml;
 
             if (debouncedCss) {
                 combined = combined.replace(/<\/head>/i, `\n<style>\n${debouncedCss}\n</style>\n</head>`);
@@ -591,7 +605,7 @@ ${debouncedCss}
     </style>
 </head>
 <body>
-${debouncedHtml}
+${annotatedHtml}
     <script>
 ${debouncedJs}
     </script>
