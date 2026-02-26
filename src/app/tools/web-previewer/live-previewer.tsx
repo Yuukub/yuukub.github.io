@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent, useCallback } from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { type OnMount } from "@monaco-editor/react";
+import type { editor as MonacoEditor } from "monaco-editor";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/navbar";
@@ -23,7 +24,9 @@ import {
     Copy,
     Check,
     X,
-    Loader2
+    Loader2,
+    RotateCcw,
+    MousePointerClick
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { saveSnippet, loadSnippet, getClientIp } from "@/lib/supabase-snippets";
@@ -62,19 +65,38 @@ console.log("Preview Ready!");`;
 type ViewportMode = "desktop" | "tablet" | "mobile";
 type EditorTab = "html" | "css" | "js";
 
+// --- LocalStorage Keys ---
+const LS_KEY_HTML = "webpreviewer_html";
+const LS_KEY_CSS = "webpreviewer_css";
+const LS_KEY_JS = "webpreviewer_js";
+
+function loadDraft(key: string, fallback: string): string {
+    if (typeof window === "undefined") return fallback;
+    try {
+        return localStorage.getItem(key) ?? fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 export function LiveWebPreviewer() {
-    const [html, setHtml] = useState(DEFAULT_HTML);
-    const [css, setCss] = useState(DEFAULT_CSS);
-    const [js, setJs] = useState(DEFAULT_JS);
-    const [debouncedHtml, setDebouncedHtml] = useState(DEFAULT_HTML);
-    const [debouncedCss, setDebouncedCss] = useState(DEFAULT_CSS);
-    const [debouncedJs, setDebouncedJs] = useState(DEFAULT_JS);
+    const [html, setHtml] = useState(() => loadDraft(LS_KEY_HTML, DEFAULT_HTML));
+    const [css, setCss] = useState(() => loadDraft(LS_KEY_CSS, DEFAULT_CSS));
+    const [js, setJs] = useState(() => loadDraft(LS_KEY_JS, DEFAULT_JS));
+    const [debouncedHtml, setDebouncedHtml] = useState(() => loadDraft(LS_KEY_HTML, DEFAULT_HTML));
+    const [debouncedCss, setDebouncedCss] = useState(() => loadDraft(LS_KEY_CSS, DEFAULT_CSS));
+    const [debouncedJs, setDebouncedJs] = useState(() => loadDraft(LS_KEY_JS, DEFAULT_JS));
     const [viewport, setViewport] = useState<ViewportMode>("desktop");
     const [showEditor, setShowEditor] = useState(true);
     const [activeTab, setActiveTab] = useState<EditorTab>("html");
     const [isHorizontal, setIsHorizontal] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isInspectMode, setIsInspectMode] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const fullscreenIframeRef = useRef<HTMLIFrameElement>(null);
+    const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
+    const isLoadingFromShareRef = useRef(false);
 
     // --- Share Feature State ---
     const [shareStatus, setShareStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -108,16 +130,28 @@ export function LiveWebPreviewer() {
                 setShowShareModal(true);
                 return;
             }
+            // Bug #2: ตั้ง flag ก่อนเซ็ต state เพื่อป้องกัน shareUrl reset
+            isLoadingFromShareRef.current = true;
             setHtml(result.html_code);
             setCss(result.css_code);
             setJs(result.js_code);
+            // Bug #1: เซ็ต debounced state ทันทีเพื่อป้องกัน preview flash
+            setDebouncedHtml(result.html_code);
+            setDebouncedCss(result.css_code);
+            setDebouncedJs(result.js_code);
             setLoadedFromShare(true);
+            // Bug #2: สร้าง shareUrl ทันทีเพื่อให้กด Share ซ้ำไม่ต้องสร้างใหม่
+            setShareUrl(`${window.location.origin}${window.location.pathname}?id=${snippetId}`);
+            // รอให้ state update เสร็จแล้วค่อยปลด flag
+            setTimeout(() => { isLoadingFromShareRef.current = false; }, 100);
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // รีเซ็ต shareUrl ทุกครั้งที่โค้ดเปลี่ยน เพื่อบังคับสร้าง snippet ใหม่
+    // Bug #2: ข้ามการรีเซ็ตถ้ากำลังโหลดจาก share link
     useEffect(() => {
+        if (isLoadingFromShareRef.current) return;
         setShareUrl("");
         setShareStatus("idle");
     }, [html, css, js]);
@@ -172,6 +206,94 @@ export function LiveWebPreviewer() {
         // ไม่รีเซ็ต shareUrl เพื่อให้เปิด modal ซ้ำแล้วยัง copy ได้
     }, []);
 
+    // Bug #10: ESC key สำหรับปิด fullscreen และ share modal
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                if (showShareModal) {
+                    setShowShareModal(false);
+                } else if (isFullscreen) {
+                    setIsFullscreen(false);
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [showShareModal, isFullscreen]);
+
+    // --- LocalStorage Autosave (debounce 1s) ---
+    useEffect(() => {
+        if (isLoadingFromShareRef.current) return;
+        const handler = setTimeout(() => {
+            try {
+                localStorage.setItem(LS_KEY_HTML, html);
+                localStorage.setItem(LS_KEY_CSS, css);
+                localStorage.setItem(LS_KEY_JS, js);
+            } catch { /* localStorage full or unavailable */ }
+        }, 1000);
+        return () => clearTimeout(handler);
+    }, [html, css, js]);
+
+    // --- Reset draft ---
+    const handleReset = useCallback(() => {
+        setHtml(DEFAULT_HTML);
+        setCss(DEFAULT_CSS);
+        setJs(DEFAULT_JS);
+        setDebouncedHtml(DEFAULT_HTML);
+        setDebouncedCss(DEFAULT_CSS);
+        setDebouncedJs(DEFAULT_JS);
+        try {
+            localStorage.removeItem(LS_KEY_HTML);
+            localStorage.removeItem(LS_KEY_CSS);
+            localStorage.removeItem(LS_KEY_JS);
+        } catch { /* */ }
+    }, []);
+
+    // --- Inspect Mode: toggle via postMessage ---
+    const toggleInspect = useCallback(() => {
+        const next = !isInspectMode;
+        setIsInspectMode(next);
+        const msg = next ? "inspect:on" : "inspect:off";
+        iframeRef.current?.contentWindow?.postMessage(msg, "*");
+        fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
+    }, [isInspectMode]);
+
+    // --- Inspect Mode: receive element info from iframe ---
+    useEffect(() => {
+        const handler = (e: MessageEvent) => {
+            if (e.data?.type === "inspect:click") {
+                const { outerHTML } = e.data;
+                if (!outerHTML || !editorRef.current) return;
+
+                // Switch to HTML tab
+                setActiveTab("html");
+                setShowEditor(true);
+
+                // Search for element in HTML source using Monaco
+                setTimeout(() => {
+                    const editor = editorRef.current;
+                    if (!editor) return;
+                    const model = editor.getModel();
+                    if (!model) return;
+
+                    // Clean up the outerHTML for searching (take just the opening tag)
+                    const openTagMatch = outerHTML.match(/^<[^>]+>/);
+                    const searchText = openTagMatch ? openTagMatch[0] : outerHTML.slice(0, 80);
+
+                    const matches = model.findMatches(searchText, false, false, true, null, true);
+                    if (matches.length > 0) {
+                        const range = matches[0].range;
+                        editor.revealLineInCenter(range.startLineNumber);
+                        editor.setSelection(range);
+                        editor.focus();
+                    }
+                }, 150); // delay to wait for tab switch
+            }
+        };
+        window.addEventListener("message", handler);
+        return () => window.removeEventListener("message", handler);
+    }, []);
+
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -197,78 +319,143 @@ export function LiveWebPreviewer() {
     // Ultimate Link Neutralizer
     const neutralizeLinks = () => {
         document.querySelectorAll('a').forEach(link => {
-            // Store original href just in case
             const href = link.getAttribute('href');
             if (href) link.setAttribute('data-original-href', href);
-            
-            // Overwrite href completely so it literally cannot navigate anywhere
             link.setAttribute('href', 'javascript:void(0);');
-            
-            // Kill all click events dead in their tracks
             link.onclick = function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('[Live Previewer] Navigation prevented.');
             };
         });
-
-        // Kill all form submissions
         document.querySelectorAll('form').forEach(form => {
             form.onsubmit = function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('[Live Previewer] Form submission prevented.');
             };
         });
     };
-
-    // Run aggressively on every possible lifecycle event
     neutralizeLinks();
     document.addEventListener('DOMContentLoaded', neutralizeLinks);
     window.addEventListener('load', neutralizeLinks);
     setTimeout(neutralizeLinks, 100);
     setTimeout(neutralizeLinks, 500);
-    setTimeout(neutralizeLinks, 1000);
-
-    // Watch for dynamically added elements (like React/Vue injecting links later)
     const observer = new MutationObserver(() => neutralizeLinks());
     observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
-
-    // Catch-all document level click interceptor as absolute last resort
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
-        if (link) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Live Previewer] Document-level click intercepted.');
-        }
-    }, true); // Capture phase is crucial here
+        if (link) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
 </script>
 `;
 
-        // Check if HTML already has complete structure
-        if (debouncedHtml.toLowerCase().includes("</body>")) {
+        // --- Inspect Mode Script ---
+        const inspectScript = `
+<script>
+(function() {
+    let inspectActive = false;
+    let overlay = null;
+    let tooltip = null;
+    let lastTarget = null;
+
+    function createOverlay() {
+        overlay = document.createElement('div');
+        overlay.id = '__inspect_overlay';
+        overlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #3b82f6;background:rgba(59,130,246,0.08);z-index:99999;transition:all 0.1s ease;display:none;border-radius:3px;';
+        document.body.appendChild(overlay);
+
+        tooltip = document.createElement('div');
+        tooltip.id = '__inspect_tooltip';
+        tooltip.style.cssText = 'position:fixed;background:#1e293b;color:#e2e8f0;font-size:11px;font-family:monospace;padding:3px 8px;border-radius:4px;z-index:100000;pointer-events:none;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+        document.body.appendChild(tooltip);
+    }
+
+    function getSelector(el) {
+        let tag = el.tagName.toLowerCase();
+        if (el.id) return tag + '#' + el.id;
+        if (el.className && typeof el.className === 'string') {
+            const cls = el.className.trim().split(/\\s+/).slice(0,2).join('.');
+            if (cls) return tag + '.' + cls;
+        }
+        return tag;
+    }
+
+    function onMouseMove(e) {
+        if (!inspectActive) return;
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        if (!el || el === overlay || el === tooltip || el.id === '__inspect_overlay' || el.id === '__inspect_tooltip') return;
+        lastTarget = el;
+        const rect = el.getBoundingClientRect();
+        overlay.style.display = 'block';
+        overlay.style.top = rect.top + 'px';
+        overlay.style.left = rect.left + 'px';
+        overlay.style.width = rect.width + 'px';
+        overlay.style.height = rect.height + 'px';
+
+        tooltip.style.display = 'block';
+        tooltip.textContent = getSelector(el) + ' (' + Math.round(rect.width) + ' x ' + Math.round(rect.height) + ')';
+        tooltip.style.top = Math.max(0, rect.top - 28) + 'px';
+        tooltip.style.left = rect.left + 'px';
+    }
+
+    function onMouseClick(e) {
+        if (!inspectActive || !lastTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const el = lastTarget;
+        // Send just the opening tag + a bit of content for matching
+        let snippet = el.outerHTML;
+        if (snippet.length > 500) snippet = snippet.slice(0, 500);
+        window.parent.postMessage({ type: 'inspect:click', outerHTML: snippet, tag: el.tagName }, '*');
+    }
+
+    function activate() {
+        inspectActive = true;
+        document.body.style.cursor = 'crosshair';
+        if (!overlay) createOverlay();
+        overlay.style.display = 'none';
+    }
+
+    function deactivate() {
+        inspectActive = false;
+        document.body.style.cursor = '';
+        if (overlay) overlay.style.display = 'none';
+        if (tooltip) tooltip.style.display = 'none';
+        lastTarget = null;
+    }
+
+    document.addEventListener('mousemove', onMouseMove, true);
+    document.addEventListener('click', onMouseClick, true);
+
+    window.addEventListener('message', function(e) {
+        if (e.data === 'inspect:on') activate();
+        if (e.data === 'inspect:off') deactivate();
+    });
+})();
+</script>
+`;
+
+        // Bug #3: ใช้ regex case-insensitive สำหรับ matching HTML tags
+        if (/<\/body>/i.test(debouncedHtml)) {
             let combined = debouncedHtml;
 
             if (debouncedCss) {
-                combined = combined.replace("</head>", `\n<style>\n${debouncedCss}\n</style>\n</head>`);
+                combined = combined.replace(/<\/head>/i, `\n<style>\n${debouncedCss}\n</style>\n</head>`);
             }
             if (debouncedJs) {
-                combined = combined.replace("</body>", `\n<script>\n${debouncedJs}\n</script>\n</body>`);
+                combined = combined.replace(/<\/body>/i, `\n<script>\n${debouncedJs}\n</script>\n</body>`);
             }
-            // Always inject intercept script just before </body> to ensure it runs
-            combined = combined.replace("</body>", `\n${interceptScript}\n</body>`);
+            // Always inject intercept + inspect scripts just before </body>
+            combined = combined.replace(/<\/body>/i, `\n${interceptScript}\n${inspectScript}\n</body>`);
 
             return combined;
         } else {
-            // Wrap in basic structure if it's just a snippet
+            // Bug #9: ลบ Tailwind CDN — ป้องกันรบกวน CSS ที่ผู้ใช้เขียนเอง
             return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
 ${debouncedCss}
     </style>
@@ -279,6 +466,7 @@ ${debouncedHtml}
 ${debouncedJs}
     </script>
 ${interceptScript}
+${inspectScript}
 </body>
 </html>`;
         }
@@ -297,31 +485,30 @@ ${interceptScript}
         return (
             <div className="fixed inset-0 z-50 bg-white/20 backdrop-blur-md flex items-center justify-center p-4 md:p-8">
                 <div className="absolute top-4 right-4 z-[60] flex gap-2">
-                    {viewport !== "desktop" && (
-                        <div className="bg-white/80 backdrop-blur shadow-lg border border-border/50 rounded-full px-2 flex items-center gap-1">
-                            <Button
-                                variant="ghost" size="icon"
-                                onClick={() => setViewport("desktop")}
-                                className="h-8 w-8 rounded-full hover:bg-muted/50"
-                            >
-                                <Monitor className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost" size="icon"
-                                onClick={() => setViewport("tablet")}
-                                className={`h-8 w-8 rounded-full ${viewport === "tablet" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
-                            >
-                                <Tablet className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost" size="icon"
-                                onClick={() => setViewport("mobile")}
-                                className={`h-8 w-8 rounded-full ${viewport === "mobile" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
-                            >
-                                <Smartphone className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
+                    {/* Bug #6: แสดง viewport picker เสมอในโหมด fullscreen + highlight ปุ่ม active */}
+                    <div className="bg-white/80 backdrop-blur shadow-lg border border-border/50 rounded-full px-2 flex items-center gap-1">
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={() => setViewport("desktop")}
+                            className={`h-8 w-8 rounded-full ${viewport === "desktop" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
+                        >
+                            <Monitor className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={() => setViewport("tablet")}
+                            className={`h-8 w-8 rounded-full ${viewport === "tablet" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
+                        >
+                            <Tablet className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={() => setViewport("mobile")}
+                            className={`h-8 w-8 rounded-full ${viewport === "mobile" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
+                        >
+                            <Smartphone className="h-4 w-4" />
+                        </Button>
+                    </div>
 
                     <Button
                         variant="default"
@@ -353,7 +540,7 @@ ${interceptScript}
 
             <Navbar />
 
-            <main className="flex-1 container mx-auto px-4 pt-32 pb-12 max-w-7xl flex flex-col">
+            <main className="flex-1 container mx-auto px-4 pt-32 pb-12 max-w-[1600px] flex flex-col">
                 <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 shrink-0">
                     <div>
                         <Link href="/tools" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-fuchsia-500 mb-6 transition-colors group">
@@ -415,15 +602,26 @@ ${interceptScript}
                                 โหลดจากลิงก์แชร์
                             </Badge>
                         )}
+                        <Button
+                            variant="outline"
+                            onClick={handleReset}
+                            className="gap-2 text-muted-foreground hover:text-red-500 hover:border-red-500/30"
+                            title="รีเซ็ตโค้ดกลับเป็นค่าเริ่มต้น"
+                        >
+                            <RotateCcw className="h-4 w-4" />
+                            รีเซ็ตโค้ด
+                        </Button>
                     </div>
                 </section>
 
                 {/* Main Workspace Area */}
-                <div className={`flex-1 flex ${isHorizontal ? 'flex-col lg:flex-row' : 'flex-col'} gap-6 min-h-[800px] mb-8`}>
+                {/* Bug #4: ลด min-h บนมือถือเพื่อไม่ต้องเลื่อนมากเกินไป */}
+                <div className={`flex-1 flex ${isHorizontal ? 'flex-col lg:flex-row' : 'flex-col'} gap-6 min-h-0 lg:min-h-[800px] mb-8`}>
 
                     {/* Editor Pane (Left/Top) */}
+                    {/* Bug #4: จำกัดความสูง Editor บนมือถือ */}
                     {showEditor && (
-                        <Card className={`flex-1 flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 min-h-[500px] lg:min-h-0 ${isHorizontal ? 'lg:max-w-[40%]' : ''}`}>
+                        <Card className={`flex flex-col overflow-hidden bg-[#1e1e1e] border-zinc-800 shadow-2xl z-10 ${isHorizontal ? 'flex-1 min-h-[350px] max-h-[50vh] lg:max-h-none lg:min-h-0 lg:max-w-[40%]' : 'min-h-[400px] h-[400px]'}`}>
                             <div className="flex items-center justify-between px-2 py-2 bg-[#252526] border-b border-zinc-800">
                                 <div className="flex gap-1">
                                     <button
@@ -450,7 +648,7 @@ ${interceptScript}
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setIsHorizontal(!isHorizontal)}
-                                        className="h-8 md:hidden lg:flex hidden px-2 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+                                        className="h-8 hidden lg:flex px-2 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
                                         title={isHorizontal ? "Switch to Vertical Layout" : "Switch to Horizontal Layout"}
                                     >
                                         {isHorizontal ? <Monitor className="h-4 w-4 rotate-90" /> : <Monitor className="h-4 w-4" />}
@@ -472,6 +670,7 @@ ${interceptScript}
                                                 else setJs(value);
                                             }
                                         }}
+                                        onMount={(editor) => { editorRef.current = editor; }}
                                         options={{
                                             minimap: { enabled: false },
                                             fontSize: 14,
@@ -522,6 +721,15 @@ ${interceptScript}
 
                             <div className="flex items-center gap-2">
                                 <Button
+                                    variant={isInspectMode ? "default" : "outline"}
+                                    size="sm"
+                                    className={`h-8 gap-1.5 ${isInspectMode ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                                    onClick={toggleInspect}
+                                >
+                                    <MousePointerClick className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Inspect</span>
+                                </Button>
+                                <Button
                                     variant="outline"
                                     size="sm"
                                     className="h-8 gap-1.5"
@@ -541,6 +749,7 @@ ${interceptScript}
                             <div className={`transition-all duration-300 h-full bg-white rounded-md shadow-lg border border-border/50 flex flex-col ${getViewportClass()}`}>
                                 <div className="flex-1 w-full bg-white rounded-b-md overflow-hidden min-h-[400px] md:min-h-[500px] lg:min-h-[700px]">
                                     <iframe
+                                        ref={iframeRef}
                                         srcDoc={getCombinedCode()}
                                         title="preview"
                                         sandbox="allow-scripts allow-modals"
@@ -554,86 +763,88 @@ ${interceptScript}
 
                 {/* Bottom Ad Unit */}
                 <AdUnit
-                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID
+                    slotId="2863984675"
                     format="auto"
                     responsive={true}
                     className="min-h-[150px] bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted shrink-0"
                 />
 
                 {/* ===== Share Modal ===== */}
-                {showShareModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-                        onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-                    >
-                        <div className="bg-background border border-border/80 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
-                            <button
-                                onClick={closeModal}
-                                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
+                {
+                    showShareModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                            onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+                        >
+                            <div className="bg-background border border-border/80 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+                                <button
+                                    onClick={closeModal}
+                                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
 
-                            {/* Loading State */}
-                            {shareStatus === "loading" && (
-                                <div className="flex flex-col items-center gap-3 py-4">
-                                    <Loader2 className="h-10 w-10 text-fuchsia-500 animate-spin" />
-                                    <p className="text-muted-foreground text-sm">กำลังบันทึกโค้ดของคุณ...</p>
-                                </div>
-                            )}
-
-                            {/* Success State */}
-                            {shareStatus === "success" && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                                            <Check className="h-4 w-4 text-green-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold">แชร์โค้ดสำเร็จ!</h3>
-                                            <p className="text-xs text-muted-foreground">ลิงก์นี้จะหมดอายุภายใน 7 วัน</p>
-                                        </div>
+                                {/* Loading State */}
+                                {shareStatus === "loading" && (
+                                    <div className="flex flex-col items-center gap-3 py-4">
+                                        <Loader2 className="h-10 w-10 text-fuchsia-500 animate-spin" />
+                                        <p className="text-muted-foreground text-sm">กำลังบันทึกโค้ดของคุณ...</p>
                                     </div>
+                                )}
 
-                                    <div className="flex gap-2 bg-muted/50 rounded-lg p-1 border border-border/50">
-                                        <input
-                                            readOnly
-                                            value={shareUrl}
-                                            className="flex-1 bg-transparent text-sm px-2 py-1 outline-none text-foreground min-w-0 truncate"
-                                        />
-                                        <Button
-                                            size="sm"
-                                            onClick={handleCopy}
-                                            className="shrink-0 gap-1.5 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
-                                        >
-                                            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                                            {copied ? "คัดลอกแล้ว!" : "คัดลอก"}
-                                        </Button>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground text-center">
-                                        ⚠️ โค้ดที่แชร์เป็นสาธารณะ ห้ามใส่ข้อมูลส่วนตัวหรือรหัสผ่าน
-                                    </p>
-                                </div>
-                            )}
+                                {/* Success State */}
+                                {shareStatus === "success" && (
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                                                <Check className="h-4 w-4 text-green-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">แชร์โค้ดสำเร็จ!</h3>
+                                                <p className="text-xs text-muted-foreground">ลิงก์นี้จะหมดอายุภายใน 7 วัน</p>
+                                            </div>
+                                        </div>
 
-                            {/* Error State */}
-                            {shareStatus === "error" && (
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center">
-                                            <X className="h-4 w-4 text-red-600" />
+                                        <div className="flex gap-2 bg-muted/50 rounded-lg p-1 border border-border/50">
+                                            <input
+                                                readOnly
+                                                value={shareUrl}
+                                                className="flex-1 bg-transparent text-sm px-2 py-1 outline-none text-foreground min-w-0 truncate"
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={handleCopy}
+                                                className="shrink-0 gap-1.5 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+                                            >
+                                                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                                                {copied ? "คัดลอกแล้ว!" : "คัดลอก"}
+                                            </Button>
                                         </div>
-                                        <div>
-                                            <h3 className="font-semibold">ไม่สามารถแชร์โค้ดได้</h3>
-                                            <p className="text-xs text-red-500">{shareError}</p>
-                                        </div>
+                                        <p className="text-xs text-muted-foreground text-center">
+                                            ⚠️ โค้ดที่แชร์เป็นสาธารณะ ห้ามใส่ข้อมูลส่วนตัวหรือรหัสผ่าน
+                                        </p>
                                     </div>
-                                    <Button variant="outline" size="sm" onClick={closeModal}>ปิด</Button>
-                                </div>
-                            )}
+                                )}
+
+                                {/* Error State */}
+                                {shareStatus === "error" && (
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                                                <X className="h-4 w-4 text-red-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">ไม่สามารถแชร์โค้ดได้</h3>
+                                                <p className="text-xs text-red-500">{shareError}</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="outline" size="sm" onClick={closeModal}>ปิด</Button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
-            </main>
-        </div>
+                    )
+                }
+            </main >
+        </div >
     );
 }

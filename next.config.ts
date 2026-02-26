@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   // In development, we need dynamic routes for Keystatic CMS
   ...(isProduction && { output: "export" }),
   trailingSlash: true,
+  allowedDevOrigins: ["http://127.0.0.1:3000"],
   images: {
     unoptimized: true,
   },

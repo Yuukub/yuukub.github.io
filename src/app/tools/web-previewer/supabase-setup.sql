@@ -50,7 +50,9 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = public;
 
 -- 6. Trigger: ดักก่อน INSERT เพื่อเช็ค Rate Limit
 DROP TRIGGER IF EXISTS trg_check_rate_limit ON shared_snippets;
@@ -60,9 +62,13 @@ FOR EACH ROW
 EXECUTE FUNCTION check_ip_rate_limit();
 
 -- 7. Policy: อนุญาตให้ INSERT จาก anon (public)
+-- เปลี่ยนจาก (true) เป็นเช็คความถูกต้องเบื้องต้น (เช่น id ต้องเป็น uuid) เพื่อลด warning
 CREATE POLICY "Allow public insert with rate limiting"
 ON shared_snippets FOR INSERT
-WITH CHECK (true);
+WITH CHECK (
+    html_code IS NOT NULL AND 
+    length(html_code) <= 100000
+);
 
 -- ====================================================
 -- Auto Cleanup: ลบโค้ดที่หมดอายุทุกเที่ยงคืน (ต้องเปิด pg_cron ก่อน)

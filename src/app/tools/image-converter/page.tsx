@@ -783,7 +783,7 @@ export default function ImageConverterPage() {
                 </div>
 
                 <AdUnit
-                    slotId="xxxxxxxxxx" // TODO: Replace with actual slot ID for Image Converter Bottom
+                    slotId="2863984675"
                     format="auto"
                     responsive={true}
                     className="min-h-[250px] mt-20 bg-muted/10 rounded-xl flex items-center justify-center border border-dashed border-muted"

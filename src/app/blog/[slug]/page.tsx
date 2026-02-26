@@ -129,6 +129,15 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                         dangerouslySetInnerHTML={{ __html: postData.contentHtml }}
                     />
 
+                    {/* In-Article Ad — after content */}
+                    <AdUnit
+                        slotId="7795681497"
+                        format="fluid"
+                        layout="in-article"
+                        responsive={false}
+                        className="mt-8"
+                    />
+
                 </article>
 
                 <Separator className="my-12 opacity-50" />
