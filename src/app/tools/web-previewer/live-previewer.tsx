@@ -1021,26 +1021,26 @@ ${inspectScript}
                                             </div>
                                         ) : (
                                             /* พบหลาย match → แสดง picker */
-                                            <div>
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                                                        พบ {cssJumpResult.matches.length} ตำแหน่งของ <span className="font-mono text-indigo-300">.{cssJumpResult.className}</span> — เลือกบรรทัดที่ต้องการ
+                                            <div className="bg-black/20 dark:bg-black/40 rounded-lg p-2.5 border border-white/5">
+                                                <div className="flex items-center justify-between mb-2.5">
+                                                    <span className="text-[11px] font-medium text-blue-300/90 uppercase tracking-widest pl-1">
+                                                        พบ {cssJumpResult.matches.length} ตำแหน่ง <span className="text-white/40 mx-1">•</span> เลือกบรรทัดที่ต้องการกระโดดไป
                                                     </span>
-                                                    <button onClick={() => setCssJumpResult(null)} className="text-muted-foreground hover:text-foreground">
-                                                        <X className="h-3 w-3" />
+                                                    <button onClick={() => setCssJumpResult(null)} className="text-white/40 hover:text-white bg-white/5 hover:bg-white/10 p-1 rounded-md transition-all">
+                                                        <X className="h-3.5 w-3.5" />
                                                     </button>
                                                 </div>
-                                                <div className="flex flex-col gap-1">
+                                                <div className="flex flex-col gap-1.5">
                                                     {cssJumpResult.matches.map((m, i) => (
                                                         <button
                                                             key={i}
                                                             onClick={() => jumpToExactLine(m.tab, m.line)}
-                                                            className="flex items-center gap-2 text-left text-[11px] px-2.5 py-1.5 rounded bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group"
+                                                            className="flex items-center gap-3 text-left px-3 py-2 rounded-md bg-blue-950/40 hover:bg-blue-600/20 border border-blue-500/20 hover:border-blue-400/50 transition-all group shadow-sm"
                                                         >
-                                                            <span className="shrink-0 text-[10px] font-mono bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded">
-                                                                {m.tab.toUpperCase()} :{m.line}
-                                                            </span>
-                                                            <span className="font-mono text-muted-foreground group-hover:text-foreground truncate transition-colors">
+                                                            <div className="shrink-0 flex items-center justify-center min-w-[55px] text-[10px] font-bold tracking-wider font-mono bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-400 group-hover:text-blue-300 px-2 py-1 rounded border border-blue-500/20 group-hover:border-blue-400/30 transition-colors">
+                                                                {m.tab.toUpperCase()}:{m.line}
+                                                            </div>
+                                                            <span className="font-mono text-[12px] text-zinc-300 group-hover:text-white truncate transition-colors">
                                                                 {m.preview}
                                                             </span>
                                                         </button>
