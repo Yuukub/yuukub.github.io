@@ -259,18 +259,15 @@ export function LiveWebPreviewer() {
         fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
     }, [isInspectMode]);
 
-    // --- Jump to CSS class in CSS editor ---
+    // --- Jump to CSS class: ค้นหาใน CSS tab ก่อน ถ้าไม่เจอค้นหาใน HTML tab ด้วย ---
     const jumpToCss = useCallback((className: string) => {
-        setActiveTab("css");
         setShowEditor(true);
-        setTimeout(() => {
-            const editor = editorRef.current;
-            if (!editor) return;
+        const searchTerms = [`.${className} {`, `.${className}{`, `.${className} `, `.${className}\n`, `.${className}`];
+
+        // ฟังก์ชันค้นหาใน model ที่ editor กำลังแสดงอยู่
+        const tryFind = (editor: MonacoEditor.IStandaloneCodeEditor) => {
             const model = editor.getModel();
-            if (!model) return;
-            // Search for .className { pattern
-            const searchTerms = [`.${className}`, `.${className} {`, `.${className}{`];
-            let found = false;
+            if (!model) return false;
             for (const term of searchTerms) {
                 const matches = model.findMatches(term, false, false, true, null, true);
                 if (matches.length > 0) {
@@ -278,12 +275,29 @@ export function LiveWebPreviewer() {
                     editor.revealLineInCenter(range.startLineNumber);
                     editor.setSelection(range);
                     editor.focus();
-                    found = true;
-                    break;
+                    return true;
                 }
             }
-            // ถ้าหาไม่เจอก็ไม่ทำอะไร
-            if (!found) editor.focus();
+            return false;
+        };
+
+        // Step 1: ลอง CSS tab ก่อน
+        setActiveTab("css");
+        setTimeout(() => {
+            const editor = editorRef.current;
+            if (!editor) return;
+            const found = tryFind(editor);
+            if (found) return;
+
+            // Step 2: ไม่เจอใน CSS tab → ลอง HTML tab (class อาจอยู่ใน <style>)
+            setActiveTab("html");
+            setTimeout(() => {
+                const editor2 = editorRef.current;
+                if (!editor2) return;
+                const foundInHtml = tryFind(editor2);
+                // ถ้าเจอใน HTML ก็โอเค ถ้าไม่เจอทั้งคู่ก็แค่ focus html editor
+                if (!foundInHtml) editor2.focus();
+            }, 150);
         }, 150);
     }, []);
 
