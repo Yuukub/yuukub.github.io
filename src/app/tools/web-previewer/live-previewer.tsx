@@ -92,6 +92,7 @@ export function LiveWebPreviewer() {
     const [isHorizontal, setIsHorizontal] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isInspectMode, setIsInspectMode] = useState(false);
+    const [inspectedEl, setInspectedEl] = useState<{ tag: string; classes: string[]; width: number; height: number } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const fullscreenIframeRef = useRef<HTMLIFrameElement>(null);
@@ -258,36 +259,64 @@ export function LiveWebPreviewer() {
         fullscreenIframeRef.current?.contentWindow?.postMessage(msg, "*");
     }, [isInspectMode]);
 
+    // --- Jump to CSS class in CSS editor ---
+    const jumpToCss = useCallback((className: string) => {
+        setActiveTab("css");
+        setShowEditor(true);
+        setTimeout(() => {
+            const editor = editorRef.current;
+            if (!editor) return;
+            const model = editor.getModel();
+            if (!model) return;
+            // Search for .className { pattern
+            const searchTerms = [`.${className}`, `.${className} {`, `.${className}{`];
+            let found = false;
+            for (const term of searchTerms) {
+                const matches = model.findMatches(term, false, false, true, null, true);
+                if (matches.length > 0) {
+                    const range = matches[0].range;
+                    editor.revealLineInCenter(range.startLineNumber);
+                    editor.setSelection(range);
+                    editor.focus();
+                    found = true;
+                    break;
+                }
+            }
+            // ถ้าหาไม่เจอก็ไม่ทำอะไร
+            if (!found) editor.focus();
+        }, 150);
+    }, []);
+
     // --- Inspect Mode: receive element info from iframe ---
     useEffect(() => {
         const handler = (e: MessageEvent) => {
             if (e.data?.type === "inspect:click") {
-                const { outerHTML } = e.data;
-                if (!outerHTML || !editorRef.current) return;
+                const { outerHTML, classes, tag, width, height } = e.data;
+                if (!outerHTML) return;
 
-                // Switch to HTML tab
-                setActiveTab("html");
-                setShowEditor(true);
+                // Update inspected element state (CSS Panel)
+                setInspectedEl({ tag: (tag || "div").toLowerCase(), classes: classes || [], width: width || 0, height: height || 0 });
 
-                // Search for element in HTML source using Monaco
-                setTimeout(() => {
-                    const editor = editorRef.current;
-                    if (!editor) return;
-                    const model = editor.getModel();
-                    if (!model) return;
-
-                    // Clean up the outerHTML for searching (take just the opening tag)
-                    const openTagMatch = outerHTML.match(/^<[^>]+>/);
-                    const searchText = openTagMatch ? openTagMatch[0] : outerHTML.slice(0, 80);
-
-                    const matches = model.findMatches(searchText, false, false, true, null, true);
-                    if (matches.length > 0) {
-                        const range = matches[0].range;
-                        editor.revealLineInCenter(range.startLineNumber);
-                        editor.setSelection(range);
-                        editor.focus();
-                    }
-                }, 150); // delay to wait for tab switch
+                // If HTML source exists, jump to it
+                if (editorRef.current) {
+                    setActiveTab("html");
+                    setShowEditor(true);
+                    setTimeout(() => {
+                        const editor = editorRef.current;
+                        if (!editor) return;
+                        const model = editor.getModel();
+                        if (!model) return;
+                        const openTagMatch = outerHTML.match(/^<[^>]+>/);
+                        const searchText = openTagMatch ? openTagMatch[0] : outerHTML.slice(0, 80);
+                        const matches = model.findMatches(searchText, false, false, true, null, true);
+                        if (matches.length > 0) {
+                            const range = matches[0].range;
+                            editor.revealLineInCenter(range.startLineNumber);
+                            editor.setSelection(range);
+                            editor.focus();
+                        }
+                    }, 150);
+                }
             }
         };
         window.addEventListener("message", handler);
@@ -360,29 +389,48 @@ export function LiveWebPreviewer() {
     function createOverlay() {
         overlay = document.createElement('div');
         overlay.id = '__inspect_overlay';
-        overlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #3b82f6;background:rgba(59,130,246,0.08);z-index:99999;transition:all 0.1s ease;display:none;border-radius:3px;';
+        overlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #3b82f6;background:rgba(59,130,246,0.08);z-index:99999;transition:all 0.08s ease;display:none;border-radius:3px;box-shadow:0 0 0 1px rgba(59,130,246,0.2);';
         document.body.appendChild(overlay);
 
         tooltip = document.createElement('div');
         tooltip.id = '__inspect_tooltip';
-        tooltip.style.cssText = 'position:fixed;background:#1e293b;color:#e2e8f0;font-size:11px;font-family:monospace;padding:3px 8px;border-radius:4px;z-index:100000;pointer-events:none;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+        tooltip.style.cssText = 'position:fixed;background:#0f172a;color:#e2e8f0;font-size:11px;font-family:ui-monospace,monospace;padding:6px 10px;border-radius:6px;z-index:100000;pointer-events:none;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4);max-width:340px;line-height:1.6;border:1px solid rgba(255,255,255,0.08);';
         document.body.appendChild(tooltip);
     }
 
-    function getSelector(el) {
-        let tag = el.tagName.toLowerCase();
-        if (el.id) return tag + '#' + el.id;
-        if (el.className && typeof el.className === 'string') {
-            const cls = el.className.trim().split(/\\s+/).slice(0,2).join('.');
-            if (cls) return tag + '.' + cls;
+    function getClasses(el) {
+        if (!el.className || typeof el.className !== 'string') return [];
+        return el.className.trim().split(/\\s+/).filter(Boolean);
+    }
+
+    function updateTooltip(el, rect) {
+        const tag = el.tagName.toLowerCase();
+        const id = el.id ? ('#' + el.id) : '';
+        const classes = getClasses(el);
+        const dims = Math.round(rect.width) + ' x ' + Math.round(rect.height) + 'px';
+
+        let html = '<span style="color:#7dd3fc;font-weight:bold;">&lt;' + tag + '&gt;</span>';
+        if (id) html += ' <span style="color:#fbbf24;">' + id + '</span>';
+        html += '  <span style="color:#94a3b8;">' + dims + '</span>';
+        if (classes.length > 0) {
+            html += '<br>';
+            classes.slice(0, 8).forEach(function(c) {
+                html += '<span style="display:inline-block;background:rgba(99,102,241,0.25);color:#a5b4fc;border-radius:3px;padding:0 5px;margin:1px 2px;border:1px solid rgba(99,102,241,0.3);">.' + c + '</span>';
+            });
+            if (classes.length > 8) html += '<span style="color:#64748b;"> +' + (classes.length - 8) + '</span>';
         }
-        return tag;
+        tooltip.innerHTML = html;
+
+        // Position
+        tooltip.style.left = Math.max(0, rect.left) + 'px';
+        const topAbove = rect.top - tooltip.offsetHeight - 6;
+        tooltip.style.top = (topAbove >= 0 ? topAbove : rect.bottom + 6) + 'px';
     }
 
     function onMouseMove(e) {
         if (!inspectActive) return;
         const el = document.elementFromPoint(e.clientX, e.clientY);
-        if (!el || el === overlay || el === tooltip || el.id === '__inspect_overlay' || el.id === '__inspect_tooltip') return;
+        if (!el || el.id === '__inspect_overlay' || el.id === '__inspect_tooltip') return;
         lastTarget = el;
         const rect = el.getBoundingClientRect();
         overlay.style.display = 'block';
@@ -390,11 +438,8 @@ export function LiveWebPreviewer() {
         overlay.style.left = rect.left + 'px';
         overlay.style.width = rect.width + 'px';
         overlay.style.height = rect.height + 'px';
-
         tooltip.style.display = 'block';
-        tooltip.textContent = getSelector(el) + ' (' + Math.round(rect.width) + ' x ' + Math.round(rect.height) + ')';
-        tooltip.style.top = Math.max(0, rect.top - 28) + 'px';
-        tooltip.style.left = rect.left + 'px';
+        updateTooltip(el, rect);
     }
 
     function onMouseClick(e) {
@@ -402,10 +447,18 @@ export function LiveWebPreviewer() {
         e.preventDefault();
         e.stopPropagation();
         const el = lastTarget;
-        // Send just the opening tag + a bit of content for matching
+        const rect = el.getBoundingClientRect();
+        const classes = getClasses(el);
         let snippet = el.outerHTML;
         if (snippet.length > 500) snippet = snippet.slice(0, 500);
-        window.parent.postMessage({ type: 'inspect:click', outerHTML: snippet, tag: el.tagName }, '*');
+        window.parent.postMessage({
+            type: 'inspect:click',
+            outerHTML: snippet,
+            tag: el.tagName,
+            classes: classes,
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+        }, '*');
     }
 
     function activate() {
@@ -758,6 +811,47 @@ ${inspectScript}
                                 </div>
                             </div>
                         </div>
+
+                        {/* CSS Inspect Panel — shown when inspect:click received */}
+                        {isInspectMode && inspectedEl && (
+                            <div className="mx-2 md:mx-4 mb-2 rounded-xl border border-blue-500/30 bg-blue-950/20 dark:bg-blue-950/40 px-4 py-3 text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-blue-400 text-xs bg-blue-500/10 px-2 py-0.5 rounded">
+                                            &lt;{inspectedEl.tag}&gt;
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {inspectedEl.width} × {inspectedEl.height}px
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">คลิก class → กระโดดไปยัง CSS</span>
+                                        <button
+                                            onClick={() => setInspectedEl(null)}
+                                            className="text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                                {inspectedEl.classes.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {inspectedEl.classes.map((cls) => (
+                                            <button
+                                                key={cls}
+                                                onClick={() => jumpToCss(cls)}
+                                                title={`ค้นหา .${cls} ใน CSS Editor`}
+                                                className="font-mono text-[11px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 hover:text-indigo-100 transition-all cursor-pointer"
+                                            >
+                                                .{cls}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic">ไม่มี CSS class บน element นี้</p>
+                                )}
+                            </div>
+                        )}
                     </Card>
                 </div>
 
