@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon, MonitorPlay } from "lucide-react";
+import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon, MonitorPlay, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdUnit } from "@/components/ad-unit";
 
@@ -53,6 +53,14 @@ const TOOLS = [
         href: "/tools/web-previewer",
         tags: ["Developer", "Live Preview"],
         colorClass: "bg-fuchsia-500/10 text-fuchsia-500",
+    },
+    {
+        title: "API Tester",
+        description: "ทดสอบยิง REST API แบบ GET/POST/PUT/DELETE พร้อมระบบ Import โค้ด cURL อัตโนมัติ ใช้งานได้ทันทีจากเบราว์เซอร์",
+        icon: <Zap className="h-6 w-6 text-cyan-500" />,
+        href: "/tools/api-tester",
+        tags: ["Developer", "API"],
+        colorClass: "bg-cyan-500/10 text-cyan-500",
     },
 ];
 
