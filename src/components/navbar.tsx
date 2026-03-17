@@ -23,9 +23,9 @@ export function Navbar() {
                     </Link>
                     <div className="flex items-center gap-3 pl-2 border-l border-border/50">
                         <ModeToggle />
-                        <a href="mailto:yuukun.eutopia@gmail.com">
+                        <Link href="/contact">
                             <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
-                        </a>
+                        </Link>
                     </div>
                 </nav>
             </div>

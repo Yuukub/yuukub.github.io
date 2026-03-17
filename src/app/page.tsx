@@ -106,11 +106,11 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4 translate-y-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
-            <a href="mailto:yuukun.eutopia@gmail.com">
+            <Link href="/contact">
               <Button size="lg" className="rounded-full h-12 px-8 gap-2 premium-glow animate-pulse-glow">
                 ติดต่อร่วมงาน <Mail className="h-4 w-4" />
               </Button>
-            </a>
+            </Link>
             <a href="#work">
               <Button size="lg" variant="ghost" className="rounded-full h-12 px-8 gap-2">
                 สำรวจโปรเจกต์ <ArrowRight className="h-4 w-4" />
@@ -422,11 +422,11 @@ export default function Home() {
               ผมพร้อมแบ่งปันความเชี่ยวชาญในฐานะที่ปรึกษาและนักพัฒนาในโปรเจกต์เชิงเทคนิค มาร่วมสร้างวิสัยทัศน์ของคุณให้เป็นจริงด้วยมาตรฐานระดับสูงครับ
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="mailto:yuukun.eutopia@gmail.com">
+              <Link href="/contact">
                 <Button size="lg" className="rounded-full h-14 px-10 gap-2 font-bold shadow-2xl">
                   ติดต่อร่วมงาน
                 </Button>
-              </a>
+              </Link>
               <a href="https://www.linkedin.com/in/saranyoo-m">
                 <Button size="lg" variant="outline" className="rounded-full h-14 px-10 gap-2 font-bold">
                   LinkedIn <Linkedin className="h-4 w-4" />

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Lock, Eye, ExternalLink } from "lucide-react";
+import { Shield, Lock, Eye, ExternalLink, Mail } from "lucide-react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Privacy Policy - นโยบายความเป็นส่วนตัว",
@@ -39,8 +40,9 @@ export default function PrivacyPolicyPage() {
                             </p>
                             <ul>
                                 <li>Google ในฐานะผู้ให้บริการบุคคลที่สาม มีการใช้คุกกี้ (Cookies) เพื่อแสดงโฆษณาบนหน้าเว็บไซต์นี้</li>
-                                <li>Google ใช้ <strong>DART cookie</strong> เพื่อช่วยในการแสดงโฆษณาแก่ผู้ใช้ โดยอิงตามการเยี่ยมชมเว็บไซต์นี้และเว็บไซต์อื่นๆ บนอินเทอร์เน็ต</li>
-                                <li>ผู้ใช้สามารถยกเลิกการใช้ DART cookie ได้โดยเข้าไปที่นโยบายความเป็นส่วนตัวของเครือข่ายโฆษณาและเนื้อหาของ Google</li>
+                                <li>การใช้คุกกี้โฆษณาของ Google ช่วยให้ Google และพาร์ทเนอร์แสดงโฆษณาแก่ผู้ใช้โดยอิงตามการเยี่ยมชมเว็บไซต์นี้และ/หรือเว็บไซต์อื่นๆ บนอินเทอร์เน็ต</li>
+                                <li>ผู้ใช้สามารถเลือกไม่รับโฆษณาที่ปรับตามโปรไฟล์เฉพาะบุคคลได้โดยไปที่ <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">การตั้งค่าโฆษณา</a></li>
+                                <li>คุณสามารถศึกษารายละเอียดเพิ่มเติมได้ที่ <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">นโยบายความเป็นส่วนตัวและข้อกำหนดของ Google</a></li>
                             </ul>
                         </section>
 
@@ -74,6 +76,20 @@ export default function PrivacyPolicyPage() {
                             <p>
                                 เราไม่มีอำนาจควบคุมและไม่รับผิดชอบต่อเนื้อหา นโยบายความเป็นส่วนตัว หรือแนวทางปฏิบัติของเว็บไซต์หรือบริการของบุคคลที่สามใดๆ
                             </p>
+                        </section>
+
+                        <section>
+                            <h2 className="flex items-center gap-3 text-2xl font-bold text-foreground mb-6">
+                                <Mail className="h-6 w-6 text-primary" />
+                                ข้อมูลการติดต่อ
+                            </h2>
+                            <p>
+                                หากคุณมีคำถามหรือข้อสงสัยเกี่ยวกับนโยบายความเป็นส่วนตัวนี้ โปรดติดต่อเราได้ที่:
+                            </p>
+                            <ul className="list-none pl-0">
+                                <li><strong>Email:</strong> <a href="mailto:yuukun.eutopia@gmail.com" className="text-primary hover:underline">yuukun.eutopia@gmail.com</a></li>
+                                <li><strong>Website:</strong> <Link href="/contact" className="text-primary hover:underline">หน้าติดต่อเรา</Link></li>
+                            </ul>
                         </section>
                     </div>
 

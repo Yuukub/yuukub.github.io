@@ -72,8 +72,6 @@ export default function AboutPage() {
                         </section>
                     </div>
 
-                    <Separator className="my-12 opacity-50" />
-
                     <footer className="text-center font-bold text-primary italic">
                         "Empowering Developers with Secure and Efficient Tools"
                     </footer>
