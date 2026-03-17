@@ -54,12 +54,15 @@ export default function ContactPage() {
                             <p className="text-muted-foreground text-sm mb-6">
                                 ติดตามอัปเดตและผลงานล่าสุดผ่านช่องทางโซเชียลมีเดียของเรา
                             </p>
-                            <div className="flex gap-4">
+                            <div className="flex flex-wrap gap-4 justify-center">
                                 <a href="https://github.com/Yuukub" target="_blank" rel="noopener noreferrer">
                                     <Button variant="outline" size="sm" className="rounded-full">GitHub</Button>
                                 </a>
                                 <a href="https://linkedin.com/in/saranyoo-m" target="_blank" rel="noopener noreferrer">
                                     <Button variant="outline" size="sm" className="rounded-full">LinkedIn</Button>
+                                </a>
+                                <a href="https://fastwork.co/user/yuukun992" target="_blank" rel="noopener noreferrer">
+                                    <Button variant="outline" size="sm" className="rounded-full bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors text-primary font-bold">Fastwork</Button>
                                 </a>
                             </div>
                         </div>
