@@ -184,24 +184,6 @@ export default function ImageConverterPage() {
 
         // Process files sequentially via the worker
         for (const item of queue) {
-            // Skip if same format
-            if (item.inputFormat === outputFormat) {
-                setQueue((prev) =>
-                    prev.map((q) =>
-                        q.id === item.id
-                            ? {
-                                ...q,
-                                status: "error" as FileStatus,
-                                errorMessage: "Format เดียวกับไฟล์ต้นฉบับ",
-                            }
-                            : q
-                    )
-                );
-                completed++;
-                setConvertedCount(completed);
-                continue;
-            }
-
             // Set processing
             setQueue((prev) =>
                 prev.map((q) =>
