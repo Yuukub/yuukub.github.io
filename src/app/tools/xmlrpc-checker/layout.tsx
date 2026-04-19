@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "WordPress XML-RPC Vulnerability Checker | ตรวจสอบช่องโหว่เว็บไซต์",
-    description: "เครื่องมือตรวจสอบช่องโหว่ XML-RPC บน WordPress ของคุณ พร้อมคำแนะนำในการป้องกันการโจมตีแบบ Brute Force และ Pingback amplification",
-    keywords: ["WordPress security check", "Fix XML-RPC vulnerability", "XML-RPC checker", "ตรวจสอบความปลอดภัย WordPress", "ช่องโหว่ XML-RPC"],
+    title: "WordPress XML-RPC Checker — ตรวจสอบและปิดช่องโหว่ xmlrpc.php ฟรี",
+    description: "ตรวจสอบว่าเว็บ WordPress ของคุณเปิด xmlrpc.php อยู่ไหม พร้อมวิธีปิดและป้องกันการโจมตี Brute Force, DDoS และ Pingback Amplification แบบ step-by-step",
+    keywords: ["XML-RPC checker", "WordPress security", "ปิด xmlrpc.php", "ตรวจสอบช่องโหว่ WordPress", "Brute Force WordPress", "WordPress hardening", "xmlrpc vulnerability"],
     alternates: {
         canonical: "https://yuukub.com/tools/xmlrpc-checker/",
     },
