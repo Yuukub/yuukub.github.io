@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Batch WebP & AVIF Converter | เครื่องมือแปลงรูปภาพความเร็วสูง",
-    description: "แปลงรูปภาพเป็น WebP และ AVIF พร้อมกันหลายไฟล์ด้วยความเร็วสูง ประมวลผลในเครื่อง 100% ปลอดภัยและรักษาสภาพแวดล้อมความเป็นส่วนตัวของคุณ",
-    keywords: ["WebP converter", "Convert to WebP", "AVIF to WebP", "Batch image processor", "แปลงไฟล์ WebP", "แปลงรูปภาพออนไลน์"],
+    title: "Image Converter ออนไลน์ฟรี — แปลง JPG PNG WebP AVIF ในเครื่อง 100%",
+    description: "แปลงรูปภาพออนไลน์ฟรี รองรับ JPG, PNG, WebP, AVIF ไม่ต้องติดตั้งโปรแกรม ประมวลผลด้วย WebAssembly ในเครื่องของคุณ ข้อมูลไม่ถูกอัปโหลดไปยังเซิร์ฟเวอร์ใดๆ",
+    keywords: ["Image Converter", "แปลงรูป", "JPG to PNG", "WebP converter", "AVIF converter", "แปลงรูปฟรี", "image converter ออนไลน์"],
     alternates: {
         canonical: "https://yuukub.com/tools/image-converter/",
     },

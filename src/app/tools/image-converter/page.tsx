@@ -19,9 +19,75 @@ import {
     FileImage,
     Shield,
     Clock,
+    Info,
+    Layers,
+    HelpCircle,
 } from "lucide-react";
 import { AdUnit } from "@/components/ad-unit";
 import Link from "next/link";
+
+/* ─── SEO Data ─────────────────────────────────────────────── */
+
+const FAQ_ITEMS = [
+    {
+        question: "แปลงรูปภาพด้วยเครื่องมือนี้ปลอดภัยไหม?",
+        answer: "ปลอดภัย 100% เพราะไฟล์ทั้งหมดถูกประมวลผลด้วย WebAssembly ภายในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ใดๆ ทั้งสิ้น รูปภาพส่วนตัวหรือเอกสารลับของคุณจึงไม่มีทางรั่วไหลออกไปได้เลย",
+    },
+    {
+        question: "รองรับไฟล์ขนาดใหญ่แค่ไหน?",
+        answer: "ขึ้นอยู่กับ RAM ของอุปกรณ์คุณ โดยทั่วไปรองรับไฟล์ได้ถึงหลายสิบ MB ต่อไฟล์ และสามารถแปลงหลายไฟล์พร้อมกันในคิวเดียวได้โดยไม่จำกัดจำนวน แนะนำให้แปลงทีละ 10–20 ไฟล์เพื่อประสิทธิภาพสูงสุด",
+    },
+    {
+        question: "ทำไม WebP ถึงดีกว่า JPEG สำหรับเว็บไซต์?",
+        answer: "WebP ให้คุณภาพใกล้เคียงกันแต่ขนาดไฟล์เล็กกว่า JPEG ถึง 25–34% เฉลี่ย ทำให้เว็บโหลดเร็วขึ้น ลด Bandwidth และช่วย Core Web Vitals (LCP) ซึ่งส่งผลดีต่อ SEO โดยตรง รองรับโดยเบราว์เซอร์สมัยใหม่ทุกตัว",
+    },
+    {
+        question: "AVIF กับ WebP ต่างกันอย่างไร?",
+        answer: "AVIF เป็น format ใหม่กว่าที่บีบอัดได้ดีกว่า WebP อีก 20–50% แต่ใช้เวลาในการ encode นานกว่า เหมาะสำหรับเว็บไซต์ที่ต้องการประสิทธิภาพสูงสุด WebP ยังเป็นตัวเลือกที่ดีกว่าถ้าต้องการความเร็วในการแปลงและ browser support ที่กว้างกว่า",
+    },
+    {
+        question: "สามารถแปลงไฟล์ format เดิมซ้ำเพื่อ compress ใหม่ได้ไหม?",
+        answer: "ได้ครับ เครื่องมือนี้รองรับการแปลง PNG → PNG หรือ WebP → WebP เพื่อบีบอัดไฟล์ใหม่ด้วยค่า Quality ที่คุณตั้งเอง ซึ่งมีประโยชน์มากเมื่อต้องการลดขนาดไฟล์โดยไม่เปลี่ยน format",
+    },
+];
+
+const FORMAT_COMPARISON = [
+    { format: "JPEG", size: "เล็ก", transparency: "ไม่รองรับ", quality: "ดี (lossy)", support: "ทุก browser", color: "blue" },
+    { format: "PNG", size: "ใหญ่", transparency: "รองรับ", quality: "สูงสุด (lossless)", support: "ทุก browser", color: "purple" },
+    { format: "WebP", size: "เล็กมาก", transparency: "รองรับ", quality: "ดีมาก", support: "Modern browsers", color: "orange" },
+    { format: "AVIF", size: "เล็กที่สุด", transparency: "รองรับ", quality: "ดีมาก", support: "Chrome/Firefox/Safari", color: "emerald" },
+];
+
+const USE_CASES = [
+    {
+        format: "WebP",
+        color: "orange",
+        borderColor: "border-l-orange-500",
+        title: "เว็บไซต์ทั่วไป",
+        desc: "เหมาะสำหรับรูปภาพบนเว็บไซต์ทุกประเภท ให้ขนาดไฟล์เล็กกว่า JPEG ถึง 30% โดยที่คุณภาพแทบไม่ต่างกัน ช่วยให้เว็บโหลดเร็วขึ้นและ SEO ดีขึ้น รองรับโดยเบราว์เซอร์สมัยใหม่ทุกตัว",
+    },
+    {
+        format: "AVIF",
+        color: "emerald",
+        borderColor: "border-l-emerald-500",
+        title: "เว็บประสิทธิภาพสูง",
+        desc: "เหมาะสำหรับเว็บที่ต้องการ Core Web Vitals ระดับสูง เช่น e-commerce หรือ landing page ที่ทุก millisecond สำคัญ บีบอัดได้ดีที่สุดในกลุ่ม แต่ encode ช้ากว่า WebP",
+    },
+    {
+        format: "PNG",
+        color: "purple",
+        borderColor: "border-l-purple-500",
+        title: "งานกราฟิกและโลโก้",
+        desc: "เหมาะสำหรับภาพที่ต้องการพื้นหลังโปร่งใส (transparency) เช่น โลโก้ ไอคอน และ UI elements ให้คุณภาพ lossless สูงสุด แต่ขนาดไฟล์จะใหญ่กว่า format อื่น",
+    },
+    {
+        format: "JPEG",
+        color: "blue",
+        borderColor: "border-l-blue-500",
+        title: "ภาพถ่ายและ CMS เก่า",
+        desc: "เหมาะสำหรับภาพถ่ายที่ต้องส่งให้ระบบ CMS เก่าหรือแพลตฟอร์มที่รองรับแค่ JPG รองรับโดยทุก device และ browser ทำให้เป็นตัวเลือกที่ปลอดภัยที่สุดในด้าน compatibility",
+    },
+];
 
 /* ─── Types ────────────────────────────────────────────────── */
 
@@ -345,8 +411,25 @@ export default function ImageConverterPage() {
 
     /* ── Render ─────────────────────────────────────────────── */
 
+    const faqJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ_ITEMS.map((item) => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.answer,
+            },
+        })),
+    };
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
@@ -762,6 +845,191 @@ export default function ImageConverterPage() {
                             — ไม่มีการอัปโหลดไปยังเซิร์ฟเวอร์ใดๆ
                         </p>
                     </div>
+                </div>
+
+                <AdUnit
+                    slotId="2863984675"
+                    format="auto"
+                    responsive={true}
+                    className="min-h-[250px] mt-16 mb-4 bg-muted/10 rounded-xl py-12 border border-dashed border-muted"
+                />
+
+                {/* ─── SEO Content ─────────────────────────────────────── */}
+                <div className="mt-4 space-y-12 border-t border-border/20 pt-12">
+
+                    {/* Section 1: ทำไมการแปลงรูปภาพถึงสำคัญ */}
+                    <section aria-labelledby="intro-heading">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                                <Info className="h-5 w-5 text-orange-500" />
+                            </div>
+                            <h2 id="intro-heading" className="text-xl font-bold tracking-tight">
+                                ทำไมการแปลงรูปภาพถึงสำคัญ?
+                            </h2>
+                        </div>
+                        <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                            <p>
+                                ในยุคที่ความเร็วของเว็บไซต์ส่งผลโดยตรงต่อประสบการณ์ผู้ใช้และอันดับ SEO การเลือก format รูปภาพที่เหมาะสมจึงเป็นสิ่งที่นักพัฒนาและเจ้าของเว็บไซต์ไม่ควรมองข้าม รูปภาพมักเป็นไฟล์ที่ใหญ่ที่สุดในหน้าเว็บ และการเลือก format ผิดอาจทำให้เว็บโหลดช้าลงอย่างมีนัยสำคัญ
+                            </p>
+                            <p>
+                                Format สมัยใหม่อย่าง <strong className="text-foreground">WebP</strong> และ <strong className="text-foreground">AVIF</strong> ถูกออกแบบมาเพื่อแก้ปัญหานี้โดยตรง โดยสามารถลดขนาดไฟล์ได้ถึง 25–50% เมื่อเทียบกับ JPEG หรือ PNG แบบดั้งเดิม โดยที่คุณภาพภาพไม่ได้ลดลงอย่างเห็นได้ชัด ส่งผลให้ค่า Largest Contentful Paint (LCP) ดีขึ้น ซึ่งเป็นหนึ่งใน Core Web Vitals ที่ Google ใช้ในการจัดอันดับเว็บ
+                            </p>
+                            <p>
+                                นอกจากนี้ บางครั้งเราก็จำเป็นต้องแปลง format เพื่อความเข้ากันได้ของระบบ เช่น CMS หรือแพลตฟอร์มบางตัวรองรับเฉพาะ JPEG หรือ PNG เท่านั้น หรือเมื่อต้องการภาพที่มีพื้นหลังโปร่งใส (transparency) ก็จำเป็นต้องใช้ PNG, WebP หรือ AVIF แทน JPEG ที่ไม่รองรับฟีเจอร์นี้
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* Section 2: เปรียบเทียบ Format */}
+                    <section aria-labelledby="compare-heading">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                <Layers className="h-5 w-5 text-blue-500" />
+                            </div>
+                            <h2 id="compare-heading" className="text-xl font-bold tracking-tight">
+                                เปรียบเทียบ: JPEG vs PNG vs WebP vs AVIF
+                            </h2>
+                        </div>
+                        <div className="overflow-x-auto rounded-xl border border-border/50">
+                            <table className="w-full text-sm">
+                                <thead className="bg-muted/50">
+                                    <tr>
+                                        {["Format", "ขนาดไฟล์", "Transparency", "คุณภาพ", "Browser Support"].map((h) => (
+                                            <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/50">
+                                    {FORMAT_COMPARISON.map((row) => (
+                                        <tr key={row.format} className="hover:bg-muted/20 transition-colors">
+                                            <td className="px-4 py-3 font-bold">
+                                                <Badge variant="outline" className="text-[11px]">{row.format}</Badge>
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">{row.size}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`text-xs font-medium ${row.transparency === "รองรับ" ? "text-emerald-600" : "text-red-500"}`}>
+                                                    {row.transparency}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">{row.quality}</td>
+                                            <td className="px-4 py-3 text-muted-foreground text-xs">{row.support}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed mt-4">
+                            ตารางด้านบนช่วยให้เห็นภาพรวมของแต่ละ format ในการเลือกใช้จริง ควรพิจารณาทั้งขนาดไฟล์ ความต้องการ transparency และ browser ของกลุ่มเป้าหมายประกอบกัน โดยทั่วไป WebP เป็นตัวเลือกที่สมดุลที่สุดสำหรับเว็บไซต์ในปัจจุบัน
+                        </p>
+                    </section>
+
+                    {/* Section 3: วิธีใช้งาน */}
+                    <section aria-labelledby="howto-heading">
+                        <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
+                            วิธีใช้งาน Image Converter — 3 ขั้นตอน
+                        </h2>
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            {[
+                                {
+                                    step: "1",
+                                    icon: <Upload className="h-4 w-4 text-orange-500" />,
+                                    title: "เลือกไฟล์",
+                                    desc: "ลากไฟล์รูปภาพมาวางในกล่อง หรือคลิกเพื่อเปิด file picker เลือกได้หลายไฟล์พร้อมกัน รองรับ JPG, PNG, WebP และ AVIF",
+                                },
+                                {
+                                    step: "2",
+                                    icon: <ImageIcon className="h-4 w-4 text-orange-500" />,
+                                    title: "ตั้งค่า Format",
+                                    desc: "เลือก output format ที่ต้องการ ปรับค่า Quality (0–100) และ Effort เพื่อสมดุลระหว่างขนาดไฟล์กับคุณภาพภาพ",
+                                },
+                                {
+                                    step: "3",
+                                    icon: <Download className="h-4 w-4 text-orange-500" />,
+                                    title: "ดาวน์โหลด",
+                                    desc: "กดปุ่ม 'แปลงทั้งหมด' และดาวน์โหลดไฟล์ทีละไฟล์ หรือใช้ปุ่ม Download All เพื่อรับทุกไฟล์ในรูปแบบ ZIP ไฟล์เดียว",
+                                },
+                            ].map((item) => (
+                                <Card key={item.step} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-7 w-7 rounded-full bg-orange-500/10 text-orange-600 text-sm font-bold flex items-center justify-center shrink-0">
+                                            {item.step}
+                                        </span>
+                                        {item.icon}
+                                        <span className="font-semibold text-sm">{item.title}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 4: Use Cases */}
+                    <section aria-labelledby="usecases-heading">
+                        <h2 id="usecases-heading" className="text-xl font-bold tracking-tight mb-6">
+                            เมื่อไหร่ควรใช้ Format ไหน?
+                        </h2>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {USE_CASES.map((item) => (
+                                <Card key={item.format} className={`p-5 border-l-4 ${item.borderColor} border-border/30 bg-card flex flex-col gap-3`}>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="secondary" className="text-[11px] uppercase tracking-wide">{item.format}</Badge>
+                                        <span className="text-sm font-semibold">{item.title}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 5: FAQ */}
+                    <section aria-labelledby="faq-heading">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                                <HelpCircle className="h-5 w-5 text-orange-500" />
+                            </div>
+                            <h2 id="faq-heading" className="text-xl font-bold tracking-tight">
+                                คำถามที่พบบ่อย (FAQ)
+                            </h2>
+                        </div>
+                        <div className="space-y-4">
+                            {FAQ_ITEMS.map((item, i) => (
+                                <Card key={i} className="p-5 border-border/50">
+                                    <h3 className="font-semibold text-sm mb-2 flex items-start gap-2">
+                                        <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">Q</Badge>
+                                        {item.question}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed pl-7">{item.answer}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 6: Privacy Expanded */}
+                    <section aria-labelledby="privacy-heading">
+                        <div className="p-6 bg-orange-500/5 border border-orange-500/10 rounded-xl space-y-4">
+                            <div className="flex items-center gap-3">
+                                <Shield className="h-5 w-5 text-orange-500 shrink-0" />
+                                <h2 id="privacy-heading" className="font-bold text-sm uppercase tracking-wider">
+                                    ความเป็นส่วนตัวและความปลอดภัย
+                                </h2>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                เครื่องมือนี้ใช้เทคโนโลยี <strong className="text-foreground">WebAssembly (WASM)</strong> ซึ่งเป็น runtime ที่ทำงานอยู่ภายในเบราว์เซอร์ของคุณโดยตรง ไฟล์รูปภาพทุกไฟล์จะถูกโหลดเข้า RAM ของอุปกรณ์ ประมวลผล และส่งออกมาโดยไม่มีการส่งข้อมูลออกไปทางเครือข่ายเลยแม้แต่ไบต์เดียว
+                            </p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                ซึ่งหมายความว่าคุณสามารถใช้งานได้อย่างมั่นใจกับรูปภาพส่วนตัว เอกสารลับ หรือทรัพย์สินทางปัญญาขององค์กร โดยไม่ต้องกังวลว่าไฟล์จะไปปรากฏบนเซิร์ฟเวอร์ที่ไหน และเนื่องจากไม่มีการเก็บ log หรือ cookie ใดๆ ทั้งสิ้น ประวัติการแปลงไฟล์จึงอยู่กับคุณเพียงผู้เดียว
+                            </p>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                <Badge variant="outline" className="text-[11px]">No Upload</Badge>
+                                <Badge variant="outline" className="text-[11px]">Client-Side Only</Badge>
+                                <Badge variant="outline" className="text-[11px]">WebAssembly Powered</Badge>
+                                <Badge variant="outline" className="text-[11px]">No Cookies</Badge>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
 
                 <AdUnit
