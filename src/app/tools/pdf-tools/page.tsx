@@ -133,13 +133,13 @@ export default function PdfToolsPage() {
 
     /* ── Split state ──────────────────────────── */
     const [splitFile, setSplitFile] = useState<PdfFile | null>(null);
-    const [splitPageInput, setSplitPageInput] = useState("");
-    const [splitAllPages, setSplitAllPages] = useState(true);
+    const [splitThumbnails, setSplitThumbnails] = useState<string[]>([]);
+    const [splitSelectedPages, setSplitSelectedPages] = useState<Set<number>>(new Set());
+    const [splitThumbLoading, setSplitThumbLoading] = useState(false);
     const [splitStatus, setSplitStatus] = useState<FileStatus>("waiting");
     const [splitProgress, setSplitProgress] = useState("");
     const [splitResults, setSplitResults] = useState<SplitResult[]>([]);
     const [splitError, setSplitError] = useState("");
-    const [splitPageCount, setSplitPageCount] = useState(0);
 
     /* ── PDF→JPG state ────────────────────────── */
     const [jpgFile, setJpgFile] = useState<PdfFile | null>(null);
@@ -166,20 +166,35 @@ export default function PdfToolsPage() {
     const setSingleFile = useCallback((
         files: FileList | File[],
         setter: (f: PdfFile | null) => void,
-        onPageCount?: (n: number) => void
     ) => {
         const f = Array.from(files).find((f) => f.type === "application/pdf" || f.name.endsWith(".pdf"));
         if (!f) return;
         setter({ id: uid(), file: f, name: f.name, size: f.size, status: "waiting" });
-        if (onPageCount) {
-            f.arrayBuffer().then(async (buf) => {
-                try {
-                    const { PDFDocument } = await import("pdf-lib");
-                    const doc = await PDFDocument.load(buf);
-                    onPageCount(doc.getPageCount());
-                } catch { /* ignore */ }
-            });
-        }
+    }, []);
+
+    const renderSplitThumbnails = useCallback(async (file: File) => {
+        setSplitThumbLoading(true);
+        setSplitThumbnails([]);
+        setSplitSelectedPages(new Set());
+        try {
+            const pdfjs = await import("pdfjs-dist");
+            pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+            const buffer = await file.arrayBuffer();
+            const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+            const thumbs: string[] = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 0.4 });
+                const canvas = document.createElement("canvas");
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext("2d")!;
+                await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+                thumbs.push(canvas.toDataURL("image/jpeg", 0.7));
+            }
+            setSplitThumbnails(thumbs);
+        } catch { /* ignore */ }
+        setSplitThumbLoading(false);
     }, []);
 
     /* ── Merge ────────────────────────────────── */
@@ -250,15 +265,9 @@ export default function PdfToolsPage() {
         const id = uid();
 
         const buffer = await splitFile.file.arrayBuffer();
-        const pages: number[] | "all" = splitAllPages
+        const pages: number[] | "all" = splitSelectedPages.size === 0 || splitSelectedPages.size === splitThumbnails.length
             ? "all"
-            : parsePageRange(splitPageInput, splitPageCount);
-
-        if (!splitAllPages && (pages as number[]).length === 0) {
-            setSplitError("ไม่พบหน้าที่ระบุ กรุณาตรวจสอบ format เช่น 1,3,5-8");
-            setSplitStatus("error");
-            return;
-        }
+            : Array.from(splitSelectedPages).sort((a, b) => a - b);
 
         worker.onmessage = (e) => {
             const msg = e.data;
@@ -283,7 +292,7 @@ export default function PdfToolsPage() {
         };
 
         worker.postMessage({ type: "split", id, buffer, pages });
-    }, [splitFile, splitAllPages, splitPageInput, splitPageCount]);
+    }, [splitFile, splitSelectedPages, splitThumbnails.length]);
 
     /* ── PDF→JPG ──────────────────────────────── */
 
@@ -492,8 +501,13 @@ export default function PdfToolsPage() {
                     <div className="space-y-4 animate-in fade-in duration-200">
                         <Card
                             className="border-2 border-dashed border-border/50 bg-muted/20 hover:border-red-500/30 transition-colors cursor-pointer"
-                            onClick={() => splitInputRef.current?.click()}
-                            {...makeDragProps((files) => setSingleFile(files, setSplitFile, setSplitPageCount))}
+                            onClick={() => !splitFile && splitInputRef.current?.click()}
+                            {...makeDragProps((files) => {
+                                setSingleFile(files, setSplitFile);
+                                setSplitResults([]); setSplitError(""); setSplitStatus("waiting");
+                                const f = Array.from(files).find((f) => f.type === "application/pdf" || f.name.endsWith(".pdf"));
+                                if (f) renderSplitThumbnails(f);
+                            })}
                         >
                             <div className="p-8 flex flex-col items-center gap-3 text-center">
                                 <div className="h-14 w-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
@@ -503,8 +517,14 @@ export default function PdfToolsPage() {
                                     <>
                                         <p className="font-semibold">{splitFile.name}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            {formatBytes(splitFile.size)}{splitPageCount > 0 && ` • ${splitPageCount} หน้า`}
+                                            {formatBytes(splitFile.size)}{splitThumbnails.length > 0 && ` • ${splitThumbnails.length} หน้า`}
                                         </p>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setSplitFile(null); setSplitThumbnails([]); setSplitSelectedPages(new Set()); setSplitResults([]); setSplitError(""); setSplitStatus("waiting"); }}
+                                            className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
+                                        >
+                                            เปลี่ยนไฟล์
+                                        </button>
                                     </>
                                 ) : (
                                     <>
@@ -514,45 +534,89 @@ export default function PdfToolsPage() {
                                 )}
                             </div>
                             <input ref={splitInputRef} type="file" accept="application/pdf,.pdf" className="hidden"
-                                onChange={(e) => { if (e.target.files?.length) { setSingleFile(e.target.files, setSplitFile, setSplitPageCount); e.target.value = ""; setSplitResults([]); setSplitError(""); setSplitStatus("waiting"); } }} />
+                                onChange={(e) => {
+                                    if (e.target.files?.length) {
+                                        setSingleFile(e.target.files, setSplitFile);
+                                        setSplitResults([]); setSplitError(""); setSplitStatus("waiting");
+                                        renderSplitThumbnails(e.target.files[0]);
+                                        e.target.value = "";
+                                    }
+                                }} />
                         </Card>
 
-                        {splitFile && (
+                        {splitThumbLoading && (
+                            <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground text-sm">
+                                <Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลด thumbnail...
+                            </div>
+                        )}
+
+                        {splitThumbnails.length > 0 && (
                             <>
-                                <Card className="p-5 border-border/50 space-y-4">
-                                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">ตั้งค่าการแยก</p>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => setSplitAllPages(true)}
-                                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${splitAllPages ? "bg-red-500/10 border-red-500/40 text-red-600" : "border-border/50 text-muted-foreground hover:border-red-500/20"}`}>
-                                            ทุกหน้า
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                                        เลือกหน้าที่ต้องการแยก
+                                        {splitSelectedPages.size > 0 && (
+                                            <span className="ml-2 text-red-500 normal-case font-semibold">
+                                                ({splitSelectedPages.size} หน้า)
+                                            </span>
+                                        )}
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setSplitSelectedPages(new Set(Array.from({ length: splitThumbnails.length }, (_, i) => i + 1)))}
+                                            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            เลือกทั้งหมด
                                         </button>
-                                        <button onClick={() => setSplitAllPages(false)}
-                                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${!splitAllPages ? "bg-red-500/10 border-red-500/40 text-red-600" : "border-border/50 text-muted-foreground hover:border-red-500/20"}`}>
-                                            ระบุหน้า
+                                        <span className="text-muted-foreground/30">|</span>
+                                        <button
+                                            onClick={() => setSplitSelectedPages(new Set())}
+                                            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            ยกเลิกทั้งหมด
                                         </button>
                                     </div>
-                                    {!splitAllPages && (
-                                        <div>
-                                            <label className="text-xs text-muted-foreground mb-1.5 block">
-                                                เลขหน้า เช่น <code className="bg-muted px-1 rounded">1,3,5-8</code>
-                                                {splitPageCount > 0 && <span> (ทั้งหมด {splitPageCount} หน้า)</span>}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={splitPageInput}
-                                                onChange={(e) => setSplitPageInput(e.target.value)}
-                                                placeholder="เช่น 1,3,5-8"
-                                                className="w-full rounded-lg border border-border/50 bg-background px-3 py-2 text-sm focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 outline-none"
-                                            />
-                                        </div>
-                                    )}
-                                </Card>
+                                </div>
+                                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                    {splitThumbnails.map((src, i) => {
+                                        const pageNum = i + 1;
+                                        const selected = splitSelectedPages.has(pageNum);
+                                        return (
+                                            <button
+                                                key={i}
+                                                onClick={() => setSplitSelectedPages((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(pageNum)) next.delete(pageNum);
+                                                    else next.add(pageNum);
+                                                    return next;
+                                                })}
+                                                className={`relative rounded-lg overflow-hidden border-2 transition-all ${selected
+                                                    ? "border-red-500 shadow-md shadow-red-500/20"
+                                                    : "border-border/30 opacity-60 hover:opacity-90 hover:border-border"
+                                                    }`}
+                                            >
+                                                <img src={src} alt={`หน้า ${pageNum}`} className="w-full block" />
+                                                <div className={`absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 ${selected ? "bg-red-500 text-white" : "bg-black/40 text-white"}`}>
+                                                    {pageNum}
+                                                </div>
+                                                {selected && (
+                                                    <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center">
+                                                        <CheckCircle2 className="h-3 w-3 text-white" />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-muted-foreground text-center">
+                                    {splitSelectedPages.size === 0 ? "ไม่ได้เลือก = แยกทุกหน้า" : `เลือก ${splitSelectedPages.size} จาก ${splitThumbnails.length} หน้า`}
+                                </p>
 
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runSplit} disabled={splitStatus === "processing"}>
                                     {splitStatus === "processing"
                                         ? <><Loader2 className="h-4 w-4 animate-spin" /> {splitProgress || "กำลังแยก..."}</>
-                                        : <><Scissors className="h-4 w-4" /> แยกหน้า</>}
+                                        : <><Scissors className="h-4 w-4" /> แยกหน้า{splitSelectedPages.size > 0 ? ` (${splitSelectedPages.size} หน้า)` : " (ทุกหน้า)"}</>}
                                 </Button>
 
                                 {splitError && (
