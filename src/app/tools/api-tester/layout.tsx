@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "API Tester | ทดสอบยิง REST API ได้ทันทีจากเบราว์เซอร์",
-    description: "เครื่องมือทดสอบ REST API แบบ GET/POST/PUT/DELETE/PATCH พร้อมระบบ Import โค้ด cURL, fetch, Axios, Python requests อัตโนมัติ ใช้งานฟรี",
-    keywords: ["API Tester", "REST API", "cURL import", "API debugging tool", "ทดสอบ API ออนไลน์"],
+    title: "API Tester ออนไลน์ฟรี — ทดสอบ REST API GET POST PUT DELETE จากเบราว์เซอร์",
+    description: "ทดสอบยิง REST API ได้ทันทีโดยไม่ต้องติดตั้ง Postman รองรับ Import cURL, fetch, Axios, Python requests, Go net/http พร้อม response viewer และประวัติการยิง",
+    keywords: ["API Tester", "REST API tester", "ทดสอบ API ออนไลน์", "cURL import", "Postman alternative", "API debugging", "HTTP client online", "ทดสอบ REST API"],
     alternates: {
         canonical: "https://yuukub.com/tools/api-tester/",
     },

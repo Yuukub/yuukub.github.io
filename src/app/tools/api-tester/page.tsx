@@ -11,8 +11,43 @@ import { AdUnit } from "@/components/ad-unit";
 import Link from "next/link";
 import {
     ArrowLeft, Zap, Send, Loader2, Clock, Copy, CheckCircle2,
-    Trash2, ChevronDown, ChevronUp, AlertCircle, Code2, RotateCcw, History
+    Trash2, ChevronDown, ChevronUp, AlertCircle, Code2, RotateCcw, History,
+    Info, HelpCircle, Layers, Shield
 } from "lucide-react";
+
+// ─────────────────────────────────────────────────────────
+// SEO Data
+// ─────────────────────────────────────────────────────────
+const FAQ_ITEMS = [
+    {
+        question: "API Tester นี้แตกต่างจาก Postman อย่างไร?",
+        answer: "API Tester นี้ทำงานได้ทันทีจากเบราว์เซอร์โดยไม่ต้องติดตั้งโปรแกรมใดๆ เหมาะสำหรับการทดสอบแบบด่วนหรือเมื่ออยู่บนเครื่องที่ไม่สามารถติดตั้งซอฟต์แวร์ได้ ส่วน Postman มีฟีเจอร์ครบกว่าสำหรับงาน enterprise เช่น collection, environment variables และ automated testing",
+    },
+    {
+        question: "ทำไมถึงต้องใช้ Proxy ในการส่ง request?",
+        answer: "เบราว์เซอร์มีนโยบาย CORS (Cross-Origin Resource Sharing) ที่ป้องกันการเรียก API จาก domain อื่นโดยตรง Proxy ของเราทำหน้าที่เป็นตัวกลางส่ง request แทนเบราว์เซอร์เพื่อแก้ปัญหานี้ โดยไม่มีการเก็บ log หรือข้อมูลใดๆ ของคุณเลย",
+    },
+    {
+        question: "รองรับการ Import โค้ดจากภาษาอะไรบ้าง?",
+        answer: "รองรับ 7 รูปแบบ ได้แก่ Bash cURL, PHP cURL, JavaScript fetch, Axios, Python requests, HTTPie และ Go net/http เพียงวางโค้ดลงในช่อง Import แล้วกด Extract ระบบจะดึง URL, method, headers และ body มาใส่ฟอร์มให้อัตโนมัติ",
+    },
+    {
+        question: "ประวัติการยิง API ถูกเก็บไว้ที่ไหน?",
+        answer: "ประวัติทั้งหมดถูกเก็บไว้ใน localStorage ของเบราว์เซอร์คุณเท่านั้น ไม่มีการส่งข้อมูลไปยังเซิร์ฟเวอร์ใดๆ ซึ่งหมายความว่าถ้าเปลี่ยนเบราว์เซอร์หรือล้าง browser data ประวัติจะหายไปด้วย",
+    },
+    {
+        question: "ใช้ทดสอบ API ที่ต้องการ Authentication ได้ไหม?",
+        answer: "ได้ครับ ใส่ header ในช่อง Headers (JSON format) เช่น {\"Authorization\": \"Bearer your-token\"} หรือ {\"X-API-Key\": \"your-key\"} ระบบจะส่ง header เหล่านั้นไปพร้อมกับ request ทุกครั้ง",
+    },
+];
+
+const HTTP_METHODS = [
+    { method: "GET", color: "text-emerald-600", bg: "bg-emerald-500/10", desc: "ดึงข้อมูลจาก server ไม่แก้ไขข้อมูลใดๆ เหมาะสำหรับการโหลดรายการหรือรายละเอียดทรัพยากร" },
+    { method: "POST", color: "text-blue-600", bg: "bg-blue-500/10", desc: "สร้างข้อมูลใหม่บน server ส่ง body พร้อมกับ request ใช้สำหรับ login, สร้าง record ใหม่" },
+    { method: "PUT", color: "text-amber-600", bg: "bg-amber-500/10", desc: "แทนที่ข้อมูลทั้งหมดของทรัพยากรที่ระบุ ต้องส่งข้อมูลครบทุก field" },
+    { method: "PATCH", color: "text-purple-600", bg: "bg-purple-500/10", desc: "อัปเดตข้อมูลบางส่วนของทรัพยากร ส่งเฉพาะ field ที่ต้องการแก้ไข" },
+    { method: "DELETE", color: "text-red-600", bg: "bg-red-500/10", desc: "ลบทรัพยากรที่ระบุออกจาก server ระวัง: การกระทำนี้มักไม่สามารถย้อนกลับได้" },
+];
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -500,9 +535,23 @@ export default function ApiTesterPage() {
         }
     })();
 
+    const faqJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ_ITEMS.map((item) => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": { "@type": "Answer", "text": item.answer },
+        })),
+    };
+
     // ─── JSX ────────────────────────────────────────────
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 
@@ -788,12 +837,148 @@ export default function ApiTesterPage() {
                     </p>
                 </div>
 
-                {/* Bottom Ad Unit */}
                 <AdUnit
                     slotId="2863984675"
                     format="auto"
                     responsive={true}
                     className="mt-6 min-h-[150px] bg-muted/10 rounded-xl py-8 border border-dashed border-muted shrink-0"
+                />
+
+                {/* ─── SEO Content ─────────────────────────────────── */}
+                <div className="mt-4 space-y-12 border-t border-border/20 pt-12 max-w-3xl mx-auto">
+
+                    {/* Section 1: API Tester คืออะไร */}
+                    <section aria-labelledby="intro-heading">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-9 w-9 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
+                                <Info className="h-5 w-5 text-cyan-500" />
+                            </div>
+                            <h2 id="intro-heading" className="text-xl font-bold tracking-tight">
+                                API Tester ออนไลน์คืออะไร?
+                            </h2>
+                        </div>
+                        <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                            <p>
+                                <strong className="text-foreground">API Tester</strong> คือเครื่องมือสำหรับทดสอบการเชื่อมต่อและตรวจสอบการทำงานของ <strong className="text-foreground">REST API</strong> โดยไม่ต้องเขียนโค้ดหรือติดตั้งโปรแกรมเพิ่มเติม นักพัฒนาใช้เครื่องมือประเภทนี้เพื่อส่ง HTTP request ไปยัง endpoint ต่างๆ และตรวจสอบ response ที่ได้รับ ไม่ว่าจะเป็น status code, headers หรือ body
+                            </p>
+                            <p>
+                                เครื่องมือนี้รองรับการ <strong className="text-foreground">Import โค้ดอัตโนมัติ</strong> จาก 7 รูปแบบ ได้แก่ Bash cURL, PHP cURL, JavaScript fetch, Axios, Python requests, HTTPie และ Go net/http ทำให้คุณสามารถนำโค้ดที่ได้จาก AI หรือ API documentation มาวางแล้วทดสอบได้ทันที โดยไม่ต้องแปลงด้วยมือ
+                            </p>
+                            <p>
+                                ทุก request ถูกส่งผ่าน <strong className="text-foreground">Cloudflare Worker Proxy</strong> เพื่อแก้ปัญหา CORS ที่เบราว์เซอร์บล็อกการเรียก API ข้าม domain โดยตรง และประวัติการยิงทั้งหมดถูกบันทึกไว้ใน <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">localStorage</code> ของเครื่องคุณเท่านั้น ไม่มีการเก็บ log บน server ใดๆ
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* Section 2: HTTP Methods */}
+                    <section aria-labelledby="methods-heading">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-9 w-9 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
+                                <Layers className="h-5 w-5 text-cyan-500" />
+                            </div>
+                            <h2 id="methods-heading" className="text-xl font-bold tracking-tight">
+                                HTTP Methods ที่รองรับ
+                            </h2>
+                        </div>
+                        <div className="space-y-3">
+                            {HTTP_METHODS.map((item) => (
+                                <div key={item.method} className="flex items-start gap-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                                    <span className={`font-mono font-bold text-sm px-2.5 py-1 rounded-lg ${item.bg} ${item.color} shrink-0 min-w-[72px] text-center`}>
+                                        {item.method}
+                                    </span>
+                                    <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">{item.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 3: วิธีใช้งาน */}
+                    <section aria-labelledby="howto-heading">
+                        <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
+                            วิธีใช้งาน — 3 ขั้นตอน
+                        </h2>
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            {[
+                                {
+                                    step: "1",
+                                    title: "Import หรือกรอก URL",
+                                    desc: "วางโค้ด cURL/fetch/Axios ในช่อง Import แล้วกด Extract หรือกรอก URL และเลือก HTTP method โดยตรง ใส่ Headers และ Body ตามต้องการ",
+                                },
+                                {
+                                    step: "2",
+                                    title: "กด Send Request",
+                                    desc: "กดปุ่ม Send Request เพื่อยิง API ระบบจะส่งผ่าน Proxy อัตโนมัติเพื่อแก้ปัญหา CORS และแสดงผลลัพธ์แบบ real-time",
+                                },
+                                {
+                                    step: "3",
+                                    title: "ตรวจสอบ Response",
+                                    desc: "ดู status code, response time, body (JSON formatted) และ headers แยก tab ประวัติการยิงถูกบันทึกอัตโนมัติเพื่อใช้ซ้ำได้",
+                                },
+                            ].map((item) => (
+                                <Card key={item.step} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-7 w-7 rounded-full bg-cyan-500/10 text-cyan-600 text-sm font-bold flex items-center justify-center shrink-0">
+                                            {item.step}
+                                        </span>
+                                        <span className="font-semibold text-sm">{item.title}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 4: FAQ */}
+                    <section aria-labelledby="faq-heading">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-9 w-9 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
+                                <HelpCircle className="h-5 w-5 text-cyan-500" />
+                            </div>
+                            <h2 id="faq-heading" className="text-xl font-bold tracking-tight">
+                                คำถามที่พบบ่อย (FAQ)
+                            </h2>
+                        </div>
+                        <div className="space-y-4">
+                            {FAQ_ITEMS.map((item, i) => (
+                                <Card key={i} className="p-5 border-border/50">
+                                    <h3 className="font-semibold text-sm mb-2 flex items-start gap-2">
+                                        <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">Q</Badge>
+                                        {item.question}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed pl-7">{item.answer}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Section 5: Privacy */}
+                    <section aria-labelledby="privacy-heading">
+                        <div className="p-6 bg-cyan-500/5 border border-cyan-500/10 rounded-xl space-y-4">
+                            <div className="flex items-center gap-3">
+                                <Shield className="h-5 w-5 text-cyan-500 shrink-0" />
+                                <h2 id="privacy-heading" className="font-bold text-sm uppercase tracking-wider">
+                                    ความเป็นส่วนตัวและความปลอดภัย
+                                </h2>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Proxy ที่ใช้ในการส่ง request ทำงานบน <strong className="text-foreground">Cloudflare Workers</strong> ซึ่งเป็น edge runtime ที่ไม่เก็บ log การเชื่อมต่อหรือ payload ใดๆ ทำหน้าที่แค่ส่งต่อ request และรับ response กลับมาให้เท่านั้น ส่วนประวัติการยิงทั้งหมดถูกบันทึกเฉพาะใน localStorage ของเบราว์เซอร์คุณ และสามารถลบได้ตลอดเวลาผ่านปุ่ม "ล้างทั้งหมด"
+                            </p>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                <Badge variant="outline" className="text-[11px]">No Log</Badge>
+                                <Badge variant="outline" className="text-[11px]">Cloudflare Workers</Badge>
+                                <Badge variant="outline" className="text-[11px]">localStorage Only</Badge>
+                                <Badge variant="outline" className="text-[11px]">No Server Storage</Badge>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <AdUnit
+                    slotId="2863984675"
+                    format="auto"
+                    responsive={true}
+                    className="min-h-[250px] mt-20 bg-muted/10 rounded-xl py-20 border border-dashed border-muted"
                 />
             </main>
         </div>
