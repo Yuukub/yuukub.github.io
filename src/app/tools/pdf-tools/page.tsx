@@ -136,9 +136,11 @@ export default function PdfToolsPage() {
     const [splitThumbnails, setSplitThumbnails] = useState<string[]>([]);
     const [splitSelectedPages, setSplitSelectedPages] = useState<Set<number>>(new Set());
     const [splitThumbLoading, setSplitThumbLoading] = useState(false);
+    const [splitMode, setSplitMode] = useState<"split" | "extract">("split");
     const [splitStatus, setSplitStatus] = useState<FileStatus>("waiting");
     const [splitProgress, setSplitProgress] = useState("");
     const [splitResults, setSplitResults] = useState<SplitResult[]>([]);
+    const [splitExtractResult, setSplitExtractResult] = useState<Blob | null>(null);
     const [splitError, setSplitError] = useState("");
 
     /* ── PDF→JPG state ────────────────────────── */
@@ -176,6 +178,9 @@ export default function PdfToolsPage() {
         setSplitThumbLoading(true);
         setSplitThumbnails([]);
         setSplitSelectedPages(new Set());
+        setSplitExtractResult(null);
+        setSplitResults([]);
+        setSplitStatus("waiting");
         try {
             const pdfjs = await import("pdfjs-dist");
             pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
@@ -193,6 +198,7 @@ export default function PdfToolsPage() {
                 thumbs.push(canvas.toDataURL("image/jpeg", 0.7));
             }
             setSplitThumbnails(thumbs);
+            setSplitSelectedPages(new Set(Array.from({ length: thumbs.length }, (_, i) => i + 1)));
         } catch { /* ignore */ }
         setSplitThumbLoading(false);
     }, []);
@@ -252,10 +258,11 @@ export default function PdfToolsPage() {
     /* ── Split ────────────────────────────────── */
 
     const runSplit = useCallback(async () => {
-        if (!splitFile) return;
+        if (!splitFile || splitSelectedPages.size === 0) return;
         setSplitStatus("processing");
         setSplitError("");
         setSplitResults([]);
+        setSplitExtractResult(null);
 
         const worker = new Worker(
             new URL("@/workers/pdf.worker.ts", import.meta.url),
@@ -265,9 +272,7 @@ export default function PdfToolsPage() {
         const id = uid();
 
         const buffer = await splitFile.file.arrayBuffer();
-        const pages: number[] | "all" = splitSelectedPages.size === 0 || splitSelectedPages.size === splitThumbnails.length
-            ? "all"
-            : Array.from(splitSelectedPages).sort((a, b) => a - b);
+        const pages = Array.from(splitSelectedPages).sort((a, b) => a - b);
 
         worker.onmessage = (e) => {
             const msg = e.data;
@@ -275,6 +280,11 @@ export default function PdfToolsPage() {
             if (msg.type === "progress") setSplitProgress(msg.message);
             else if (msg.type === "result-split") {
                 setSplitResults(msg.blobs);
+                setSplitStatus("done");
+                setSplitProgress("");
+                worker.terminate();
+            } else if (msg.type === "result") {
+                setSplitExtractResult(msg.blob);
                 setSplitStatus("done");
                 setSplitProgress("");
                 worker.terminate();
@@ -291,8 +301,13 @@ export default function PdfToolsPage() {
             worker.terminate();
         };
 
-        worker.postMessage({ type: "split", id, buffer, pages });
-    }, [splitFile, splitSelectedPages, splitThumbnails.length]);
+        if (splitMode === "extract") {
+            worker.postMessage({ type: "extract", id, buffer, pages });
+        } else {
+            const sendPages: number[] | "all" = pages.length === splitThumbnails.length ? "all" : pages;
+            worker.postMessage({ type: "split", id, buffer, pages: sendPages });
+        }
+    }, [splitFile, splitSelectedPages, splitThumbnails.length, splitMode]);
 
     /* ── PDF→JPG ──────────────────────────────── */
 
@@ -552,14 +567,33 @@ export default function PdfToolsPage() {
 
                         {splitThumbnails.length > 0 && (
                             <>
+                                {/* Mode toggle */}
+                                <div className="flex gap-2 p-1 bg-muted/40 rounded-xl">
+                                    <button
+                                        onClick={() => { setSplitMode("split"); setSplitResults([]); setSplitExtractResult(null); setSplitStatus("waiting"); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${splitMode === "split" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        แยกเป็นหลายไฟล์
+                                    </button>
+                                    <button
+                                        onClick={() => { setSplitMode("extract"); setSplitResults([]); setSplitExtractResult(null); setSplitStatus("waiting"); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${splitMode === "extract" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        ตัดเป็นไฟล์เดียว
+                                    </button>
+                                </div>
+                                <p className="text-xs text-muted-foreground -mt-2 text-center">
+                                    {splitMode === "split"
+                                        ? "หน้าที่เลือกแต่ละหน้าจะได้เป็นไฟล์ PDF แยก"
+                                        : "หน้าที่เลือกทั้งหมดจะรวมเป็น PDF ไฟล์เดียว"}
+                                </p>
+
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                        เลือกหน้าที่ต้องการแยก
-                                        {splitSelectedPages.size > 0 && (
-                                            <span className="ml-2 text-red-500 normal-case font-semibold">
-                                                ({splitSelectedPages.size} หน้า)
-                                            </span>
-                                        )}
+                                        เลือกหน้า
+                                        <span className="ml-2 text-red-500 normal-case font-semibold">
+                                            ({splitSelectedPages.size}/{splitThumbnails.length})
+                                        </span>
                                     </p>
                                     <div className="flex gap-2">
                                         <button
@@ -608,21 +642,35 @@ export default function PdfToolsPage() {
                                         );
                                     })}
                                 </div>
-                                <p className="text-xs text-muted-foreground text-center">
-                                    {splitSelectedPages.size === 0 ? "ไม่ได้เลือก = แยกทุกหน้า" : `เลือก ${splitSelectedPages.size} จาก ${splitThumbnails.length} หน้า`}
-                                </p>
 
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
-                                    onClick={runSplit} disabled={splitStatus === "processing"}>
+                                    onClick={runSplit} disabled={splitStatus === "processing" || splitSelectedPages.size === 0}>
                                     {splitStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {splitProgress || "กำลังแยก..."}</>
-                                        : <><Scissors className="h-4 w-4" /> แยกหน้า{splitSelectedPages.size > 0 ? ` (${splitSelectedPages.size} หน้า)` : " (ทุกหน้า)"}</>}
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {splitProgress || "กำลังประมวลผล..."}</>
+                                        : splitMode === "split"
+                                            ? <><Scissors className="h-4 w-4" /> แยก {splitSelectedPages.size} หน้า เป็น {splitSelectedPages.size} ไฟล์</>
+                                            : <><Scissors className="h-4 w-4" /> ตัด {splitSelectedPages.size} หน้า เป็น PDF เดียว</>
+                                    }
                                 </Button>
 
                                 {splitError && (
                                     <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 flex gap-2 items-start">
                                         <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                                         <p className="text-sm text-red-600">{splitError}</p>
+                                    </div>
+                                )}
+
+                                {splitStatus === "done" && splitExtractResult && (
+                                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
+                                        <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-semibold">ตัดหน้าสำเร็จ</p>
+                                            <p className="text-xs text-muted-foreground">{formatBytes(splitExtractResult.size)}</p>
+                                        </div>
+                                        <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
+                                            onClick={() => triggerDownload(splitExtractResult!, "extracted.pdf")}>
+                                            <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                        </Button>
                                     </div>
                                 )}
 

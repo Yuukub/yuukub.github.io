@@ -45,6 +45,26 @@ self.onmessage = async (e: MessageEvent) => {
             }
 
             self.postMessage({ type: "result-split", id, blobs });
+
+        } else if (type === "extract") {
+            const { buffer, pages } = e.data as { buffer: ArrayBuffer; pages: number[]; id: string };
+            self.postMessage({ type: "progress", id, message: "กำลังโหลด PDF..." });
+
+            const src = await PDFDocument.load(buffer);
+            const totalPages = src.getPageCount();
+            const pageIndices = (pages as number[]).map((n) => n - 1).filter((n) => n >= 0 && n < totalPages);
+
+            const doc = await PDFDocument.create();
+            for (let i = 0; i < pageIndices.length; i++) {
+                self.postMessage({ type: "progress", id, message: `กำลังรวมหน้า ${i + 1}/${pageIndices.length}...` });
+                const [copied] = await doc.copyPages(src, [pageIndices[i]]);
+                doc.addPage(copied);
+            }
+
+            self.postMessage({ type: "progress", id, message: "กำลังสร้างไฟล์ผลลัพธ์..." });
+            const bytes = await doc.save();
+            const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+            self.postMessage({ type: "result", id, blob, filename: "extracted.pdf" });
         }
     } catch (err: unknown) {
         self.postMessage({
