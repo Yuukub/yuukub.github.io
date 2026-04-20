@@ -295,7 +295,7 @@ export default function PdfToolsPage() {
 
         try {
             const pdfjs = await import("pdfjs-dist");
-            pdfjs.GlobalWorkerOptions.workerSrc = "";
+            pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
 
             setJpgProgress("กำลังโหลด PDF...");
             const buffer = await jpgFile.file.arrayBuffer();
