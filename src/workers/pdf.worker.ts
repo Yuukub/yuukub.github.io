@@ -65,6 +65,24 @@ self.onmessage = async (e: MessageEvent) => {
             const bytes = await doc.save();
             const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
             self.postMessage({ type: "result", id, blob, filename: "extracted.pdf" });
+
+        } else if (type === "organize") {
+            const { pageRequests } = e.data as {
+                pageRequests: { buffer: ArrayBuffer; pageIndex: number }[];
+                id: string;
+            };
+            self.postMessage({ type: "progress", id, message: "กำลังสร้าง PDF..." });
+            const doc = await PDFDocument.create();
+            for (let i = 0; i < pageRequests.length; i++) {
+                self.postMessage({ type: "progress", id, message: `กำลังประมวลผลหน้า ${i + 1}/${pageRequests.length}...` });
+                const src = await PDFDocument.load(pageRequests[i].buffer);
+                const [copied] = await doc.copyPages(src, [pageRequests[i].pageIndex]);
+                doc.addPage(copied);
+            }
+            self.postMessage({ type: "progress", id, message: "กำลังบันทึกไฟล์..." });
+            const bytes = await doc.save();
+            const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+            self.postMessage({ type: "result", id, blob, filename: "organized.pdf" });
         }
     } catch (err: unknown) {
         self.postMessage({

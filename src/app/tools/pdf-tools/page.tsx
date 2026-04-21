@@ -11,11 +11,12 @@ import {
     ArrowLeft, FileText, Upload, Download, Loader2, Trash2,
     CheckCircle2, XCircle, Clock, PackageOpen, ChevronUp, ChevronDown,
     Layers, Scissors, ImageIcon, Info, HelpCircle, Shield,
+    GripVertical, LayoutGrid,
 } from "lucide-react";
 
 /* ─── Types ────────────────────────────────────────────── */
 
-type PdfTool = "merge" | "split" | "to-jpg";
+type PdfTool = "merge" | "split" | "to-jpg" | "organize";
 type FileStatus = "waiting" | "processing" | "done" | "error";
 
 interface PdfFile {
@@ -38,6 +39,14 @@ interface JpgResult {
     filename: string;
     previewUrl: string;
     pageNum: number;
+}
+
+interface OrganizerPage {
+    id: string;
+    fileIndex: number;
+    pageNum: number;
+    thumbUrl: string;
+    sourceName: string;
 }
 
 /* ─── SEO Data ──────────────────────────────────────────── */
@@ -151,10 +160,21 @@ export default function PdfToolsPage() {
     const [jpgResults, setJpgResults] = useState<JpgResult[]>([]);
     const [jpgError, setJpgError] = useState("");
 
-    const workerRef = useRef<Worker | null>(null);
+    /* ── Organizer state ─────────────────────────── */
+    const [orgFiles, setOrgFiles]               = useState<File[]>([]);
+    const [orgPages, setOrgPages]               = useState<OrganizerPage[]>([]);
+    const [orgThumbLoading, setOrgThumbLoading] = useState(false);
+    const [orgStatus, setOrgStatus]             = useState<FileStatus>("waiting");
+    const [orgProgress, setOrgProgress]         = useState("");
+    const [orgResult, setOrgResult]             = useState<Blob | null>(null);
+    const [orgError, setOrgError]               = useState("");
+
+    const workerRef    = useRef<Worker | null>(null);
     const mergeInputRef = useRef<HTMLInputElement>(null);
     const splitInputRef = useRef<HTMLInputElement>(null);
-    const jpgInputRef = useRef<HTMLInputElement>(null);
+    const jpgInputRef   = useRef<HTMLInputElement>(null);
+    const orgInputRef   = useRef<HTMLInputElement>(null);
+    const dragIndexRef  = useRef<number | null>(null);
 
     /* ── File Handlers ────────────────────────── */
 
@@ -202,6 +222,97 @@ export default function PdfToolsPage() {
         } catch { /* ignore */ }
         setSplitThumbLoading(false);
     }, []);
+
+    /* ── Organizer ───────────────────────────── */
+
+    const renderOrgThumbnails = useCallback(async (newFiles: File[], existingFileCount: number) => {
+        setOrgThumbLoading(true);
+        try {
+            const pdfjs = await import("pdfjs-dist");
+            pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+            const newPages: OrganizerPage[] = [];
+            for (let fi = 0; fi < newFiles.length; fi++) {
+                const file = newFiles[fi];
+                const buffer = await file.arrayBuffer();
+                const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+                for (let pi = 1; pi <= pdf.numPages; pi++) {
+                    const page = await pdf.getPage(pi);
+                    const viewport = page.getViewport({ scale: 0.4 });
+                    const canvas = document.createElement("canvas");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext("2d")!;
+                    await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+                    newPages.push({
+                        id: uid(),
+                        fileIndex: existingFileCount + fi,
+                        pageNum: pi,
+                        thumbUrl: canvas.toDataURL("image/jpeg", 0.7),
+                        sourceName: file.name,
+                    });
+                }
+            }
+            setOrgPages((prev) => [...prev, ...newPages]);
+        } catch { /* ignore */ }
+        setOrgThumbLoading(false);
+    }, []);
+
+    const addOrgFiles = useCallback((files: FileList | File[]) => {
+        const pdfs = Array.from(files).filter((f) => f.type === "application/pdf" || f.name.endsWith(".pdf"));
+        if (!pdfs.length) return;
+        setOrgFiles((prev) => {
+            renderOrgThumbnails(pdfs, prev.length);
+            return [...prev, ...pdfs];
+        });
+        setOrgStatus("waiting");
+        setOrgResult(null);
+        setOrgError("");
+    }, [renderOrgThumbnails]);
+
+    const runOrganize = useCallback(async () => {
+        if (orgPages.length === 0) return;
+        setOrgStatus("processing");
+        setOrgError("");
+        setOrgResult(null);
+
+        const worker = new Worker(new URL("@/workers/pdf.worker.ts", import.meta.url), { type: "module" });
+        workerRef.current = worker;
+        const id = uid();
+
+        const bufferMap = new Map<number, ArrayBuffer>();
+        for (const page of orgPages) {
+            if (!bufferMap.has(page.fileIndex)) {
+                bufferMap.set(page.fileIndex, await orgFiles[page.fileIndex].arrayBuffer());
+            }
+        }
+        const pageRequests = orgPages.map((page) => ({
+            buffer: bufferMap.get(page.fileIndex)!,
+            pageIndex: page.pageNum - 1,
+        }));
+
+        worker.onmessage = (e) => {
+            const msg = e.data;
+            if (msg.id !== id) return;
+            if (msg.type === "progress") setOrgProgress(msg.message);
+            else if (msg.type === "result") {
+                setOrgResult(msg.blob);
+                setOrgStatus("done");
+                setOrgProgress("");
+                worker.terminate();
+            } else if (msg.type === "error") {
+                setOrgError(msg.message);
+                setOrgStatus("error");
+                setOrgProgress("");
+                worker.terminate();
+            }
+        };
+        worker.onerror = (err) => {
+            setOrgError(err.message || "Worker error");
+            setOrgStatus("error");
+            worker.terminate();
+        };
+        worker.postMessage({ type: "organize", id, pageRequests });
+    }, [orgPages, orgFiles]);
 
     /* ── Merge ────────────────────────────────── */
 
@@ -379,9 +490,10 @@ export default function PdfToolsPage() {
     /* ── Render ───────────────────────────────── */
 
     const TABS: { id: PdfTool; label: string; icon: React.ReactNode }[] = [
-        { id: "merge", label: "รวม PDF", icon: <Layers className="h-4 w-4" /> },
-        { id: "split", label: "แยกหน้า", icon: <Scissors className="h-4 w-4" /> },
-        { id: "to-jpg", label: "PDF → JPG", icon: <ImageIcon className="h-4 w-4" /> },
+        { id: "merge",    label: "รวม PDF",        icon: <Layers      className="h-4 w-4" /> },
+        { id: "split",    label: "แยกหน้า",         icon: <Scissors    className="h-4 w-4" /> },
+        { id: "to-jpg",   label: "PDF → JPG",      icon: <ImageIcon   className="h-4 w-4" /> },
+        { id: "organize", label: "จัดระเบียบ PDF",  icon: <LayoutGrid  className="h-4 w-4" /> },
     ];
 
     return (
@@ -796,6 +908,131 @@ export default function PdfToolsPage() {
                     </div>
                 )}
 
+                {/* ── Tab: Organize ──────────────────────────── */}
+                {activeTool === "organize" && (
+                    <div className="space-y-4 animate-in fade-in duration-200">
+                        <Card
+                            className="border-2 border-dashed border-border/50 bg-muted/20 hover:border-red-500/30 transition-colors cursor-pointer"
+                            onClick={() => orgInputRef.current?.click()}
+                            {...makeDragProps(addOrgFiles)}
+                        >
+                            <div className="p-8 flex flex-col items-center gap-3 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
+                                    <LayoutGrid className="h-7 w-7 text-red-500/70" />
+                                </div>
+                                {orgFiles.length > 0 ? (
+                                    <>
+                                        <p className="font-semibold">{orgFiles.length} ไฟล์ • {orgPages.length} หน้า</p>
+                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือใช้ปุ่มด้านล่าง</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
+                                        <p className="text-sm text-muted-foreground">เลือกได้หลายไฟล์ • ลากหน้าเพื่อจัดลำดับ</p>
+                                    </>
+                                )}
+                            </div>
+                            <input ref={orgInputRef} type="file" multiple accept="application/pdf,.pdf" className="hidden"
+                                onChange={(e) => { if (e.target.files?.length) { addOrgFiles(e.target.files); e.target.value = ""; } }} />
+                        </Card>
+
+                        {orgThumbLoading && (
+                            <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground text-sm">
+                                <Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลด thumbnail...
+                            </div>
+                        )}
+
+                        {orgPages.length > 0 && (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                                        หน้าทั้งหมด
+                                        <span className="ml-2 text-red-500 normal-case font-semibold">({orgPages.length} หน้า)</span>
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" className="gap-1.5 text-xs"
+                                            onClick={() => orgInputRef.current?.click()}>
+                                            <Upload className="h-3.5 w-3.5" /> เพิ่มไฟล์
+                                        </Button>
+                                        <Button variant="ghost" size="sm"
+                                            onClick={() => { setOrgFiles([]); setOrgPages([]); setOrgResult(null); setOrgError(""); setOrgStatus("waiting"); }}
+                                            className="text-xs text-muted-foreground hover:text-red-500">
+                                            <Trash2 className="h-3 w-3 mr-1" /> ล้างทั้งหมด
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                    {orgPages.map((page, index) => (
+                                        <div
+                                            key={page.id}
+                                            draggable
+                                            onDragStart={() => { dragIndexRef.current = index; }}
+                                            onDragOver={(e) => { e.preventDefault(); }}
+                                            onDrop={() => {
+                                                const from = dragIndexRef.current;
+                                                if (from === null || from === index) return;
+                                                setOrgPages((prev) => {
+                                                    const arr = [...prev];
+                                                    const [removed] = arr.splice(from, 1);
+                                                    arr.splice(index, 0, removed);
+                                                    return arr;
+                                                });
+                                                dragIndexRef.current = null;
+                                            }}
+                                            className="relative rounded-lg overflow-hidden border-2 border-border/30 hover:border-red-500/40 transition-all cursor-grab active:cursor-grabbing group"
+                                            title={`${page.sourceName} — หน้า ${page.pageNum}`}
+                                        >
+                                            <img src={page.thumbUrl} alt={`หน้า ${index + 1}`} className="w-full block pointer-events-none" />
+                                            <div className="absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 bg-black/50 text-white">
+                                                {index + 1}
+                                            </div>
+                                            <div className="absolute top-0 left-0 right-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pt-0.5">
+                                                <GripVertical className="h-3 w-3 text-white drop-shadow" />
+                                            </div>
+                                            <button
+                                                onClick={() => setOrgPages((prev) => prev.filter((_, i) => i !== index))}
+                                                className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+                                                title="ลบหน้านี้"
+                                            >
+                                                <XCircle className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
+                                    onClick={runOrganize} disabled={orgStatus === "processing" || orgPages.length === 0}>
+                                    {orgStatus === "processing"
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {orgProgress || "กำลังสร้าง..."}</>
+                                        : <><LayoutGrid className="h-4 w-4" /> สร้าง PDF ที่จัดระเบียบแล้ว ({orgPages.length} หน้า)</>}
+                                </Button>
+
+                                {orgError && (
+                                    <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 flex gap-2 items-start">
+                                        <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-600">{orgError}</p>
+                                    </div>
+                                )}
+
+                                {orgStatus === "done" && orgResult && (
+                                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
+                                        <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-semibold">สร้าง PDF สำเร็จ</p>
+                                            <p className="text-xs text-muted-foreground">{formatBytes(orgResult.size)}</p>
+                                        </div>
+                                        <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
+                                            onClick={() => triggerDownload(orgResult!, "organized.pdf")}>
+                                            <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {/* Privacy Note */}
                 <div className="mt-6 p-4 bg-red-500/5 border border-red-500/10 rounded-xl flex gap-3 items-center">
                     <Shield className="h-5 w-5 text-red-500 shrink-0" />
@@ -827,16 +1064,19 @@ export default function PdfToolsPage() {
                         </div>
                         <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                             <p>
-                                เครื่องมือนี้รวม 3 ฟีเจอร์หลักสำหรับจัดการ PDF ไว้ในที่เดียว โดยทำงานทั้งหมดภายในเบราว์เซอร์ของคุณผ่าน <strong className="text-foreground">pdf-lib</strong> และ <strong className="text-foreground">pdfjs-dist</strong> ซึ่งเป็น library ระดับโปรที่ไม่ต้องการ server เลย ไฟล์ PDF ของคุณจะไม่ถูกส่งออกไปที่ใดทั้งสิ้น
+                                เครื่องมือนี้รวม <strong className="text-foreground">4 ฟีเจอร์หลัก</strong>สำหรับจัดการ PDF ไว้ในที่เดียว โดยทำงานทั้งหมดภายในเบราว์เซอร์ของคุณผ่าน <strong className="text-foreground">pdf-lib</strong> และ <strong className="text-foreground">pdfjs-dist</strong> ซึ่งเป็น library ระดับโปรที่ไม่ต้องการ server เลย ไฟล์ PDF ของคุณจะไม่ถูกส่งออกไปที่ใดทั้งสิ้น
                             </p>
                             <p>
                                 <strong className="text-foreground">รวม PDF (Merge)</strong> ช่วยให้นำ PDF หลายไฟล์มาเชื่อมต่อกันเป็นไฟล์เดียว พร้อมปรับลำดับได้ตามต้องการ เหมาะสำหรับการรวมรายงาน สัญญา หรือเอกสารหลายชุดเข้าด้วยกัน
                             </p>
                             <p>
-                                <strong className="text-foreground">แยกหน้า (Split)</strong> ช่วยตัดบางหน้าออกจาก PDF เป็นไฟล์ PDF ย่อยแยกกัน สามารถระบุหน้าเฉพาะเจาะจงเช่น <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">1,3,5-8</code> หรือแยกทุกหน้าออกมาทีเดียว
+                                <strong className="text-foreground">แยกหน้า (Split)</strong> ช่วยตัดบางหน้าออกจาก PDF เป็นไฟล์ PDF ย่อยแยกกัน เลือกหน้าโดยคลิก thumbnail ได้เลย รองรับทั้งโหมดแยกเป็นหลายไฟล์และตัดรวมเป็นไฟล์เดียว
                             </p>
                             <p>
                                 <strong className="text-foreground">PDF → JPG</strong> แปลงแต่ละหน้าของ PDF ให้เป็นรูปภาพ JPG ความละเอียดสูง (192 DPI) เหมาะสำหรับการนำหน้า PDF ไปใช้ใน presentation, โซเชียลมีเดีย หรือแนบในอีเมล
+                            </p>
+                            <p>
+                                <strong className="text-foreground">จัดระเบียบ PDF (Organizer)</strong> ช่วยให้จัดเรียงหน้า PDF ใหม่ได้อย่างอิสระด้วยการลากและวาง thumbnail ของแต่ละหน้า ลบหน้าที่ไม่ต้องการ หรือนำหลาย PDF มารวมกันแล้วจัดลำดับหน้าก่อน Export เป็นไฟล์เดียว
                             </p>
                         </div>
                     </section>
@@ -846,7 +1086,7 @@ export default function PdfToolsPage() {
                         <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
                             วิธีใช้งานแต่ละฟีเจอร์
                         </h2>
-                        <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             {[
                                 {
                                     icon: <Layers className="h-4 w-4 text-red-500" />,
@@ -856,12 +1096,17 @@ export default function PdfToolsPage() {
                                 {
                                     icon: <Scissors className="h-4 w-4 text-red-500" />,
                                     title: "แยกหน้า",
-                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "เลือก 'ทุกหน้า' หรือระบุเลขหน้า", "กดแยกหน้า → ดาวน์โหลดแยกหรือ ZIP"],
+                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "คลิก thumbnail เลือกหน้าที่ต้องการ", "กดแยกหน้า → ดาวน์โหลดแยกหรือ ZIP"],
                                 },
                                 {
                                     icon: <ImageIcon className="h-4 w-4 text-red-500" />,
                                     title: "PDF → JPG",
                                     steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "ปรับ Quality ตามต้องการ (50–100)", "กดแปลง → preview และดาวน์โหลด"],
+                                },
+                                {
+                                    icon: <LayoutGrid className="h-4 w-4 text-red-500" />,
+                                    title: "จัดระเบียบ PDF",
+                                    steps: ["ลาก PDF หนึ่งหรือหลายไฟล์ลงในกล่อง", "ลาก thumbnail เพื่อจัดเรียงหน้า หรือกด ✕ เพื่อลบ", "กดสร้าง PDF แล้วดาวน์โหลดไฟล์ที่จัดระเบียบแล้ว"],
                                 },
                             ].map((item) => (
                                 <Card key={item.title} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
