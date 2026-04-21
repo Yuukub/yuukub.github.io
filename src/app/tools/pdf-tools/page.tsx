@@ -69,8 +69,12 @@ const FAQ_ITEMS = [
         answer: "ไม่รองรับครับ PDF ที่ถูก encrypt หรือมีรหัสผ่านปกป้องไว้จะไม่สามารถประมวลผลได้ กรุณาถอดรหัสผ่านออกก่อนนำมาใช้งาน",
     },
     {
-        question: "สามารถเรียงลำดับหน้าก่อน Merge ได้ไหม?",
-        answer: "ได้ครับ ในโหมด Merge คุณสามารถใช้ปุ่ม ▲▼ เพื่อเลื่อนลำดับไฟล์ PDF ได้ตามต้องการ ระบบจะรวมไฟล์ตามลำดับที่แสดงในรายการ",
+        question: "สามารถเรียงลำดับไฟล์ก่อน Merge ได้ไหม?",
+        answer: "ได้ครับ ในโหมด Merge แต่ละไฟล์จะแสดง thumbnail หน้าแรกพร้อมปุ่มลูกศร ◀▶ เพื่อเลื่อนลำดับ และถ้าต้องการจัดเรียงระดับหน้าแบบละเอียด ให้ใช้ tab 'จัดระเบียบ PDF' ที่รองรับการลากวาง thumbnail ทุกหน้าได้เลย",
+    },
+    {
+        question: "ความแตกต่างระหว่าง 'รวม PDF' กับ 'จัดระเบียบ PDF' คืออะไร?",
+        answer: "รวม PDF (Merge) ใช้เมื่อต้องการต่อ PDF หลายไฟล์เข้าด้วยกันตามลำดับไฟล์ ส่วน จัดระเบียบ PDF (Organizer) ให้อิสระมากกว่า — สามารถลากวาง thumbnail แต่ละหน้า ลบหน้าที่ไม่ต้องการ และผสมหน้าจากหลาย PDF ในลำดับที่กำหนดเองได้อย่างอิสระ",
     },
 ];
 
@@ -135,6 +139,7 @@ export default function PdfToolsPage() {
 
     /* ── Merge state ──────────────────────────── */
     const [mergeFiles, setMergeFiles] = useState<PdfFile[]>([]);
+    const [mergeThumbs, setMergeThumbs] = useState<Map<string, string>>(new Map());
     const [mergeStatus, setMergeStatus] = useState<FileStatus>("waiting");
     const [mergeProgress, setMergeProgress] = useState("");
     const [mergeResult, setMergeResult] = useState<Blob | null>(null);
@@ -178,12 +183,31 @@ export default function PdfToolsPage() {
 
     /* ── File Handlers ────────────────────────── */
 
+    const renderMergeThumb = useCallback(async (id: string, file: File) => {
+        try {
+            const pdfjs = await import("pdfjs-dist");
+            pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+            const buffer = await file.arrayBuffer();
+            const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 0.5 });
+            const canvas = document.createElement("canvas");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext("2d")!;
+            await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+            const thumb = canvas.toDataURL("image/jpeg", 0.7);
+            setMergeThumbs((prev) => new Map(prev).set(id, thumb));
+        } catch { /* ignore */ }
+    }, []);
+
     const addMergeFiles = useCallback((files: FileList | File[]) => {
         const items: PdfFile[] = Array.from(files)
             .filter((f) => f.type === "application/pdf" || f.name.endsWith(".pdf"))
             .map((f) => ({ id: uid(), file: f, name: f.name, size: f.size, status: "waiting" }));
         setMergeFiles((prev) => [...prev, ...items]);
-    }, []);
+        items.forEach((item) => renderMergeThumb(item.id, item.file));
+    }, [renderMergeThumb]);
 
     const setSingleFile = useCallback((
         files: FileList | File[],
@@ -551,48 +575,94 @@ export default function PdfToolsPage() {
                                 <div className="h-14 w-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
                                     <Upload className="h-7 w-7 text-red-500/70" />
                                 </div>
-                                <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                <p className="text-sm text-muted-foreground">เลือกได้หลายไฟล์ • ลำดับสามารถปรับได้</p>
+                                {mergeFiles.length > 0 ? (
+                                    <>
+                                        <p className="font-semibold">{mergeFiles.length} ไฟล์พร้อมรวม</p>
+                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือกด "เพิ่มไฟล์"</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
+                                        <p className="text-sm text-muted-foreground">เลือกได้หลายไฟล์ • ปรับลำดับได้</p>
+                                    </>
+                                )}
                             </div>
                             <input ref={mergeInputRef} type="file" multiple accept="application/pdf,.pdf" className="hidden"
                                 onChange={(e) => { if (e.target.files?.length) { addMergeFiles(e.target.files); e.target.value = ""; } }} />
                         </Card>
 
                         {mergeFiles.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                        ลำดับไฟล์ ({mergeFiles.length})
+                                        ลำดับไฟล์
+                                        <span className="ml-2 text-red-500 normal-case font-semibold">({mergeFiles.length} ไฟล์)</span>
                                     </p>
-                                    <Button variant="ghost" size="sm" onClick={() => { setMergeFiles([]); setMergeResult(null); setMergeError(""); }}
-                                        className="text-xs text-muted-foreground hover:text-red-500">
-                                        <Trash2 className="h-3 w-3 mr-1" /> ล้างทั้งหมด
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" className="gap-1.5 text-xs"
+                                            onClick={() => mergeInputRef.current?.click()}>
+                                            <Upload className="h-3.5 w-3.5" /> เพิ่มไฟล์
+                                        </Button>
+                                        <Button variant="ghost" size="sm"
+                                            onClick={() => { setMergeFiles([]); setMergeThumbs(new Map()); setMergeResult(null); setMergeError(""); setMergeStatus("waiting"); }}
+                                            className="text-xs text-muted-foreground hover:text-red-500">
+                                            <Trash2 className="h-3 w-3 mr-1" /> ล้างทั้งหมด
+                                        </Button>
+                                    </div>
                                 </div>
-                                {mergeFiles.map((f, i) => (
-                                    <Card key={f.id} className="p-3 flex items-center gap-3 border-border/50">
-                                        <FileText className="h-4 w-4 text-red-500 shrink-0" />
-                                        <span className="flex-1 text-sm truncate">{f.name}</span>
-                                        <span className="text-xs text-muted-foreground">{formatBytes(f.size)}</span>
-                                        <div className="flex flex-col gap-0.5">
-                                            <button onClick={() => moveMergeFile(i, -1)} disabled={i === 0}
-                                                className="p-0.5 rounded hover:bg-muted disabled:opacity-20">
-                                                <ChevronUp className="h-3.5 w-3.5" />
+
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                    {mergeFiles.map((f, i) => (
+                                        <div key={f.id} className="relative group flex flex-col rounded-xl border-2 border-border/40 overflow-hidden bg-muted/10 hover:border-red-500/40 transition-all">
+                                            {/* Thumbnail */}
+                                            <div className="aspect-[3/4] bg-muted/30 flex items-center justify-center overflow-hidden">
+                                                {mergeThumbs.get(f.id) ? (
+                                                    <img src={mergeThumbs.get(f.id)} alt={f.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                                                )}
+                                            </div>
+                                            {/* Order badge */}
+                                            <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow">
+                                                {i + 1}
+                                            </div>
+                                            {/* Delete button */}
+                                            <button
+                                                onClick={() => setMergeFiles((p) => p.filter((x) => x.id !== f.id))}
+                                                className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500"
+                                                title="ลบ"
+                                            >
+                                                <XCircle className="h-3.5 w-3.5" />
                                             </button>
-                                            <button onClick={() => moveMergeFile(i, 1)} disabled={i === mergeFiles.length - 1}
-                                                className="p-0.5 rounded hover:bg-muted disabled:opacity-20">
-                                                <ChevronDown className="h-3.5 w-3.5" />
-                                            </button>
+                                            {/* Filename + move arrows */}
+                                            <div className="p-2 flex flex-col gap-1">
+                                                <p className="text-[10px] text-foreground font-medium truncate leading-tight" title={f.name}>{f.name}</p>
+                                                <p className="text-[9px] text-muted-foreground">{formatBytes(f.size)}</p>
+                                                <div className="flex gap-1 mt-0.5">
+                                                    <button
+                                                        onClick={() => moveMergeFile(i, -1)}
+                                                        disabled={i === 0}
+                                                        className="flex-1 flex items-center justify-center py-0.5 rounded bg-muted hover:bg-muted/80 disabled:opacity-20 transition-colors"
+                                                        title="เลื่อนซ้าย"
+                                                    >
+                                                        <ChevronUp className="h-3 w-3 rotate-[-90deg]" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => moveMergeFile(i, 1)}
+                                                        disabled={i === mergeFiles.length - 1}
+                                                        className="flex-1 flex items-center justify-center py-0.5 rounded bg-muted hover:bg-muted/80 disabled:opacity-20 transition-colors"
+                                                        title="เลื่อนขวา"
+                                                    >
+                                                        <ChevronDown className="h-3 w-3 rotate-[-90deg]" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <button onClick={() => setMergeFiles((p) => p.filter((x) => x.id !== f.id))}
-                                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-red-500">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                    </Card>
-                                ))}
+                                    ))}
+                                </div>
 
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
-                                    onClick={runMerge} disabled={mergeStatus === "processing" || mergeFiles.length < 1}>
+                                    onClick={runMerge} disabled={mergeStatus === "processing" || mergeFiles.length < 2}>
                                     {mergeStatus === "processing"
                                         ? <><Loader2 className="h-4 w-4 animate-spin" /> {mergeProgress || "กำลังรวม..."}</>
                                         : <><Layers className="h-4 w-4" /> รวม PDF ({mergeFiles.length} ไฟล์)</>}
@@ -1091,7 +1161,7 @@ export default function PdfToolsPage() {
                                 {
                                     icon: <Layers className="h-4 w-4 text-red-500" />,
                                     title: "รวม PDF",
-                                    steps: ["ลากไฟล์ PDF หลายไฟล์ลงในกล่อง", "ปรับลำดับด้วยปุ่ม ▲▼", "กดรวม PDF แล้วดาวน์โหลด"],
+                                    steps: ["ลากไฟล์ PDF หลายไฟล์ลงในกล่อง", "ดู thumbnail แล้วกดลูกศร ◀▶ ปรับลำดับ", "กดรวม PDF แล้วดาวน์โหลด"],
                                 },
                                 {
                                     icon: <Scissors className="h-4 w-4 text-red-500" />,
