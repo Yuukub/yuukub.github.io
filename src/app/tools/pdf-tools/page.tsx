@@ -11,13 +11,15 @@ import {
     ArrowLeft, FileText, Upload, Download, Loader2, Trash2,
     CheckCircle2, XCircle, Clock, PackageOpen, ChevronUp, ChevronDown,
     Layers, Scissors, ImageIcon, Info, HelpCircle, Shield,
-    GripVertical, LayoutGrid,
+    GripVertical, LayoutGrid, Minimize2,
 } from "lucide-react";
 
 /* ─── Types ────────────────────────────────────────────── */
 
-type PdfTool = "merge" | "split" | "to-jpg" | "organize";
+type PdfTool = "merge" | "split" | "to-jpg" | "organize" | "compress";
 type FileStatus = "waiting" | "processing" | "done" | "error";
+type CompressMode = "rasterize" | "smart";
+type CompressQuality = "low" | "medium" | "high";
 
 interface PdfFile {
     id: string;
@@ -76,7 +78,17 @@ const FAQ_ITEMS = [
         question: "ความแตกต่างระหว่าง 'รวม PDF' กับ 'จัดระเบียบ PDF' คืออะไร?",
         answer: "รวม PDF (Merge) ใช้เมื่อต้องการต่อ PDF หลายไฟล์เข้าด้วยกันตามลำดับไฟล์ ส่วน จัดระเบียบ PDF (Organizer) ให้อิสระมากกว่า — สามารถลากวาง thumbnail แต่ละหน้า ลบหน้าที่ไม่ต้องการ และผสมหน้าจากหลาย PDF ในลำดับที่กำหนดเองได้อย่างอิสระ",
     },
+    {
+        question: "ลดขนาด PDF ได้กี่ % และผลลัพธ์เป็นอย่างไร?",
+        answer: "ขึ้นอยู่กับเนื้อหาและโหมดที่เลือก — โหมด Rasterize (เปลี่ยนหน้าเป็นภาพ JPEG) ลดได้ 50–90% เหมาะกับเอกสารสแกนหรือมีรูปภาพเยอะ แต่ข้อความจะคัดลอกไม่ได้ ส่วนโหมด Smart (object stream compression) คงข้อความคัดลอกได้แต่ลดได้น้อยประมาณ 1–10% ถ้าต้องการลดขนาดเยอะให้ใช้โหมด Rasterize",
+    },
 ];
+
+const COMPRESS_PRESETS: Record<CompressQuality, { dpi: number; jpegQuality: number; label: string; hint: string }> = {
+    low:    { dpi: 96,  jpegQuality: 0.60, label: "ต่ำ",      hint: "เล็กที่สุด • เหมาะกับเอกสารดูบนจอ" },
+    medium: { dpi: 144, jpegQuality: 0.75, label: "ปานกลาง", hint: "สมดุล • แนะนำ" },
+    high:   { dpi: 200, jpegQuality: 0.90, label: "สูง",      hint: "ใหญ่ขึ้น • คุณภาพใกล้ต้นฉบับ" },
+};
 
 /* ─── Helpers ───────────────────────────────────────────── */
 
@@ -174,11 +186,22 @@ export default function PdfToolsPage() {
     const [orgResult, setOrgResult]             = useState<Blob | null>(null);
     const [orgError, setOrgError]               = useState("");
 
+    /* ── Compress state ─────────────────────────── */
+    const [compressFile, setCompressFile]               = useState<PdfFile | null>(null);
+    const [compressMode, setCompressMode]               = useState<CompressMode>("rasterize");
+    const [compressQuality, setCompressQuality]         = useState<CompressQuality>("medium");
+    const [compressStatus, setCompressStatus]           = useState<FileStatus>("waiting");
+    const [compressProgress, setCompressProgress]       = useState("");
+    const [compressResult, setCompressResult]           = useState<Blob | null>(null);
+    const [compressOriginalSize, setCompressOriginalSize] = useState<number>(0);
+    const [compressError, setCompressError]             = useState("");
+
     const workerRef    = useRef<Worker | null>(null);
     const mergeInputRef = useRef<HTMLInputElement>(null);
     const splitInputRef = useRef<HTMLInputElement>(null);
     const jpgInputRef   = useRef<HTMLInputElement>(null);
     const orgInputRef   = useRef<HTMLInputElement>(null);
+    const compressInputRef = useRef<HTMLInputElement>(null);
     const dragIndexRef  = useRef<number | null>(null);
 
     /* ── File Handlers ────────────────────────── */
@@ -489,6 +512,90 @@ export default function PdfToolsPage() {
         }
     }, [jpgFile, jpgQuality]);
 
+    /* ── Compress ─────────────────────────────── */
+
+    const runCompress = useCallback(async () => {
+        if (!compressFile) return;
+        setCompressStatus("processing");
+        setCompressError("");
+        setCompressResult(null);
+        setCompressOriginalSize(compressFile.size);
+
+        try {
+            const { PDFDocument } = await import("pdf-lib");
+            const srcBuffer = await compressFile.file.arrayBuffer();
+
+            if (compressMode === "smart") {
+                setCompressProgress("กำลังบีบอัดโครงสร้าง PDF...");
+                const doc = await PDFDocument.load(srcBuffer);
+                const bytes = await doc.save({ useObjectStreams: true });
+                const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+                setCompressResult(blob);
+                setCompressStatus("done");
+                setCompressProgress("");
+                return;
+            }
+
+            // rasterize mode
+            const preset = COMPRESS_PRESETS[compressQuality];
+            const scale = preset.dpi / 72;
+            const pdfjs = await import("pdfjs-dist");
+            pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+                "pdfjs-dist/build/pdf.worker.mjs", import.meta.url,
+            ).toString();
+
+            setCompressProgress("กำลังโหลด PDF...");
+            const pdf = await pdfjs.getDocument({ data: srcBuffer }).promise;
+            const total = pdf.numPages;
+            const out = await PDFDocument.create();
+
+            for (let i = 1; i <= total; i++) {
+                setCompressProgress(`กำลังประมวลผลหน้า ${i}/${total}...`);
+                let page;
+                try {
+                    page = await pdf.getPage(i);
+                } catch {
+                    throw new Error(`ไม่สามารถประมวลผลหน้า ${i}`);
+                }
+                const vp1 = page.getViewport({ scale: 1 });
+                const widthPt = vp1.width;
+                const heightPt = vp1.height;
+                const vp = page.getViewport({ scale });
+                const canvas = document.createElement("canvas");
+                canvas.width = vp.width;
+                canvas.height = vp.height;
+                const ctx = canvas.getContext("2d")!;
+                await page.render({ canvasContext: ctx, canvas, viewport: vp }).promise;
+
+                const jpgBlob: Blob = await new Promise((resolve) =>
+                    canvas.toBlob((b) => resolve(b!), "image/jpeg", preset.jpegQuality),
+                );
+                const jpgBytes = new Uint8Array(await jpgBlob.arrayBuffer());
+                const embedded = await out.embedJpg(jpgBytes);
+                const newPage = out.addPage([widthPt, heightPt]);
+                newPage.drawImage(embedded, { x: 0, y: 0, width: widthPt, height: heightPt });
+
+                canvas.width = 0;
+                canvas.height = 0;
+            }
+
+            setCompressProgress("กำลังบันทึก...");
+            const bytes = await out.save({ useObjectStreams: true });
+            const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+            setCompressResult(blob);
+            setCompressStatus("done");
+            setCompressProgress("");
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาด";
+            const friendly = /encrypt|password/i.test(msg)
+                ? "PDF นี้ถูกเข้ารหัส กรุณาปลดล็อกก่อนใช้งาน"
+                : msg;
+            setCompressError(friendly);
+            setCompressStatus("error");
+            setCompressProgress("");
+        }
+    }, [compressFile, compressMode, compressQuality]);
+
     /* ── FAQ JSON-LD ──────────────────────────── */
 
     const faqJsonLd = {
@@ -518,6 +625,7 @@ export default function PdfToolsPage() {
         { id: "split",    label: "แยกหน้า",         icon: <Scissors    className="h-4 w-4" /> },
         { id: "to-jpg",   label: "PDF → JPG",      icon: <ImageIcon   className="h-4 w-4" /> },
         { id: "organize", label: "จัดระเบียบ PDF",  icon: <LayoutGrid  className="h-4 w-4" /> },
+        { id: "compress", label: "ลดขนาด PDF",     icon: <Minimize2   className="h-4 w-4" /> },
     ];
 
     return (
@@ -543,7 +651,7 @@ export default function PdfToolsPage() {
                         <h1 className="text-3xl font-bold tracking-tight">PDF Tools</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        รวม PDF, แยกหน้า และแปลง PDF เป็นรูปภาพ JPG ประมวลผลในเครื่อง 100% ไม่อัปโหลดไปที่ใด
+                        รวม PDF, แยกหน้า, จัดระเบียบ, ลดขนาด และแปลง PDF เป็นรูปภาพ JPG ประมวลผลในเครื่อง 100% ไม่อัปโหลดไปที่ใด
                     </p>
                 </div>
 
@@ -1103,6 +1211,160 @@ export default function PdfToolsPage() {
                     </div>
                 )}
 
+                {/* ── Tab: Compress ──────────────────────────── */}
+                {activeTool === "compress" && (
+                    <div className="space-y-4 animate-in fade-in duration-200">
+                        <Card
+                            className="border-2 border-dashed border-border/50 bg-muted/20 hover:border-red-500/30 transition-colors cursor-pointer"
+                            onClick={() => compressInputRef.current?.click()}
+                            {...makeDragProps((files) => {
+                                setSingleFile(files, setCompressFile);
+                                setCompressResult(null); setCompressError(""); setCompressStatus("waiting");
+                            })}
+                        >
+                            <div className="p-8 flex flex-col items-center gap-3 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
+                                    <Minimize2 className="h-7 w-7 text-red-500/70" />
+                                </div>
+                                {compressFile ? (
+                                    <>
+                                        <p className="font-semibold">{compressFile.name}</p>
+                                        <p className="text-sm text-muted-foreground">{formatBytes(compressFile.size)}</p>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setCompressFile(null); setCompressResult(null); setCompressError(""); setCompressStatus("waiting"); }}
+                                            className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
+                                        >
+                                            เปลี่ยนไฟล์
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
+                                        <p className="text-sm text-muted-foreground">ระบบจะลดขนาดไฟล์ให้เล็กลง</p>
+                                    </>
+                                )}
+                            </div>
+                            <input ref={compressInputRef} type="file" accept="application/pdf,.pdf" className="hidden"
+                                onChange={(e) => { if (e.target.files?.length) { setSingleFile(e.target.files, setCompressFile); e.target.value = ""; setCompressResult(null); setCompressError(""); setCompressStatus("waiting"); } }} />
+                        </Card>
+
+                        {compressFile && (
+                            <p className="text-xs text-muted-foreground text-center -mt-2">
+                                แนะนำไม่เกิน 100 หน้าต่อครั้ง
+                            </p>
+                        )}
+
+                        {compressFile && (
+                            <>
+                                {/* Mode toggle */}
+                                <div className="flex gap-2 p-1 bg-muted/40 rounded-xl">
+                                    <button
+                                        onClick={() => { setCompressMode("rasterize"); setCompressResult(null); setCompressStatus("waiting"); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${compressMode === "rasterize" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        ลดขนาดสูงสุด
+                                    </button>
+                                    <button
+                                        onClick={() => { setCompressMode("smart"); setCompressResult(null); setCompressStatus("waiting"); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${compressMode === "smart" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        รักษาข้อความ
+                                    </button>
+                                </div>
+                                <p className="text-xs text-muted-foreground -mt-2 text-center">
+                                    {compressMode === "rasterize"
+                                        ? "เปลี่ยนแต่ละหน้าเป็นภาพ • เหมาะกับเอกสารสแกน • ข้อความคัดลอกไม่ได้"
+                                        : "คงข้อความคัดลอกได้ • ลดได้น้อย ≈ 1–10%"}
+                                </p>
+
+                                {compressMode === "rasterize" && (
+                                    <Card className="p-5 border-border/50 space-y-3">
+                                        <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">คุณภาพ</p>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {(["low", "medium", "high"] as CompressQuality[]).map((q) => {
+                                                const preset = COMPRESS_PRESETS[q];
+                                                const active = compressQuality === q;
+                                                return (
+                                                    <button
+                                                        key={q}
+                                                        onClick={() => { setCompressQuality(q); setCompressResult(null); setCompressStatus("waiting"); }}
+                                                        className={`py-3 px-2 rounded-lg text-sm font-semibold transition-all border-2 ${active
+                                                            ? "border-red-500 bg-red-500/10 text-foreground"
+                                                            : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground"
+                                                            }`}
+                                                    >
+                                                        {preset.label}
+                                                        <span className="block text-[10px] font-normal opacity-70 mt-0.5">
+                                                            {preset.dpi} DPI
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            {COMPRESS_PRESETS[compressQuality].hint}
+                                        </p>
+                                    </Card>
+                                )}
+
+                                {compressMode === "smart" && (
+                                    <p className="text-xs text-muted-foreground text-center px-2">
+                                        โหมด Smart ลดขนาดด้วย object stream compression เท่านั้น (ประมาณ 1–10%) ไม่มีการตั้งค่าเพิ่ม
+                                    </p>
+                                )}
+
+                                <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
+                                    onClick={runCompress} disabled={compressStatus === "processing"}>
+                                    {compressStatus === "processing"
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {compressProgress || "กำลังลดขนาด..."}</>
+                                        : <><Minimize2 className="h-4 w-4" /> ลดขนาด PDF</>}
+                                </Button>
+
+                                {compressError && (
+                                    <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 flex gap-2 items-start">
+                                        <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-600">{compressError}</p>
+                                    </div>
+                                )}
+
+                                {compressStatus === "done" && compressResult && (() => {
+                                    const newSize = compressResult.size;
+                                    const reduced = compressOriginalSize > 0 && newSize < compressOriginalSize;
+                                    const pct = compressOriginalSize > 0
+                                        ? ((1 - newSize / compressOriginalSize) * 100).toFixed(1)
+                                        : "0";
+                                    return (
+                                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold flex items-center gap-2 flex-wrap">
+                                                    ลดขนาดสำเร็จ
+                                                    {reduced ? (
+                                                        <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-700">
+                                                            ลดลง {pct}%
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                                                            ขนาดใกล้เคียงเดิม
+                                                        </Badge>
+                                                    )}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground truncate">
+                                                    {formatBytes(compressOriginalSize)} → {formatBytes(newSize)}
+                                                </p>
+                                            </div>
+                                            <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
+                                                onClick={() => triggerDownload(compressResult!, "compressed.pdf")}>
+                                                <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                            </Button>
+                                        </div>
+                                    );
+                                })()}
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {/* Privacy Note */}
                 <div className="mt-6 p-4 bg-red-500/5 border border-red-500/10 rounded-xl flex gap-3 items-center">
                     <Shield className="h-5 w-5 text-red-500 shrink-0" />
@@ -1134,7 +1396,7 @@ export default function PdfToolsPage() {
                         </div>
                         <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                             <p>
-                                เครื่องมือนี้รวม <strong className="text-foreground">4 ฟีเจอร์หลัก</strong>สำหรับจัดการ PDF ไว้ในที่เดียว โดยทำงานทั้งหมดภายในเบราว์เซอร์ของคุณผ่าน <strong className="text-foreground">pdf-lib</strong> และ <strong className="text-foreground">pdfjs-dist</strong> ซึ่งเป็น library ระดับโปรที่ไม่ต้องการ server เลย ไฟล์ PDF ของคุณจะไม่ถูกส่งออกไปที่ใดทั้งสิ้น
+                                เครื่องมือนี้รวม <strong className="text-foreground">5 ฟีเจอร์หลัก</strong>สำหรับจัดการ PDF ไว้ในที่เดียว โดยทำงานทั้งหมดภายในเบราว์เซอร์ของคุณผ่าน <strong className="text-foreground">pdf-lib</strong> และ <strong className="text-foreground">pdfjs-dist</strong> ซึ่งเป็น library ระดับโปรที่ไม่ต้องการ server เลย ไฟล์ PDF ของคุณจะไม่ถูกส่งออกไปที่ใดทั้งสิ้น
                             </p>
                             <p>
                                 <strong className="text-foreground">รวม PDF (Merge)</strong> ช่วยให้นำ PDF หลายไฟล์มาเชื่อมต่อกันเป็นไฟล์เดียว พร้อมปรับลำดับได้ตามต้องการ เหมาะสำหรับการรวมรายงาน สัญญา หรือเอกสารหลายชุดเข้าด้วยกัน
@@ -1147,6 +1409,9 @@ export default function PdfToolsPage() {
                             </p>
                             <p>
                                 <strong className="text-foreground">จัดระเบียบ PDF (Organizer)</strong> ช่วยให้จัดเรียงหน้า PDF ใหม่ได้อย่างอิสระด้วยการลากและวาง thumbnail ของแต่ละหน้า ลบหน้าที่ไม่ต้องการ หรือนำหลาย PDF มารวมกันแล้วจัดลำดับหน้าก่อน Export เป็นไฟล์เดียว
+                            </p>
+                            <p>
+                                <strong className="text-foreground">ลดขนาด PDF (Compress)</strong> ช่วยลดขนาดไฟล์ PDF ให้เล็กลงเพื่อแนบอีเมลหรืออัปโหลดได้ง่าย เลือกได้สองโหมด — Rasterize (ลดได้ 50–90% เปลี่ยนหน้าเป็นภาพ JPEG) สำหรับเอกสารสแกน หรือ Smart (ลดได้ 1–10% รักษาข้อความให้คัดลอกได้) สำหรับเอกสารข้อความ
                             </p>
                         </div>
                     </section>
@@ -1177,6 +1442,11 @@ export default function PdfToolsPage() {
                                     icon: <LayoutGrid className="h-4 w-4 text-red-500" />,
                                     title: "จัดระเบียบ PDF",
                                     steps: ["ลาก PDF หนึ่งหรือหลายไฟล์ลงในกล่อง", "ลาก thumbnail เพื่อจัดเรียงหน้า หรือกด ✕ เพื่อลบ", "กดสร้าง PDF แล้วดาวน์โหลดไฟล์ที่จัดระเบียบแล้ว"],
+                                },
+                                {
+                                    icon: <Minimize2 className="h-4 w-4 text-red-500" />,
+                                    title: "ลดขนาด PDF",
+                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "เลือกโหมด Rasterize/Smart และระดับคุณภาพ", "กดลดขนาด → ดูอัตราการลดและดาวน์โหลด"],
                                 },
                             ].map((item) => (
                                 <Card key={item.title} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
@@ -1232,7 +1502,7 @@ export default function PdfToolsPage() {
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                ทั้ง <strong className="text-foreground">pdf-lib</strong> (สำหรับ Merge/Split) และ <strong className="text-foreground">pdfjs-dist</strong> (สำหรับ PDF→JPG) รันทั้งหมดภายใน browser sandbox ของคุณ ไฟล์ PDF ถูกโหลดเข้า RAM ประมวลผล และส่งออกมาโดยไม่มีการส่ง network request ใดๆ ออกไป ไม่มีการเก็บ log ไม่มี cookie และไม่มีการติดตามเนื้อหาในไฟล์ของคุณ
+                                ทั้ง <strong className="text-foreground">pdf-lib</strong> (สำหรับ Merge/Split/Compress) และ <strong className="text-foreground">pdfjs-dist</strong> (สำหรับ PDF→JPG และ Compress) รันทั้งหมดภายใน browser sandbox ของคุณ ไฟล์ PDF ถูกโหลดเข้า RAM ประมวลผล และส่งออกมาโดยไม่มีการส่ง network request ใดๆ ออกไป ไม่มีการเก็บ log ไม่มี cookie และไม่มีการติดตามเนื้อหาในไฟล์ของคุณ
                             </p>
                             <div className="flex flex-wrap gap-2 pt-1">
                                 <Badge variant="outline" className="text-[11px]">No Upload</Badge>
