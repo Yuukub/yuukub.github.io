@@ -1,7 +1,8 @@
 import { env, pipeline, RawImage } from "@huggingface/transformers";
 import type { ImageSegmentationPipeline } from "@huggingface/transformers";
 
-const MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
+const WEBGPU_MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
+const WASM_MODEL_ID = "Xenova/modnet";
 const MAX_PIXELS = 32_000_000;
 
 type Engine = "webgpu" | "wasm";
@@ -74,9 +75,10 @@ function progressFromInfo(info: ProgressInfo): number {
 
 async function createPipeline(engine: Engine, id: string): Promise<PipelineState> {
     const isWebGpu = engine === "webgpu";
-    const pipe = await pipeline("image-segmentation", MODEL_ID, {
+    const modelId = isWebGpu ? WEBGPU_MODEL_ID : WASM_MODEL_ID;
+    const pipe = await pipeline("image-segmentation", modelId, {
         device: engine,
-        dtype: isWebGpu ? "fp16" : "fp32",
+        dtype: isWebGpu ? "fp16" : "q8",
         progress_callback: (info: ProgressInfo) => {
             postProgress(id, describeModelProgress(info), progressFromInfo(info) * 0.6, engine);
         },
@@ -102,7 +104,7 @@ async function getPipeline(id: string): Promise<PipelineState> {
                     type: "fallback",
                     id,
                     engine: "wasm",
-                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็น WASM ซึ่งอาจใช้เวลานานขึ้น",
+                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็น WASM รุ่นเบาเพื่อลดการใช้หน่วยความจำ",
                 });
             }
         } else {
@@ -110,7 +112,7 @@ async function getPipeline(id: string): Promise<PipelineState> {
                 type: "fallback",
                 id,
                 engine: "wasm",
-                message: "เบราว์เซอร์นี้ยังไม่รองรับ WebGPU จึงใช้ WASM แทน ซึ่งอาจใช้เวลานานขึ้น",
+                message: "เบราว์เซอร์นี้ยังไม่รองรับ WebGPU จึงใช้ WASM รุ่นเบาแทน ซึ่งอาจใช้เวลานานขึ้น",
             });
         }
 
@@ -231,7 +233,7 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
                 type: "fallback",
                 id,
                 engine: "wasm",
-                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM และลองใหม่",
+                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM รุ่นเบาและลองใหม่",
             });
             const fallback = await createPipeline("wasm", id);
             state = fallback;
