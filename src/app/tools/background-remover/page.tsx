@@ -381,7 +381,15 @@ export default function BackgroundRemoverPage() {
     const runCloudflareRemoval = useCallback(async () => {
         if (!image || status === "processing" || !CLOUDFLARE_BG_REMOVE_API) return;
 
-        if (TURNSTILE_SITE_KEY && !turnstileToken) {
+        if (!TURNSTILE_SITE_KEY) {
+            setStatus("error");
+            setEngine("cloudflare");
+            setMessage("Cloudflare fallback ยังไม่พร้อม");
+            setError("ยังไม่ได้ฝัง Turnstile site key ในหน้าเว็บ กรุณารอ GitHub Pages deploy รอบล่าสุดก่อนใช้ Cloudflare fallback");
+            return;
+        }
+
+        if (!turnstileToken) {
             setStatus("error");
             setEngine("cloudflare");
             setMessage("ต้องยืนยัน Turnstile ก่อนใช้ Cloudflare fallback");
@@ -476,7 +484,7 @@ export default function BackgroundRemoverPage() {
     const canRun = Boolean(image) && !isBusy;
     const hasCloudflareFallback = Boolean(CLOUDFLARE_BG_REMOVE_API);
     const hasTurnstile = Boolean(TURNSTILE_SITE_KEY);
-    const canRunCloudflare = canRun && (!hasTurnstile || Boolean(turnstileToken));
+    const canRunCloudflare = canRun && hasTurnstile && Boolean(turnstileToken);
     const engineLabel = engine === "webgpu"
         ? "WebGPU"
         : engine === "canvas"
@@ -633,7 +641,7 @@ export default function BackgroundRemoverPage() {
                             )}
                         </div>
 
-                        {hasCloudflareFallback && hasTurnstile && (
+                        {hasCloudflareFallback && (
                             <Card className="p-4 border-cyan-500/20 bg-cyan-500/5 space-y-2">
                                 <div className="flex items-start gap-2">
                                     <Shield className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
@@ -644,7 +652,13 @@ export default function BackgroundRemoverPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div ref={turnstileRef} className="min-h-[65px]" />
+                                {hasTurnstile ? (
+                                    <div ref={turnstileRef} className="min-h-[65px]" />
+                                ) : (
+                                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
+                                        กำลังรอ deploy ค่า Turnstile site key รอบล่าสุดก่อนเปิด Cloudflare fallback
+                                    </div>
+                                )}
                                 {turnstileMessage && (
                                     <p className="text-xs text-amber-700 dark:text-amber-300">{turnstileMessage}</p>
                                 )}
