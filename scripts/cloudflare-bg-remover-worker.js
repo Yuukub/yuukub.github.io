@@ -13,8 +13,57 @@ function corsHeaders(request) {
     return {
         "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, CF-Turnstile-Response",
         "Vary": "Origin",
+    };
+}
+
+function isAllowedBrowserRequest(request) {
+    const origin = request.headers.get("Origin") || "";
+    const referer = request.headers.get("Referer") || "";
+
+    if (!allowedOrigins.has(origin)) return false;
+    if (!referer) return true;
+
+    for (const allowedOrigin of allowedOrigins) {
+        if (referer === allowedOrigin || referer.startsWith(`${allowedOrigin}/`)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+async function verifyTurnstile(request, env) {
+    if (!env.TURNSTILE_SECRET_KEY) return { ok: true };
+
+    const token = request.headers.get("CF-Turnstile-Response");
+    if (!token) {
+        return {
+            ok: false,
+            message: "ต้องยืนยัน Turnstile ก่อนใช้ Cloudflare fallback",
+        };
+    }
+
+    const formData = new FormData();
+    formData.append("secret", env.TURNSTILE_SECRET_KEY);
+    formData.append("response", token);
+
+    const remoteIp = request.headers.get("CF-Connecting-IP");
+    if (remoteIp) formData.append("remoteip", remoteIp);
+
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        body: formData,
+    });
+    const result = await response.json();
+
+    if (result.success) return { ok: true };
+
+    return {
+        ok: false,
+        message: "Turnstile token ไม่ถูกต้องหรือหมดอายุ กรุณายืนยันใหม่อีกครั้ง",
+        codes: result["error-codes"] || [],
     };
 }
 
@@ -28,6 +77,21 @@ const worker = {
             return Response.json(
                 { error: "Method not allowed" },
                 { status: 405, headers: corsHeaders(request) },
+            );
+        }
+
+        if (!isAllowedBrowserRequest(request)) {
+            return Response.json(
+                { error: "This endpoint is only available from yuukub.com" },
+                { status: 403, headers: corsHeaders(request) },
+            );
+        }
+
+        const turnstile = await verifyTurnstile(request, env);
+        if (!turnstile.ok) {
+            return Response.json(
+                { error: turnstile.message, codes: turnstile.codes || [] },
+                { status: 403, headers: corsHeaders(request) },
             );
         }
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -49,12 +50,33 @@ interface WorkerMessage {
     webpSize?: number;
 }
 
+interface TurnstileRenderOptions {
+    sitekey: string;
+    theme: "auto";
+    callback: (token: string) => void;
+    "expired-callback": () => void;
+    "error-callback": () => boolean;
+}
+
+interface TurnstileApi {
+    render: (container: HTMLElement, options: TurnstileRenderOptions) => string | undefined;
+    reset: (widgetId?: string) => void;
+    remove: (widgetId?: string) => void;
+}
+
+declare global {
+    interface Window {
+        turnstile?: TurnstileApi;
+    }
+}
+
 const MAX_PIXELS = 32_000_000;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const DEFAULT_CLOUDFLARE_BG_REMOVE_API = "https://yuukub-bg-remover.sarnyou.workers.dev";
 const CLOUDFLARE_BG_REMOVE_API = (
     process.env.NEXT_PUBLIC_BG_REMOVE_API || DEFAULT_CLOUDFLARE_BG_REMOVE_API
 ).replace(/\/$/, "");
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 const FAQ_ITEMS = [
     {
@@ -139,20 +161,54 @@ export default function BackgroundRemoverPage() {
     const [fallbackMessage, setFallbackMessage] = useState("");
     const [error, setError] = useState("");
     const [dragActive, setDragActive] = useState(false);
+    const [turnstileReady, setTurnstileReady] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState("");
+    const [turnstileMessage, setTurnstileMessage] = useState("");
 
     const workerRef = useRef<Worker | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeJobRef = useRef<string | null>(null);
     const resultUrlRef = useRef<string | null>(null);
     const previewUrlRef = useRef<string | null>(null);
+    const turnstileRef = useRef<HTMLDivElement>(null);
+    const turnstileWidgetRef = useRef<string | null>(null);
 
     useEffect(() => {
         return () => {
             workerRef.current?.terminate();
+            if (turnstileWidgetRef.current && window.turnstile) {
+                window.turnstile.remove(turnstileWidgetRef.current);
+            }
             if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
             if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
         };
     }, []);
+
+    useEffect(() => {
+        if (!TURNSTILE_SITE_KEY || !turnstileReady || !turnstileRef.current || !window.turnstile || turnstileWidgetRef.current) {
+            return;
+        }
+
+        const widgetId = window.turnstile.render(turnstileRef.current, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: "auto",
+            callback: (token) => {
+                setTurnstileToken(token);
+                setTurnstileMessage("");
+            },
+            "expired-callback": () => {
+                setTurnstileToken("");
+                setTurnstileMessage("Turnstile หมดอายุ กรุณายืนยันอีกครั้งก่อนใช้ Cloudflare fallback");
+            },
+            "error-callback": () => {
+                setTurnstileToken("");
+                setTurnstileMessage("Turnstile ยืนยันไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+                return true;
+            },
+        });
+
+        if (widgetId) turnstileWidgetRef.current = widgetId;
+    }, [turnstileReady]);
 
     const revokeResult = useCallback(() => {
         if (resultUrlRef.current) {
@@ -164,6 +220,13 @@ export default function BackgroundRemoverPage() {
         setWebpBlob(null);
         setPngSize(null);
         setWebpSize(null);
+    }, []);
+
+    const resetTurnstile = useCallback(() => {
+        setTurnstileToken("");
+        if (turnstileWidgetRef.current && window.turnstile) {
+            window.turnstile.reset(turnstileWidgetRef.current);
+        }
     }, []);
 
     const ensureWorker = useCallback(() => {
@@ -236,6 +299,7 @@ export default function BackgroundRemoverPage() {
         setImage(null);
         setProgress(0);
         setEngine(null);
+        resetTurnstile();
 
         if (!isAcceptedImage(file)) {
             setStatus("error");
@@ -270,7 +334,7 @@ export default function BackgroundRemoverPage() {
             setStatus("error");
             setError("ไม่สามารถอ่านรูปนี้ได้ กรุณาลองไฟล์อื่น");
         }
-    }, [revokeResult]);
+    }, [resetTurnstile, revokeResult]);
 
     const clearImage = useCallback(() => {
         activeJobRef.current = null;
@@ -290,8 +354,9 @@ export default function BackgroundRemoverPage() {
         setFallbackMessage("");
         setError("");
         setMessage("อัปโหลดรูปเพื่อเริ่มลบพื้นหลัง");
+        resetTurnstile();
         if (fileInputRef.current) fileInputRef.current.value = "";
-    }, [revokeResult, status]);
+    }, [resetTurnstile, revokeResult, status]);
 
     const runRemoval = useCallback(() => {
         if (!image || status === "processing") return;
@@ -316,6 +381,14 @@ export default function BackgroundRemoverPage() {
     const runCloudflareRemoval = useCallback(async () => {
         if (!image || status === "processing" || !CLOUDFLARE_BG_REMOVE_API) return;
 
+        if (TURNSTILE_SITE_KEY && !turnstileToken) {
+            setStatus("error");
+            setEngine("cloudflare");
+            setMessage("ต้องยืนยัน Turnstile ก่อนใช้ Cloudflare fallback");
+            setError("กรุณายืนยันว่าเป็นผู้ใช้จริงก่อนใช้ Cloudflare AI fallback เพื่อป้องกันการใช้โควต้าจากภายนอก");
+            return;
+        }
+
         const id = uid();
         activeJobRef.current = id;
         setStatus("processing");
@@ -331,6 +404,7 @@ export default function BackgroundRemoverPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": image.file.type || "application/octet-stream",
+                    ...(turnstileToken ? { "CF-Turnstile-Response": turnstileToken } : {}),
                 },
                 body: image.file,
             });
@@ -366,6 +440,7 @@ export default function BackgroundRemoverPage() {
             setProgress(100);
             setStatus("done");
             setMessage("Cloudflare AI fallback ลบพื้นหลังสำเร็จ พร้อมดาวน์โหลด PNG หรือ WebP");
+            resetTurnstile();
         } catch (err) {
             if (activeJobRef.current !== id) return;
             setStatus("error");
@@ -373,8 +448,9 @@ export default function BackgroundRemoverPage() {
             setEngine("cloudflare");
             setMessage("Cloudflare fallback ไม่สำเร็จ");
             setError(err instanceof Error ? err.message : "Cloudflare fallback ลบพื้นหลังไม่สำเร็จ");
+            resetTurnstile();
         }
-    }, [image, revokeResult, status]);
+    }, [image, resetTurnstile, revokeResult, status, turnstileToken]);
 
     const downloadResult = useCallback((format: "png" | "webp") => {
         const blob = format === "png" ? pngBlob : webpBlob;
@@ -399,6 +475,8 @@ export default function BackgroundRemoverPage() {
     const isBusy = status === "processing";
     const canRun = Boolean(image) && !isBusy;
     const hasCloudflareFallback = Boolean(CLOUDFLARE_BG_REMOVE_API);
+    const hasTurnstile = Boolean(TURNSTILE_SITE_KEY);
+    const canRunCloudflare = canRun && (!hasTurnstile || Boolean(turnstileToken));
     const engineLabel = engine === "webgpu"
         ? "WebGPU"
         : engine === "canvas"
@@ -422,6 +500,13 @@ export default function BackgroundRemoverPage() {
 
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
+            {hasTurnstile && (
+                <Script
+                    src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+                    strategy="afterInteractive"
+                    onLoad={() => setTurnstileReady(true)}
+                />
+            )}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -541,12 +626,30 @@ export default function BackgroundRemoverPage() {
                                     variant="outline"
                                     className="h-11 gap-2 sm:col-span-2 border-cyan-500/30 text-cyan-700 hover:text-cyan-800 dark:text-cyan-300"
                                     onClick={() => void runCloudflareRemoval()}
-                                    disabled={!canRun}
+                                    disabled={!canRunCloudflare}
                                 >
                                     <Cloud className="h-4 w-4" /> ใช้ Cloudflare AI fallback
                                 </Button>
                             )}
                         </div>
+
+                        {hasCloudflareFallback && hasTurnstile && (
+                            <Card className="p-4 border-cyan-500/20 bg-cyan-500/5 space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <Shield className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-semibold">ป้องกันโควต้า Cloudflare fallback</p>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                            ยืนยัน Turnstile ก่อนส่งรูปไป Cloudflare เพื่อกันการเรียก Worker จากภายนอก
+                                        </p>
+                                    </div>
+                                </div>
+                                <div ref={turnstileRef} className="min-h-[65px]" />
+                                {turnstileMessage && (
+                                    <p className="text-xs text-amber-700 dark:text-amber-300">{turnstileMessage}</p>
+                                )}
+                            </Card>
+                        )}
 
                         <Card className="p-4 border-border/50 bg-muted/20 space-y-3">
                             <div className="flex items-center justify-between gap-3">
