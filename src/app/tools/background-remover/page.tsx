@@ -114,6 +114,10 @@ function isAcceptedImage(file: File): boolean {
     return ACCEPTED_TYPES.includes(file.type) || ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp";
 }
 
+function getFileKey(file: File): string {
+    return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
 async function readImageInfo(file: File): Promise<{ width: number; height: number }> {
     const bitmap = await createImageBitmap(file);
     const info = { width: bitmap.width, height: bitmap.height };
@@ -164,6 +168,7 @@ export default function BackgroundRemoverPage() {
     const [turnstileReady, setTurnstileReady] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState("");
     const [turnstileMessage, setTurnstileMessage] = useState("");
+    const [cloudflareResultFileKey, setCloudflareResultFileKey] = useState<string | null>(null);
 
     const workerRef = useRef<Worker | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -299,6 +304,7 @@ export default function BackgroundRemoverPage() {
         setImage(null);
         setProgress(0);
         setEngine(null);
+        setCloudflareResultFileKey(null);
         resetTurnstile();
 
         if (!isAcceptedImage(file)) {
@@ -353,6 +359,7 @@ export default function BackgroundRemoverPage() {
         setEngine(null);
         setFallbackMessage("");
         setError("");
+        setCloudflareResultFileKey(null);
         setMessage("อัปโหลดรูปเพื่อเริ่มลบพื้นหลัง");
         resetTurnstile();
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -380,6 +387,14 @@ export default function BackgroundRemoverPage() {
 
     const runCloudflareRemoval = useCallback(async () => {
         if (!image || status === "processing" || !CLOUDFLARE_BG_REMOVE_API) return;
+
+        const fileKey = getFileKey(image.file);
+        if (cloudflareResultFileKey === fileKey) {
+            setStatus("done");
+            setEngine("cloudflare");
+            setMessage("รูปนี้ใช้ Cloudflare fallback แล้ว ดาวน์โหลดผลลัพธ์เดิมได้ หรือเปลี่ยนรูป/ล้างรูปเพื่อประมวลผลใหม่");
+            return;
+        }
 
         if (!TURNSTILE_SITE_KEY) {
             setStatus("error");
@@ -447,6 +462,7 @@ export default function BackgroundRemoverPage() {
             setEngine("cloudflare");
             setProgress(100);
             setStatus("done");
+            setCloudflareResultFileKey(fileKey);
             setMessage("Cloudflare AI fallback ลบพื้นหลังสำเร็จ พร้อมดาวน์โหลด PNG หรือ WebP");
             resetTurnstile();
         } catch (err) {
@@ -458,7 +474,7 @@ export default function BackgroundRemoverPage() {
             setError(err instanceof Error ? err.message : "Cloudflare fallback ลบพื้นหลังไม่สำเร็จ");
             resetTurnstile();
         }
-    }, [image, resetTurnstile, revokeResult, status, turnstileToken]);
+    }, [cloudflareResultFileKey, image, resetTurnstile, revokeResult, status, turnstileToken]);
 
     const downloadResult = useCallback((format: "png" | "webp") => {
         const blob = format === "png" ? pngBlob : webpBlob;
@@ -484,7 +500,10 @@ export default function BackgroundRemoverPage() {
     const canRun = Boolean(image) && !isBusy;
     const hasCloudflareFallback = Boolean(CLOUDFLARE_BG_REMOVE_API);
     const hasTurnstile = Boolean(TURNSTILE_SITE_KEY);
-    const canRunCloudflare = canRun && hasTurnstile && Boolean(turnstileToken);
+    const hasCloudflareResultForCurrentImage = Boolean(
+        image && cloudflareResultFileKey === getFileKey(image.file),
+    );
+    const canRunCloudflare = canRun && hasTurnstile && Boolean(turnstileToken) && !hasCloudflareResultForCurrentImage;
     const engineLabel = engine === "webgpu"
         ? "WebGPU"
         : engine === "canvas"
@@ -636,7 +655,8 @@ export default function BackgroundRemoverPage() {
                                     onClick={() => void runCloudflareRemoval()}
                                     disabled={!canRunCloudflare}
                                 >
-                                    <Cloud className="h-4 w-4" /> ใช้ Cloudflare AI fallback
+                                    <Cloud className="h-4 w-4" />
+                                    {hasCloudflareResultForCurrentImage ? "ใช้ Cloudflare แล้ว" : "ใช้ Cloudflare AI fallback"}
                                 </Button>
                             )}
                         </div>
@@ -706,9 +726,10 @@ export default function BackgroundRemoverPage() {
                                             size="sm"
                                             className="gap-2 border-red-500/20 bg-background/60"
                                             onClick={() => void runCloudflareRemoval()}
-                                            disabled={isBusy}
+                                            disabled={isBusy || hasCloudflareResultForCurrentImage}
                                         >
-                                            <Cloud className="h-3.5 w-3.5" /> ลองใช้ Cloudflare AI fallback
+                                            <Cloud className="h-3.5 w-3.5" />
+                                            {hasCloudflareResultForCurrentImage ? "ใช้ Cloudflare แล้ว" : "ลองใช้ Cloudflare AI fallback"}
                                         </Button>
                                     )}
                                 </div>
