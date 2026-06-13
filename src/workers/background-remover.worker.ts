@@ -37,6 +37,20 @@ env.useWasmCache = true;
 
 let pipelineState: Promise<PipelineState> | null = null;
 
+type GpuStatus =
+    | { available: true; supportsFp16: boolean }
+    | { available: false; reason: string };
+
+interface NavigatorWithGpu extends Navigator {
+    gpu?: {
+        requestAdapter: () => Promise<{
+            features: {
+                has: (feature: string) => boolean;
+            };
+        } | null>;
+    };
+}
+
 function postProgress(id: string, message: string, progress: number, engine?: Engine) {
     self.postMessage({
         type: "progress",
@@ -77,6 +91,36 @@ function progressFromInfo(info: ProgressInfo): number {
     return 5;
 }
 
+async function getGpuStatus(): Promise<GpuStatus> {
+    const nav = navigator as NavigatorWithGpu;
+    if (!nav.gpu) {
+        return {
+            available: false,
+            reason: "เบราว์เซอร์นี้ยังไม่เปิดใช้ WebGPU",
+        };
+    }
+
+    try {
+        const adapter = await nav.gpu.requestAdapter();
+        if (!adapter) {
+            return {
+                available: false,
+                reason: "เบราว์เซอร์หา GPU adapter ไม่เจอ อาจถูกปิด hardware acceleration หรือ driver ถูก blocklist",
+            };
+        }
+
+        return {
+            available: true,
+            supportsFp16: adapter.features.has("shader-f16"),
+        };
+    } catch {
+        return {
+            available: false,
+            reason: "เบราว์เซอร์ขอสิทธิ์ใช้ WebGPU adapter ไม่สำเร็จ",
+        };
+    }
+}
+
 async function createPipeline(engine: Engine, dtype: DType, modelId: string, id: string): Promise<PipelineState> {
     const pipe = await pipeline("image-segmentation", modelId, {
         device: engine,
@@ -98,16 +142,20 @@ async function getPipeline(id: string): Promise<PipelineState> {
     if (pipelineState) return pipelineState;
 
     pipelineState = (async () => {
-        if ("gpu" in navigator) {
+        const gpuStatus = await getGpuStatus();
+        if (gpuStatus.available) {
             try {
-                postProgress(id, "กำลังเริ่ม WebGPU engine...", 3, "webgpu");
-                return await createPipeline("webgpu", "fp16", WEBGPU_MODEL_ID, id);
+                if (gpuStatus.supportsFp16) {
+                    postProgress(id, "กำลังเริ่ม WebGPU fp16 engine...", 3, "webgpu");
+                    return await createPipeline("webgpu", "fp16", WEBGPU_MODEL_ID, id);
+                }
+                postProgress(id, "GPU ไม่รองรับ fp16 กำลังลอง WebGPU fp32...", 4, "webgpu");
             } catch (err) {
                 console.warn("WebGPU fp16 pipeline failed, retrying with fp32:", err);
-                postProgress(id, "GPU ไม่รองรับ fp16 กำลังลอง WebGPU fp32...", 4, "webgpu");
             }
 
             try {
+                postProgress(id, "กำลังเริ่ม WebGPU fp32 engine...", 5, "webgpu");
                 return await createPipeline("webgpu", "fp32", WEBGPU_MODEL_ID, id);
             } catch (err) {
                 console.warn("WebGPU fp32 pipeline failed, falling back to WASM:", err);
@@ -123,7 +171,7 @@ async function getPipeline(id: string): Promise<PipelineState> {
                 type: "fallback",
                 id,
                 engine: "wasm",
-                message: "เบราว์เซอร์นี้ยังไม่รองรับ WebGPU จึงใช้ WASM รุ่นเบาแทน ซึ่งอาจใช้เวลานานขึ้น",
+                message: `${gpuStatus.reason} จึงใช้ WASM รุ่นเบาแทน ซึ่งอาจใช้เวลานานขึ้น`,
             });
         }
 
