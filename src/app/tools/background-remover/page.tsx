@@ -81,19 +81,23 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const FAQ_ITEMS = [
     {
         question: "ลบพื้นหลังรูปด้วยเครื่องมือนี้ปลอดภัยไหม?",
-        answer: "ค่าเริ่มต้นจะประมวลผลในเบราว์เซอร์ของคุณทั้งหมด หากคุณเลือก Cloudflare AI fallback รูปจะถูกอัปโหลดไป Cloudflare เพื่อประมวลผลตามที่แจ้งในหน้าเครื่องมือ",
+        answer: "ค่าเริ่มต้นเป็น local-first: รูปถูกประมวลผลในเบราว์เซอร์ด้วย WebGPU หรือ Canvas fallback หากคุณกดใช้ Cloudflare AI fallback รูปจะถูกอัปโหลดไป Cloudflare เฉพาะครั้งนั้นและต้องผ่าน Turnstile ก่อน",
     },
     {
         question: "ทำไมครั้งแรกใช้เวลานาน?",
-        answer: "ครั้งแรกเบราว์เซอร์ต้องดาวน์โหลดโมเดล AI ประมาณ 114MB สำหรับ WebGPU fp16 หรือประมาณ 224MB หากต้องใช้ WebGPU fp32 หลังจากนั้น Transformers.js จะ cache ไว้ใน browser cache",
+        answer: "ครั้งแรกของโหมด WebGPU ต้องดาวน์โหลดโมเดล BiRefNet lite ผ่าน Transformers.js ประมาณ 114MB สำหรับ fp16 หรือประมาณ 224MB สำหรับ fp32 หลังจากนั้น browser cache จะช่วยให้โหลดเร็วขึ้น",
     },
     {
         question: "ถ้าเครื่องไม่รองรับ WebGPU ยังใช้ได้ไหม?",
-        answer: "ใช้ได้ในโหมด Canvas fallback สำหรับโลโก้/กราฟิก และหากเปิดตั้งค่า Cloudflare AI fallback ไว้ ผู้ใช้สามารถเลือกส่งรูปไป Cloudflare เพื่อให้ BiRefNet บน Workers AI ช่วยประมวลผลได้",
+        answer: "ใช้ได้ โดยระบบมี Canvas fallback สำหรับโลโก้หรือภาพพื้นหลังเรียบ และมี Cloudflare AI fallback สำหรับงานที่ต้องใช้ AI เมื่อเครื่องไม่รองรับ WebGPU โดยผู้ใช้ต้องกดยืนยัน Turnstile ก่อนส่งรูป",
     },
     {
         question: "ไฟล์ผลลัพธ์เป็นแบบไหน?",
-        answer: "ผลลัพธ์เป็น PNG โปร่งใสเต็มความละเอียดเดิมของรูป เหมาะสำหรับทำรูปสินค้า โปรไฟล์ โพสต์โซเชียล และงานออกแบบ",
+        answer: "ผลลัพธ์ดาวน์โหลดได้ทั้ง PNG และ WebP โปร่งใสเต็มความละเอียดเดิมของรูป เหมาะสำหรับรูปสินค้า โปรไฟล์ โพสต์โซเชียล และงานออกแบบ",
+    },
+    {
+        question: "Cloudflare fallback คิดโควต้าอย่างไร?",
+        answer: "เว็บเรียก Cloudflare Images เพียงครั้งเดียวต่อการลบพื้นหลังสำเร็จหนึ่งรูปเพื่อรับ PNG จากนั้นแปลง WebP ในเบราว์เซอร์ จึงไม่เรียก Cloudflare เพิ่มเพื่อสร้าง WebP และปุ่ม Cloudflare จะถูกปิดสำหรับรูปเดิมหลังสำเร็จ",
     },
 ];
 
@@ -512,17 +516,57 @@ export default function BackgroundRemoverPage() {
                 ? "Cloudflare AI"
                 : "Auto engine";
 
-    const faqJsonLd = {
+    const structuredData = {
         "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: FAQ_ITEMS.map((item) => ({
-            "@type": "Question",
-            name: item.question,
-            acceptedAnswer: {
-                "@type": "Answer",
-                text: item.answer,
+        "@graph": [
+            {
+                "@type": "WebApplication",
+                name: "AI Background Remover",
+                url: "https://yuukub.com/tools/background-remover/",
+                applicationCategory: "MultimediaApplication",
+                operatingSystem: "Any",
+                inLanguage: "th-TH",
+                offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "USD",
+                },
+                featureList: [
+                    "ลบพื้นหลังรูป JPG, PNG และ WebP",
+                    "ส่งออก PNG และ WebP โปร่งใสเต็มความละเอียด",
+                    "ประมวลผลแบบ local-first ด้วย WebGPU และ Canvas fallback",
+                    "Cloudflare AI fallback พร้อม Turnstile เมื่อจำเป็น",
+                ],
             },
-        })),
+            {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                    {
+                        "@type": "ListItem",
+                        position: 1,
+                        name: "Tools",
+                        item: "https://yuukub.com/tools/",
+                    },
+                    {
+                        "@type": "ListItem",
+                        position: 2,
+                        name: "Background Remover",
+                        item: "https://yuukub.com/tools/background-remover/",
+                    },
+                ],
+            },
+            {
+                "@type": "FAQPage",
+                mainEntity: FAQ_ITEMS.map((item) => ({
+                    "@type": "Question",
+                    name: item.question,
+                    acceptedAnswer: {
+                        "@type": "Answer",
+                        text: item.answer,
+                    },
+                })),
+            },
+        ],
     };
 
     return (
@@ -536,7 +580,7 @@ export default function BackgroundRemoverPage() {
             )}
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
             />
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
             <Navbar />
@@ -563,7 +607,7 @@ export default function BackgroundRemoverPage() {
                                 ลบพื้นหลังรูปเป็น PNG โปร่งใส
                             </h1>
                             <p className="text-muted-foreground leading-relaxed">
-                                ใช้ AI แยกวัตถุออกจากพื้นหลังบนเครื่องของคุณโดยตรง รองรับ WebGPU เพื่อความเร็วสูง พร้อม Canvas fallback และ Cloudflare AI fallback เมื่อเปิดใช้งาน
+                                ใช้ AI แยกวัตถุออกจากพื้นหลังแบบ local-first รองรับ WebGPU เพื่อความเร็วสูง มี Canvas fallback สำหรับภาพพื้นหลังเรียบ และมี Cloudflare AI fallback พร้อม Turnstile เมื่อเครื่องไม่รองรับ
                             </p>
                         </div>
 
@@ -666,9 +710,9 @@ export default function BackgroundRemoverPage() {
                                 <div className="flex items-start gap-2">
                                     <Shield className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
                                     <div className="space-y-1">
-                                        <p className="text-sm font-semibold">ป้องกันโควต้า Cloudflare fallback</p>
+                                        <p className="text-sm font-semibold">Cloudflare fallback Turnstile</p>
                                         <p className="text-xs text-muted-foreground leading-relaxed">
-                                            ยืนยัน Turnstile ก่อนส่งรูปไป Cloudflare เพื่อกันการเรียก Worker จากภายนอก
+                                            ยืนยัน Turnstile ก่อนส่งรูปไป Cloudflare เพื่อกันการเรียก Worker จากภายนอกและช่วยประหยัดโควต้า Images
                                         </p>
                                     </div>
                                 </div>
@@ -760,7 +804,7 @@ export default function BackgroundRemoverPage() {
                             <div className="space-y-1">
                                 <p className="font-semibold text-sm">Privacy-first processing</p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    ค่าเริ่มต้นรูปจะอยู่ในเบราว์เซอร์ของคุณเท่านั้นผ่าน Transformers.js/WebGPU หรือ Canvas fallback ส่วน Cloudflare AI fallback จะอัปโหลดรูปไป Cloudflare เฉพาะเมื่อคุณกดเลือกใช้งาน
+                                    ค่าเริ่มต้นรูปจะอยู่ในเบราว์เซอร์ของคุณเท่านั้นผ่าน Transformers.js/WebGPU หรือ Canvas fallback ส่วน Cloudflare AI fallback จะอัปโหลดรูปไป Cloudflare เฉพาะเมื่อคุณกดเลือกใช้งานและผ่าน Turnstile
                                 </p>
                             </div>
                         </div>
@@ -776,9 +820,9 @@ export default function BackgroundRemoverPage() {
 
                 <section className="grid md:grid-cols-3 gap-4">
                     {[
-                        { title: "AI Matting", desc: "ใช้ BiRefNet lite เพื่อสร้าง alpha mask สำหรับแยกวัตถุออกจากพื้นหลัง" },
-                        { title: "Full Resolution", desc: "คืนค่า PNG โปร่งใสขนาดเท่าต้นฉบับ ไม่บีบอัดความละเอียดลงตอน export" },
-                        { title: "Soft Edge", desc: "คำนวณ feather ตามขนาดภาพเพื่อให้ขอบวัตถุนุ่มขึ้นทั้งภาพเล็กและภาพ 4K" },
+                        { title: "Local-first AI", desc: "ใช้ BiRefNet lite ผ่าน Transformers.js/WebGPU เป็นหลัก และไม่อัปโหลดรูปในโหมด local" },
+                        { title: "PNG และ WebP", desc: "คืนค่าไฟล์โปร่งใสเต็มความละเอียดเดิม ดาวน์โหลดได้ทั้ง PNG และ WebP โดย WebP แปลงในเบราว์เซอร์" },
+                        { title: "Protected fallback", desc: "Cloudflare AI fallback ต้องผ่าน Turnstile และปิดปุ่มหลังประมวลผลสำเร็จสำหรับรูปเดิมเพื่อลดการใช้โควต้าซ้ำ" },
                     ].map((item) => (
                         <Card key={item.title} className="p-5 border-border/50 bg-muted/20">
                             <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4">

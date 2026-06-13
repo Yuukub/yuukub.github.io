@@ -48,7 +48,7 @@ const TOOLS = [
     },
     {
         title: "Background Remover",
-        description: "ลบพื้นหลังรูปภาพด้วย AI ในเบราว์เซอร์ของคุณ ส่งออกเป็น PNG โปร่งใสเต็มความละเอียด ไม่อัปโหลดไฟล์",
+        description: "ลบพื้นหลังรูปภาพด้วย AI แบบ local-first ส่งออก PNG/WebP โปร่งใสเต็มความละเอียด พร้อม Cloudflare fallback เมื่อ WebGPU ใช้ไม่ได้",
         icon: <Eraser className="h-6 w-6 text-cyan-500" />,
         href: "/tools/background-remover",
         tags: ["AI", "Media"],
