@@ -22,7 +22,7 @@ import {
     Zap,
 } from "lucide-react";
 
-type Engine = "webgpu" | "wasm";
+type Engine = "webgpu" | "canvas";
 type JobStatus = "idle" | "ready" | "processing" | "done" | "error";
 
 interface ImageInfo {
@@ -58,11 +58,11 @@ const FAQ_ITEMS = [
     },
     {
         question: "ทำไมครั้งแรกใช้เวลานาน?",
-        answer: "ครั้งแรกเบราว์เซอร์ต้องดาวน์โหลดโมเดล AI ประมาณ 114MB สำหรับ WebGPU fp16 หรือประมาณ 224MB หากต้องใช้ WebGPU fp32/WASM คุณภาพสูง หลังจากนั้น Transformers.js จะ cache ไว้ใน browser cache",
+        answer: "ครั้งแรกเบราว์เซอร์ต้องดาวน์โหลดโมเดล AI ประมาณ 114MB สำหรับ WebGPU fp16 หรือประมาณ 224MB หากต้องใช้ WebGPU fp32 หลังจากนั้น Transformers.js จะ cache ไว้ใน browser cache",
     },
     {
         question: "ถ้าเครื่องไม่รองรับ WebGPU ยังใช้ได้ไหม?",
-        answer: "ใช้ได้ ระบบจะสลับไปใช้ WASM บน CPU อัตโนมัติ แต่การประมวลผลอาจใช้เวลานานกว่า WebGPU โดยเฉพาะรูปความละเอียดสูง",
+        answer: "ใช้ได้ในโหมด Canvas fallback ซึ่งเหมาะกับโลโก้ ไอคอน และภาพกราฟิกที่พื้นหลังแตกต่างจากวัตถุชัดเจน ส่วนงานภาพถ่าย/เส้นผมละเอียดควรใช้ WebGPU AI",
     },
     {
         question: "ไฟล์ผลลัพธ์เป็นแบบไหน?",
@@ -156,8 +156,8 @@ export default function BackgroundRemoverPage() {
             }
 
             if (msg.type === "fallback") {
-                setEngine("wasm");
-                setFallbackMessage(msg.message || "กำลังใช้ WASM fallback");
+                setEngine("canvas");
+                setFallbackMessage(msg.message || "กำลังใช้ Canvas fallback");
                 return;
             }
 
@@ -304,7 +304,7 @@ export default function BackgroundRemoverPage() {
 
     const isBusy = status === "processing";
     const canRun = Boolean(image) && !isBusy;
-    const engineLabel = engine === "webgpu" ? "WebGPU" : engine === "wasm" ? "WASM fallback" : "Auto engine";
+    const engineLabel = engine === "webgpu" ? "WebGPU" : engine === "canvas" ? "Canvas fallback" : "Auto engine";
 
     const faqJsonLd = {
         "@context": "https://schema.org",
@@ -350,7 +350,7 @@ export default function BackgroundRemoverPage() {
                                 ลบพื้นหลังรูปเป็น PNG โปร่งใส
                             </h1>
                             <p className="text-muted-foreground leading-relaxed">
-                                ใช้ AI แยกวัตถุออกจากพื้นหลังบนเครื่องของคุณโดยตรง รองรับ WebGPU เพื่อความเร็วสูง และ fallback เป็น WASM อัตโนมัติเมื่อเครื่องไม่รองรับ
+                                ใช้ AI แยกวัตถุออกจากพื้นหลังบนเครื่องของคุณโดยตรง รองรับ WebGPU เพื่อความเร็วสูง และมี Canvas fallback สำหรับภาพโลโก้/กราฟิก
                             </p>
                         </div>
 
@@ -455,7 +455,7 @@ export default function BackgroundRemoverPage() {
                             </div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>{progress}%</span>
-                                <span>WebGPU fp16 ~114MB • fp32/WASM ~224MB</span>
+                                <span>WebGPU AI ~114-224MB • Canvas fallback ไม่โหลดโมเดล</span>
                             </div>
                             {fallbackMessage && (
                                 <div className="flex gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
@@ -495,7 +495,7 @@ export default function BackgroundRemoverPage() {
                             <div className="space-y-1">
                                 <p className="font-semibold text-sm">Privacy-first processing</p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    รูปของคุณอยู่ในเบราว์เซอร์เท่านั้น โมเดล AI รันบนอุปกรณ์ของคุณผ่าน Transformers.js, WebGPU หรือ WASM โดยไม่มีการอัปโหลดภาพไปที่เซิร์ฟเวอร์
+                                    รูปของคุณอยู่ในเบราว์เซอร์เท่านั้น โมเดล AI รันบนอุปกรณ์ของคุณผ่าน Transformers.js/WebGPU หรือใช้ Canvas fallback โดยไม่มีการอัปโหลดภาพไปที่เซิร์ฟเวอร์
                                 </p>
                             </div>
                         </div>

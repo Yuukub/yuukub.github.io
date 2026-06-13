@@ -2,12 +2,12 @@ import { env, pipeline, RawImage } from "@huggingface/transformers";
 import type { ImageSegmentationPipeline } from "@huggingface/transformers";
 
 const WEBGPU_MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
-const WASM_MODEL_ID = WEBGPU_MODEL_ID;
 const MAX_PIXELS = 32_000_000;
 const MIN_MASK_COVERAGE = 0.002;
 
-type Engine = "webgpu" | "wasm";
-type DType = "fp16" | "fp32" | "q8";
+type Engine = "webgpu" | "canvas";
+type ModelEngine = "webgpu";
+type DType = "fp16" | "fp32";
 
 interface RemoveBackgroundMessage {
     type: "remove";
@@ -25,7 +25,7 @@ interface ProgressInfo {
 }
 
 interface PipelineState {
-    engine: Engine;
+    engine: ModelEngine;
     dtype: DType;
     modelId: string;
     pipe: ImageSegmentationPipeline;
@@ -121,7 +121,7 @@ async function getGpuStatus(): Promise<GpuStatus> {
     }
 }
 
-async function createPipeline(engine: Engine, dtype: DType, modelId: string, id: string): Promise<PipelineState> {
+async function createPipeline(engine: ModelEngine, dtype: DType, modelId: string, id: string): Promise<PipelineState> {
     const pipe = await pipeline("image-segmentation", modelId, {
         device: engine,
         dtype,
@@ -162,21 +162,20 @@ async function getPipeline(id: string): Promise<PipelineState> {
                 self.postMessage({
                     type: "fallback",
                     id,
-                    engine: "wasm",
-                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็น WASM คุณภาพสูง แต่อาจใช้ RAM และเวลามากขึ้น",
+                    engine: "canvas",
+                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็นโหมด Canvas สำหรับภาพโลโก้/กราฟิก",
                 });
             }
         } else {
             self.postMessage({
                 type: "fallback",
                 id,
-                engine: "wasm",
-                message: `${gpuStatus.reason} จึงใช้ WASM คุณภาพสูงแทน ซึ่งอาจใช้ RAM และเวลามากขึ้น`,
+                engine: "canvas",
+                message: `${gpuStatus.reason} จึงใช้โหมด Canvas สำหรับภาพโลโก้/กราฟิกแทน`,
             });
         }
 
-        postProgress(id, "กำลังเริ่ม WASM engine...", 3, "wasm");
-        return createPipeline("wasm", "fp32", WASM_MODEL_ID, id);
+        throw new Error("WEBGPU_UNAVAILABLE");
     })();
 
     return pipelineState;
@@ -272,6 +271,101 @@ async function compositeImage(id: string, file: File, mask: RawImage): Promise<{
     return { pngBlob, webpBlob };
 }
 
+function colorDistance(a: [number, number, number], r: number, g: number, b: number): number {
+    const dr = a[0] - r;
+    const dg = a[1] - g;
+    const db = a[2] - b;
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+
+function estimateBackgroundColor(data: Uint8ClampedArray, width: number, height: number): [number, number, number] {
+    const samples: number[][] = [];
+    const step = Math.max(1, Math.floor(Math.min(width, height) / 80));
+
+    for (let x = 0; x < width; x += step) {
+        for (const y of [0, height - 1]) {
+            const i = (y * width + x) * 4;
+            samples.push([data[i], data[i + 1], data[i + 2]]);
+        }
+    }
+    for (let y = 0; y < height; y += step) {
+        for (const x of [0, width - 1]) {
+            const i = (y * width + x) * 4;
+            samples.push([data[i], data[i + 1], data[i + 2]]);
+        }
+    }
+
+    const median = (channel: number) => {
+        const values = samples.map((sample) => sample[channel]).sort((a, b) => a - b);
+        return values[Math.floor(values.length / 2)] || 0;
+    };
+
+    return [median(0), median(1), median(2)];
+}
+
+async function removeBackgroundByCanvas(id: string, file: File): Promise<{ pngBlob: Blob; webpBlob: Blob; width: number; height: number }> {
+    const bitmap = await createImageBitmap(file);
+    const { width, height } = bitmap;
+
+    if (width * height > MAX_PIXELS) {
+        bitmap.close();
+        throw new Error("รูปนี้มีความละเอียดสูงเกิน 32MP กรุณาย่อขนาดรูปก่อนใช้งาน");
+    }
+
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) {
+        bitmap.close();
+        throw new Error("เบราว์เซอร์ไม่รองรับ Canvas สำหรับลบพื้นหลัง");
+    }
+
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    postProgress(id, "กำลังวิเคราะห์สีพื้นหลังจากขอบภาพ...", 35, "canvas");
+    const image = ctx.getImageData(0, 0, width, height);
+    const data = image.data;
+    const bg = estimateBackgroundColor(data, width, height);
+
+    const edgeDistances: number[] = [];
+    const step = Math.max(1, Math.floor(Math.min(width, height) / 80));
+    for (let x = 0; x < width; x += step) {
+        for (const y of [0, height - 1]) {
+            const i = (y * width + x) * 4;
+            edgeDistances.push(colorDistance(bg, data[i], data[i + 1], data[i + 2]));
+        }
+    }
+    edgeDistances.sort((a, b) => a - b);
+    const edgeNoise = edgeDistances[Math.floor(edgeDistances.length * 0.85)] || 0;
+    const low = Math.max(18, edgeNoise + 10);
+    const high = low + 48;
+
+    postProgress(id, "กำลังลบพื้นหลังด้วย Canvas...", 65, "canvas");
+    let visiblePixels = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        const d = colorDistance(bg, data[i], data[i + 1], data[i + 2]);
+        const keep = Math.max(0, Math.min(1, (d - low) / (high - low)));
+        const alpha = Math.round(data[i + 3] * keep);
+        data[i + 3] = alpha;
+        if (alpha > 8) visiblePixels++;
+    }
+
+    if (visiblePixels / (width * height) < MIN_MASK_COVERAGE) {
+        throw new Error("Canvas fallback จับวัตถุไม่ได้ กรุณาใช้ภาพที่พื้นหลังต่างจากวัตถุชัดขึ้น หรือเปิด WebGPU เพื่อใช้ AI");
+    }
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.putImageData(image, 0, 0);
+
+    postProgress(id, "กำลังสร้าง PNG และ WebP โปร่งใส...", 84, "canvas");
+    const [pngBlob, webpBlob] = await Promise.all([
+        canvas.convertToBlob({ type: "image/png" }),
+        canvas.convertToBlob({ type: "image/webp", quality: 0.92 }),
+    ]);
+
+    return { pngBlob, webpBlob, width, height };
+}
+
 self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
     const { type, id, file } = event.data;
     if (type !== "remove") return;
@@ -289,7 +383,27 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
         }
 
         const rawImage = await RawImage.fromBlob(file);
-        let state = await getPipeline(id);
+        let state: PipelineState;
+        try {
+            state = await getPipeline(id);
+        } catch (err) {
+            if (err instanceof Error && err.message === "WEBGPU_UNAVAILABLE") {
+                const { pngBlob, webpBlob } = await removeBackgroundByCanvas(id, file);
+                self.postMessage({
+                    type: "result",
+                    id,
+                    pngBlob,
+                    webpBlob,
+                    engine: "canvas",
+                    width,
+                    height,
+                    pngSize: pngBlob.size,
+                    webpSize: webpBlob.size,
+                });
+                return;
+            }
+            throw err;
+        }
 
         postProgress(id, "กำลังแยกวัตถุออกจากพื้นหลัง...", 65, state.engine);
 
@@ -297,21 +411,29 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
         try {
             segments = await state.pipe(rawImage);
         } catch (err) {
-            if (state.engine === "wasm") throw err;
+            if (state.engine !== "webgpu") throw err;
 
-            console.warn("WebGPU inference failed, retrying with WASM:", err);
+            console.warn("WebGPU inference failed, retrying with Canvas fallback:", err);
             pipelineState = null;
             self.postMessage({
                 type: "fallback",
                 id,
-                engine: "wasm",
-                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM คุณภาพสูงและลองใหม่",
+                engine: "canvas",
+                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็นโหมด Canvas สำหรับภาพโลโก้/กราฟิก",
             });
-            const fallback = await createPipeline("wasm", "fp32", WASM_MODEL_ID, id);
-            state = fallback;
-            pipelineState = Promise.resolve(fallback);
-            postProgress(id, "กำลังแยกวัตถุด้วย WASM...", 65, "wasm");
-            segments = await fallback.pipe(rawImage);
+            const { pngBlob, webpBlob } = await removeBackgroundByCanvas(id, file);
+            self.postMessage({
+                type: "result",
+                id,
+                pngBlob,
+                webpBlob,
+                engine: "canvas",
+                width,
+                height,
+                pngSize: pngBlob.size,
+                webpSize: webpBlob.size,
+            });
+            return;
         }
 
         const mask = Array.isArray(segments) ? segments[0]?.mask : undefined;
