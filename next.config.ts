@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@jsquash/avif', '@jsquash/jpeg', '@jsquash/webp', '@jsquash/png'],
 
   webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      sharp$: false,
+      "onnxruntime-node$": false,
+    };
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,

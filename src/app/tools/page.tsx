@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon, MonitorPlay, Zap, FileText } from "lucide-react";
+import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon, MonitorPlay, Zap, FileText, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdUnit } from "@/components/ad-unit";
 
@@ -45,6 +45,14 @@ const TOOLS = [
         href: "/tools/image-converter",
         tags: ["Media", "Productivity"],
         colorClass: "bg-orange-500/10 text-orange-500",
+    },
+    {
+        title: "Background Remover",
+        description: "ลบพื้นหลังรูปภาพด้วย AI ในเบราว์เซอร์ของคุณ ส่งออกเป็น PNG โปร่งใสเต็มความละเอียด ไม่อัปโหลดไฟล์",
+        icon: <Eraser className="h-6 w-6 text-cyan-500" />,
+        href: "/tools/background-remover",
+        tags: ["AI", "Media"],
+        colorClass: "bg-cyan-500/10 text-cyan-500",
     },
     {
         title: "Live Web Previewer",
@@ -106,7 +114,7 @@ export default function ToolsPage() {
                 />
 
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {TOOLS.map((tool, index) => (
+                    {TOOLS.map((tool) => (
                         <Link key={tool.title} href={tool.href} className="group">
                             <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border/50 backdrop-blur-sm">
                                 <div>
