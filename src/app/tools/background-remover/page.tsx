@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdUnit } from "@/components/ad-unit";
 import {
     ArrowLeft,
+    Cloud,
     Download,
     Eraser,
     ImageIcon,
@@ -22,7 +23,7 @@ import {
     Zap,
 } from "lucide-react";
 
-type Engine = "webgpu" | "canvas";
+type Engine = "webgpu" | "canvas" | "cloudflare";
 type JobStatus = "idle" | "ready" | "processing" | "done" | "error";
 
 interface ImageInfo {
@@ -50,11 +51,15 @@ interface WorkerMessage {
 
 const MAX_PIXELS = 32_000_000;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const DEFAULT_CLOUDFLARE_BG_REMOVE_API = "https://yuukub-bg-remover.sarnyou.workers.dev";
+const CLOUDFLARE_BG_REMOVE_API = (
+    process.env.NEXT_PUBLIC_BG_REMOVE_API || DEFAULT_CLOUDFLARE_BG_REMOVE_API
+).replace(/\/$/, "");
 
 const FAQ_ITEMS = [
     {
         question: "ลบพื้นหลังรูปด้วยเครื่องมือนี้ปลอดภัยไหม?",
-        answer: "ปลอดภัย เพราะรูปภาพถูกประมวลผลในเบราว์เซอร์ของคุณทั้งหมด ไม่มีการอัปโหลดไฟล์ไปยังเซิร์ฟเวอร์หรือ API ภายนอก",
+        answer: "ค่าเริ่มต้นจะประมวลผลในเบราว์เซอร์ของคุณทั้งหมด หากคุณเลือก Cloudflare AI fallback รูปจะถูกอัปโหลดไป Cloudflare เพื่อประมวลผลตามที่แจ้งในหน้าเครื่องมือ",
     },
     {
         question: "ทำไมครั้งแรกใช้เวลานาน?",
@@ -62,7 +67,7 @@ const FAQ_ITEMS = [
     },
     {
         question: "ถ้าเครื่องไม่รองรับ WebGPU ยังใช้ได้ไหม?",
-        answer: "ใช้ได้ในโหมด Canvas fallback ซึ่งเหมาะกับโลโก้ ไอคอน และภาพกราฟิกที่พื้นหลังแตกต่างจากวัตถุชัดเจน ส่วนงานภาพถ่าย/เส้นผมละเอียดควรใช้ WebGPU AI",
+        answer: "ใช้ได้ในโหมด Canvas fallback สำหรับโลโก้/กราฟิก และหากเปิดตั้งค่า Cloudflare AI fallback ไว้ ผู้ใช้สามารถเลือกส่งรูปไป Cloudflare เพื่อให้ BiRefNet บน Workers AI ช่วยประมวลผลได้",
     },
     {
         question: "ไฟล์ผลลัพธ์เป็นแบบไหน?",
@@ -92,6 +97,32 @@ async function readImageInfo(file: File): Promise<{ width: number; height: numbe
     const info = { width: bitmap.width, height: bitmap.height };
     bitmap.close();
     return info;
+}
+
+async function convertBlobToWebp(blob: Blob): Promise<Blob> {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+        bitmap.close();
+        throw new Error("เบราว์เซอร์ไม่รองรับ Canvas สำหรับสร้าง WebP");
+    }
+
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(
+            (webpBlob) => {
+                if (webpBlob) resolve(webpBlob);
+                else reject(new Error("ไม่สามารถสร้างไฟล์ WebP ได้"));
+            },
+            "image/webp",
+            0.92,
+        );
+    });
 }
 
 export default function BackgroundRemoverPage() {
@@ -282,6 +313,69 @@ export default function BackgroundRemoverPage() {
         });
     }, [ensureWorker, image, revokeResult, status]);
 
+    const runCloudflareRemoval = useCallback(async () => {
+        if (!image || status === "processing" || !CLOUDFLARE_BG_REMOVE_API) return;
+
+        const id = uid();
+        activeJobRef.current = id;
+        setStatus("processing");
+        setProgress(8);
+        setError("");
+        setFallbackMessage("โหมดนี้จะอัปโหลดรูปไป Cloudflare เพื่อใช้ AI fallback");
+        setEngine("cloudflare");
+        setMessage("กำลังส่งรูปไป Cloudflare AI fallback...");
+        revokeResult();
+
+        try {
+            const response = await fetch(`${CLOUDFLARE_BG_REMOVE_API}/?format=png`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": image.file.type || "application/octet-stream",
+                },
+                body: image.file,
+            });
+
+            if (activeJobRef.current !== id) return;
+
+            if (!response.ok) {
+                let detail = "";
+                try {
+                    const body = await response.json();
+                    detail = typeof body?.error === "string" ? body.error : "";
+                } catch {
+                    detail = await response.text().catch(() => "");
+                }
+                throw new Error(detail || `Cloudflare fallback failed (${response.status})`);
+            }
+
+            setProgress(78);
+            setMessage("Cloudflare แยกพื้นหลังสำเร็จ กำลังสร้าง WebP...");
+            const pngResult = await response.blob();
+            const webpResult = await convertBlobToWebp(pngResult);
+
+            if (activeJobRef.current !== id) return;
+
+            const url = URL.createObjectURL(pngResult);
+            resultUrlRef.current = url;
+            setResultUrl(url);
+            setPngBlob(pngResult);
+            setWebpBlob(webpResult);
+            setPngSize(pngResult.size);
+            setWebpSize(webpResult.size);
+            setEngine("cloudflare");
+            setProgress(100);
+            setStatus("done");
+            setMessage("Cloudflare AI fallback ลบพื้นหลังสำเร็จ พร้อมดาวน์โหลด PNG หรือ WebP");
+        } catch (err) {
+            if (activeJobRef.current !== id) return;
+            setStatus("error");
+            setProgress(0);
+            setEngine("cloudflare");
+            setMessage("Cloudflare fallback ไม่สำเร็จ");
+            setError(err instanceof Error ? err.message : "Cloudflare fallback ลบพื้นหลังไม่สำเร็จ");
+        }
+    }, [image, revokeResult, status]);
+
     const downloadResult = useCallback((format: "png" | "webp") => {
         const blob = format === "png" ? pngBlob : webpBlob;
         if (!blob || !image) return;
@@ -304,7 +398,14 @@ export default function BackgroundRemoverPage() {
 
     const isBusy = status === "processing";
     const canRun = Boolean(image) && !isBusy;
-    const engineLabel = engine === "webgpu" ? "WebGPU" : engine === "canvas" ? "Canvas fallback" : "Auto engine";
+    const hasCloudflareFallback = Boolean(CLOUDFLARE_BG_REMOVE_API);
+    const engineLabel = engine === "webgpu"
+        ? "WebGPU"
+        : engine === "canvas"
+            ? "Canvas fallback"
+            : engine === "cloudflare"
+                ? "Cloudflare AI"
+                : "Auto engine";
 
     const faqJsonLd = {
         "@context": "https://schema.org",
@@ -350,7 +451,7 @@ export default function BackgroundRemoverPage() {
                                 ลบพื้นหลังรูปเป็น PNG โปร่งใส
                             </h1>
                             <p className="text-muted-foreground leading-relaxed">
-                                ใช้ AI แยกวัตถุออกจากพื้นหลังบนเครื่องของคุณโดยตรง รองรับ WebGPU เพื่อความเร็วสูง และมี Canvas fallback สำหรับภาพโลโก้/กราฟิก
+                                ใช้ AI แยกวัตถุออกจากพื้นหลังบนเครื่องของคุณโดยตรง รองรับ WebGPU เพื่อความเร็วสูง พร้อม Canvas fallback และ Cloudflare AI fallback เมื่อเปิดใช้งาน
                             </p>
                         </div>
 
@@ -435,6 +536,16 @@ export default function BackgroundRemoverPage() {
                                     <Download className="h-4 w-4" /> WebP
                                 </Button>
                             </div>
+                            {hasCloudflareFallback && (
+                                <Button
+                                    variant="outline"
+                                    className="h-11 gap-2 sm:col-span-2 border-cyan-500/30 text-cyan-700 hover:text-cyan-800 dark:text-cyan-300"
+                                    onClick={() => void runCloudflareRemoval()}
+                                    disabled={!canRun}
+                                >
+                                    <Cloud className="h-4 w-4" /> ใช้ Cloudflare AI fallback
+                                </Button>
+                            )}
                         </div>
 
                         <Card className="p-4 border-border/50 bg-muted/20 space-y-3">
@@ -455,7 +566,10 @@ export default function BackgroundRemoverPage() {
                             </div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>{progress}%</span>
-                                <span>WebGPU AI ~114-224MB • Canvas fallback ไม่โหลดโมเดล</span>
+                                <span>
+                                    WebGPU AI ~114-224MB • Canvas fallback
+                                    {hasCloudflareFallback ? " • Cloudflare optional" : ""}
+                                </span>
                             </div>
                             {fallbackMessage && (
                                 <div className="flex gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
@@ -464,9 +578,22 @@ export default function BackgroundRemoverPage() {
                                 </div>
                             )}
                             {error && (
-                                <div className="flex gap-2 text-sm text-red-600 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
-                                    <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                                    <span>{error}</span>
+                                <div className="space-y-3 text-sm text-red-600 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+                                    <div className="flex gap-2">
+                                        <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                                        <span>{error}</span>
+                                    </div>
+                                    {hasCloudflareFallback && image && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 border-red-500/20 bg-background/60"
+                                            onClick={() => void runCloudflareRemoval()}
+                                            disabled={isBusy}
+                                        >
+                                            <Cloud className="h-3.5 w-3.5" /> ลองใช้ Cloudflare AI fallback
+                                        </Button>
+                                    )}
                                 </div>
                             )}
                         </Card>
@@ -495,7 +622,7 @@ export default function BackgroundRemoverPage() {
                             <div className="space-y-1">
                                 <p className="font-semibold text-sm">Privacy-first processing</p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    รูปของคุณอยู่ในเบราว์เซอร์เท่านั้น โมเดล AI รันบนอุปกรณ์ของคุณผ่าน Transformers.js/WebGPU หรือใช้ Canvas fallback โดยไม่มีการอัปโหลดภาพไปที่เซิร์ฟเวอร์
+                                    ค่าเริ่มต้นรูปจะอยู่ในเบราว์เซอร์ของคุณเท่านั้นผ่าน Transformers.js/WebGPU หรือ Canvas fallback ส่วน Cloudflare AI fallback จะอัปโหลดรูปไป Cloudflare เฉพาะเมื่อคุณกดเลือกใช้งาน
                                 </p>
                             </div>
                         </div>
