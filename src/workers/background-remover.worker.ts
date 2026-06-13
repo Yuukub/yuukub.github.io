@@ -2,7 +2,7 @@ import { env, pipeline, RawImage } from "@huggingface/transformers";
 import type { ImageSegmentationPipeline } from "@huggingface/transformers";
 
 const WEBGPU_MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
-const WASM_MODEL_ID = "Xenova/modnet";
+const WASM_MODEL_ID = WEBGPU_MODEL_ID;
 const MAX_PIXELS = 32_000_000;
 const MIN_MASK_COVERAGE = 0.002;
 
@@ -163,7 +163,7 @@ async function getPipeline(id: string): Promise<PipelineState> {
                     type: "fallback",
                     id,
                     engine: "wasm",
-                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็น WASM รุ่นเบาเพื่อลดการใช้หน่วยความจำ",
+                    message: "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็น WASM คุณภาพสูง แต่อาจใช้ RAM และเวลามากขึ้น",
                 });
             }
         } else {
@@ -171,12 +171,12 @@ async function getPipeline(id: string): Promise<PipelineState> {
                 type: "fallback",
                 id,
                 engine: "wasm",
-                message: `${gpuStatus.reason} จึงใช้ WASM รุ่นเบาแทน ซึ่งอาจใช้เวลานานขึ้น`,
+                message: `${gpuStatus.reason} จึงใช้ WASM คุณภาพสูงแทน ซึ่งอาจใช้ RAM และเวลามากขึ้น`,
             });
         }
 
         postProgress(id, "กำลังเริ่ม WASM engine...", 3, "wasm");
-        return createPipeline("wasm", "q8", WASM_MODEL_ID, id);
+        return createPipeline("wasm", "fp32", WASM_MODEL_ID, id);
     })();
 
     return pipelineState;
@@ -305,9 +305,9 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
                 type: "fallback",
                 id,
                 engine: "wasm",
-                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM รุ่นเบาและลองใหม่",
+                message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM คุณภาพสูงและลองใหม่",
             });
-            const fallback = await createPipeline("wasm", "q8", WASM_MODEL_ID, id);
+            const fallback = await createPipeline("wasm", "fp32", WASM_MODEL_ID, id);
             state = fallback;
             pipelineState = Promise.resolve(fallback);
             postProgress(id, "กำลังแยกวัตถุด้วย WASM...", 65, "wasm");
@@ -319,11 +319,7 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
 
         const coverage = getMaskCoverage(mask);
         if (coverage < MIN_MASK_COVERAGE) {
-            throw new Error(
-                state.modelId === WASM_MODEL_ID
-                    ? "โมเดล fallback จับวัตถุในภาพนี้ไม่ได้ ภาพโลโก้/กราฟิกควรใช้ WebGPU BiRefNet เพื่อผลลัพธ์ที่แม่นกว่า"
-                    : "AI จับวัตถุในภาพนี้ไม่ได้ กรุณาลองรูปที่วัตถุตัดกับพื้นหลังชัดขึ้น",
-            );
+            throw new Error("AI จับวัตถุในภาพนี้ไม่ได้ กรุณาลองรูปที่วัตถุตัดกับพื้นหลังชัดขึ้น");
         }
 
         postProgress(id, "กำลังสร้าง PNG และ WebP โปร่งใส...", 84, state.engine);

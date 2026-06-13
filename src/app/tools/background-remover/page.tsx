@@ -58,7 +58,7 @@ const FAQ_ITEMS = [
     },
     {
         question: "ทำไมครั้งแรกใช้เวลานาน?",
-        answer: "ครั้งแรกเบราว์เซอร์ต้องดาวน์โหลดโมเดล AI ประมาณ 114MB สำหรับ WebGPU fp16, ประมาณ 224MB หากต้อง fallback เป็น WebGPU fp32 หรือประมาณ 6.6MB เมื่อ fallback เป็น WASM หลังจากนั้น Transformers.js จะ cache ไว้ใน browser cache",
+        answer: "ครั้งแรกเบราว์เซอร์ต้องดาวน์โหลดโมเดล AI ประมาณ 114MB สำหรับ WebGPU fp16 หรือประมาณ 224MB หากต้องใช้ WebGPU fp32/WASM คุณภาพสูง หลังจากนั้น Transformers.js จะ cache ไว้ใน browser cache",
     },
     {
         question: "ถ้าเครื่องไม่รองรับ WebGPU ยังใช้ได้ไหม?",
@@ -455,7 +455,7 @@ export default function BackgroundRemoverPage() {
                             </div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>{progress}%</span>
-                                <span>WebGPU fp16 ~114MB / fp32 ~224MB • WASM ~6.6MB</span>
+                                <span>WebGPU fp16 ~114MB • fp32/WASM ~224MB</span>
                             </div>
                             {fallbackMessage && (
                                 <div className="flex gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
