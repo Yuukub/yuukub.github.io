@@ -4,8 +4,10 @@ import type { ImageSegmentationPipeline } from "@huggingface/transformers";
 const WEBGPU_MODEL_ID = "onnx-community/BiRefNet_lite-ONNX";
 const WASM_MODEL_ID = "Xenova/modnet";
 const MAX_PIXELS = 32_000_000;
+const MIN_MASK_COVERAGE = 0.002;
 
 type Engine = "webgpu" | "wasm";
+type DType = "fp16" | "fp32" | "q8";
 
 interface RemoveBackgroundMessage {
     type: "remove";
@@ -24,6 +26,8 @@ interface ProgressInfo {
 
 interface PipelineState {
     engine: Engine;
+    dtype: DType;
+    modelId: string;
     pipe: ImageSegmentationPipeline;
 }
 
@@ -73,12 +77,10 @@ function progressFromInfo(info: ProgressInfo): number {
     return 5;
 }
 
-async function createPipeline(engine: Engine, id: string): Promise<PipelineState> {
-    const isWebGpu = engine === "webgpu";
-    const modelId = isWebGpu ? WEBGPU_MODEL_ID : WASM_MODEL_ID;
+async function createPipeline(engine: Engine, dtype: DType, modelId: string, id: string): Promise<PipelineState> {
     const pipe = await pipeline("image-segmentation", modelId, {
         device: engine,
-        dtype: isWebGpu ? "fp16" : "q8",
+        dtype,
         progress_callback: (info: ProgressInfo) => {
             postProgress(id, describeModelProgress(info), progressFromInfo(info) * 0.6, engine);
         },
@@ -86,6 +88,8 @@ async function createPipeline(engine: Engine, id: string): Promise<PipelineState
 
     return {
         engine,
+        dtype,
+        modelId,
         pipe: pipe as ImageSegmentationPipeline,
     };
 }
@@ -97,9 +101,16 @@ async function getPipeline(id: string): Promise<PipelineState> {
         if ("gpu" in navigator) {
             try {
                 postProgress(id, "กำลังเริ่ม WebGPU engine...", 3, "webgpu");
-                return await createPipeline("webgpu", id);
+                return await createPipeline("webgpu", "fp16", WEBGPU_MODEL_ID, id);
             } catch (err) {
-                console.warn("WebGPU pipeline failed, falling back to WASM:", err);
+                console.warn("WebGPU fp16 pipeline failed, retrying with fp32:", err);
+                postProgress(id, "GPU ไม่รองรับ fp16 กำลังลอง WebGPU fp32...", 4, "webgpu");
+            }
+
+            try {
+                return await createPipeline("webgpu", "fp32", WEBGPU_MODEL_ID, id);
+            } catch (err) {
+                console.warn("WebGPU fp32 pipeline failed, falling back to WASM:", err);
                 self.postMessage({
                     type: "fallback",
                     id,
@@ -117,7 +128,7 @@ async function getPipeline(id: string): Promise<PipelineState> {
         }
 
         postProgress(id, "กำลังเริ่ม WASM engine...", 3, "wasm");
-        return createPipeline("wasm", id);
+        return createPipeline("wasm", "q8", WASM_MODEL_ID, id);
     })();
 
     return pipelineState;
@@ -163,6 +174,19 @@ function featherMask(maskCanvas: OffscreenCanvas, radius: number): OffscreenCanv
     ctx.drawImage(maskCanvas, 0, 0);
     ctx.filter = "none";
     return canvas;
+}
+
+function getMaskCoverage(mask: RawImage): number {
+    const channels = mask.channels;
+    if (mask.data.length === 0 || channels <= 0) return 0;
+
+    let visible = 0;
+    const total = Math.floor(mask.data.length / channels);
+    for (let i = 0; i < mask.data.length; i += channels) {
+        if (mask.data[i] > 8) visible++;
+    }
+
+    return visible / total;
 }
 
 async function compositeImage(id: string, file: File, mask: RawImage): Promise<{ pngBlob: Blob; webpBlob: Blob }> {
@@ -235,7 +259,7 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
                 engine: "wasm",
                 message: "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็น WASM รุ่นเบาและลองใหม่",
             });
-            const fallback = await createPipeline("wasm", id);
+            const fallback = await createPipeline("wasm", "q8", WASM_MODEL_ID, id);
             state = fallback;
             pipelineState = Promise.resolve(fallback);
             postProgress(id, "กำลังแยกวัตถุด้วย WASM...", 65, "wasm");
@@ -244,6 +268,15 @@ self.onmessage = async (event: MessageEvent<RemoveBackgroundMessage>) => {
 
         const mask = Array.isArray(segments) ? segments[0]?.mask : undefined;
         if (!mask) throw new Error("ไม่พบ mask จากโมเดล AI");
+
+        const coverage = getMaskCoverage(mask);
+        if (coverage < MIN_MASK_COVERAGE) {
+            throw new Error(
+                state.modelId === WASM_MODEL_ID
+                    ? "โมเดล fallback จับวัตถุในภาพนี้ไม่ได้ ภาพโลโก้/กราฟิกควรใช้ WebGPU BiRefNet เพื่อผลลัพธ์ที่แม่นกว่า"
+                    : "AI จับวัตถุในภาพนี้ไม่ได้ กรุณาลองรูปที่วัตถุตัดกับพื้นหลังชัดขึ้น",
+            );
+        }
 
         postProgress(id, "กำลังสร้าง PNG และ WebP โปร่งใส...", 84, state.engine);
         const { pngBlob, webpBlob } = await compositeImage(id, file, mask);
