@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "ลบพื้นหลังรูปออนไลน์ฟรี - AI Background Remover PNG/WebP",
+    title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
     description: "ลบพื้นหลังรูป JPG, PNG และ WebP เป็น PNG หรือ WebP โปร่งใสเต็มความละเอียด ใช้ WebGPU ในเครื่องเป็นหลัก พร้อม Cloudflare fallback ที่ยืนยันด้วย Turnstile เมื่อจำเป็น",
     keywords: [
         "ลบพื้นหลังรูป",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         canonical: "https://yuukub.com/tools/background-remover/",
     },
     openGraph: {
-        title: "ลบพื้นหลังรูปออนไลน์ฟรี - AI Background Remover PNG/WebP",
+        title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
         description: "แยกวัตถุออกจากพื้นหลังด้วย AI แบบ local-first ส่งออก PNG/WebP โปร่งใส และมี Cloudflare fallback พร้อม Turnstile เมื่อ WebGPU ใช้ไม่ได้",
         url: "https://yuukub.com/tools/background-remover/",
         siteName: "Saranyuu M.",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary",
-        title: "ลบพื้นหลังรูปออนไลน์ฟรี - AI Background Remover PNG/WebP",
+        title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
         description: "ลบพื้นหลัง JPG, PNG, WebP เป็นไฟล์โปร่งใสเต็มความละเอียด ใช้ WebGPU ในเครื่องเป็นหลัก พร้อม Cloudflare fallback เมื่อจำเป็น",
     },
     robots: {

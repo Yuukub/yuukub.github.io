@@ -381,6 +381,7 @@ export default function ImageConverterPage() {
         }
 
         const zipped = zipSync(files);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const blob = new Blob([zipped as any], { type: "application/zip" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");

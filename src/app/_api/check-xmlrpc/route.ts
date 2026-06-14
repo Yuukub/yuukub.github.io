@@ -79,11 +79,11 @@ export async function POST(req: NextRequest) {
             message
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("XML-RPC Check Error:", error);
         return NextResponse.json({
             error: "Failed to check URL. The site might be down or blocking requests.",
-            details: error.message
+            details: error instanceof Error ? error.message : String(error)
         }, { status: 500 });
     }
 }

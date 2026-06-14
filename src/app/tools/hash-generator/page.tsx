@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,9 +13,9 @@ import { AdUnit } from "@/components/ad-unit";
 function md5(string: string) {
     function k(n: number) { return Math.sin(n) * 2 ** 32 | 0; }
     let b = [0, 1, 2, 3].map(i => 0x67452301 + (i * 0xefcdab89 - 0x98badcfe) % 0x11111111);
-    let s = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
-    let x = Array.from(unescape(encodeURIComponent(string)) + "\x80" + "\0".repeat((56 - (string.length + 1) % 64 + 64) % 64) + Array.from({ length: 8 }, (_, i) => String.fromCharCode((string.length * 8) >> (i * 8) & 255)).join(""), c => c.charCodeAt(0));
-    let m = Array.from({ length: x.length / 4 }, (_, i) => x[i * 4] | x[i * 4 + 1] << 8 | x[i * 4 + 2] << 16 | x[i * 4 + 3] << 24);
+    const s = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+    const x = Array.from(unescape(encodeURIComponent(string)) + "\x80" + "\0".repeat((56 - (string.length + 1) % 64 + 64) % 64) + Array.from({ length: 8 }, (_, i) => String.fromCharCode((string.length * 8) >> (i * 8) & 255)).join(""), c => c.charCodeAt(0));
+    const m = Array.from({ length: x.length / 4 }, (_, i) => x[i * 4] | x[i * 4 + 1] << 8 | x[i * 4 + 2] << 16 | x[i * 4 + 3] << 24);
     for (let j = 0; j < m.length; j += 16) {
         let [a, c, d, e] = b;
         for (let i = 0; i < 64; i++) {
@@ -24,7 +24,7 @@ function md5(string: string) {
             else if (i < 32) { f = (e & c) | (~e & d); g = (5 * i + 1) % 16; }
             else if (i < 48) { f = c ^ d ^ e; g = (3 * i + 5) % 16; }
             else { f = d ^ (c | ~e); g = (7 * i) % 16; }
-            let t = e; e = d; d = c; c = (c + ((a + f + k(i + 1) + m[j + g]) << s[(i >> 4) * 4 + i % 4] | (a + f + k(i + 1) + m[j + g]) >>> (32 - s[(i >> 4) * 4 + i % 4]))) | 0; a = t;
+            const t = e; e = d; d = c; c = (c + ((a + f + k(i + 1) + m[j + g]) << s[(i >> 4) * 4 + i % 4] | (a + f + k(i + 1) + m[j + g]) >>> (32 - s[(i >> 4) * 4 + i % 4]))) | 0; a = t;
         }
         b = b.map((v, i) => (v + [a, c, d, e][i]) | 0);
     }
@@ -57,10 +57,6 @@ export default function HashGenerator() {
 
         setHashes({ md5: md5Hash, sha256: sha256Hash });
     };
-
-    useEffect(() => {
-        generateHashes(input);
-    }, [input]);
 
     const copyToClipboard = (text: string, id: string) => {
         navigator.clipboard.writeText(text);
@@ -106,7 +102,11 @@ export default function HashGenerator() {
                                 className="w-full h-32 p-4 rounded-xl bg-background border border-border/50 focus:border-violet-500/50 outline-none transition-all resize-none font-mono text-sm leading-relaxed"
                                 placeholder="พิมพ์ข้อความที่ต้องการทำ Hash ที่นี่..."
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setInput(val);
+                                    generateHashes(val);
+                                }}
                             />
                         </div>
                     </Card>

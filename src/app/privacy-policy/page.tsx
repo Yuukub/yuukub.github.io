@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
                                 ความเป็นส่วนตัวของข้อมูล (Client-side Processing)
                             </h2>
                             <p className="text-lg font-medium text-foreground mb-4">
-                                "ความปลอดภัยของคุณคือภารกิจสูงสุดของเรา"
+                                &quot;ความปลอดภัยของคุณคือภารกิจสูงสุดของเรา&quot;
                             </p>
                             <p>
                                 สำหรับเครื่องมือต่างๆ บนเว็บไซต์นี้ (เช่น Image Converter) เราใช้เทคโนโลยี <strong>WebAssembly (WASM)</strong> และ <strong>JavaScript</strong> ในการประมวลผลข้อมูล <strong>บนบราวเซอร์ของผู้ใช้โดยตรง (Client-side)</strong>:

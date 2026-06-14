@@ -31,7 +31,7 @@ export default function AboutPage() {
                             <h2 className="text-3xl font-bold text-foreground mb-6">ภารกิจของเรา</h2>
                             <p className="text-lg leading-relaxed text-muted-foreground">
                                 <strong>yuukub.com</strong> ถูกสร้างขึ้นเพื่อเป็นศูนย์รวมของความรู้และเครื่องมือทางเทคนิคที่ใช้งานได้จริง
-                                เราเชื่อในพลังของการแบ่งปันข้อมูลที่ "เจาะลึก" และเครื่องมือที่ "ปลอดภัย"
+                                เราเชื่อในพลังของการแบ่งปันข้อมูลที่ &quot;เจาะลึก&quot; และเครื่องมือที่ &quot;ปลอดภัย&quot;
                             </p>
                         </section>
 
@@ -73,7 +73,7 @@ export default function AboutPage() {
                     </div>
 
                     <footer className="text-center font-bold text-primary italic">
-                        "Empowering Developers with Secure and Efficient Tools"
+                        &quot;Empowering Developers with Secure and Efficient Tools&quot;
                     </footer>
                 </article>
             </main>

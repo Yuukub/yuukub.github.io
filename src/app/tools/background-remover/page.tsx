@@ -81,23 +81,35 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const FAQ_ITEMS = [
     {
         question: "ลบพื้นหลังรูปด้วยเครื่องมือนี้ปลอดภัยไหม?",
-        answer: "ค่าเริ่มต้นเป็น local-first: รูปถูกประมวลผลในเบราว์เซอร์ด้วย WebGPU หรือ Canvas fallback หากคุณกดใช้ Cloudflare AI fallback รูปจะถูกอัปโหลดไป Cloudflare เฉพาะครั้งนั้นและต้องผ่าน Turnstile ก่อน",
+        answer: "ปลอดภัยแน่นอนครับ เพราะระบบเริ่มต้นทำงานแบบ local-first รูปภาพของคุณจะได้รับการประมวลผลภายในเบราว์เซอร์ของอุปกรณ์คุณเองโดยไม่ผ่านเซิร์ฟเวอร์ใดๆ (กรณีใช้ WebGPU AI หรือ Canvas Heuristics) ยกเว้นเมื่อคุณเลือกโหมด Cloudflare AI Fallback ระบบจะส่งรูปภาพไปประมวลผลแบบเข้ารหัสที่เซิร์ฟเวอร์ปลายทางของ Cloudflare เพื่อช่วยตัดพื้นหลัง และจะไม่มีการบันทึกภาพถ่ายนั้นลงเซิร์ฟเวอร์เป็นการถาวร",
     },
     {
-        question: "ทำไมครั้งแรกใช้เวลานาน?",
-        answer: "ครั้งแรกของโหมด WebGPU ต้องดาวน์โหลดโมเดล BiRefNet lite ผ่าน Transformers.js ประมาณ 114MB สำหรับ fp16 หรือประมาณ 224MB สำหรับ fp32 หลังจากนั้น browser cache จะช่วยให้โหลดเร็วขึ้น",
+        question: "ทำไมการประมวลผลครั้งแรกถึงใช้เวลานาน?",
+        answer: "เมื่อเริ่มต้นใช้งานโหมด WebGPU AI เป็นครั้งแรก ระบบจำเป็นต้องดาวน์โหลดไฟล์โมเดลประมวลผลภาษาภาพ (BiRefNet-lite) จากทาง Hugging Face ขนาดประมาณ 114MB สำหรับเครื่องที่รับ float16 หรือประมาณ 224MB สำหรับ float32 ซึ่งจะดาวน์โหลดเพียงแค่ครั้งเดียวเท่านั้น หลังจากนั้น ตัวโมเดลจะถูกบันทึกเก็บไว้ในระบบเบราว์เซอร์แคชของเครื่อง ทำให้การใช้งานครั้งต่อไปรันต่อได้ทันทีโดยไม่ต้องรอโหลดซ้ำ",
     },
     {
-        question: "ถ้าเครื่องไม่รองรับ WebGPU ยังใช้ได้ไหม?",
-        answer: "ใช้ได้ โดยระบบมี Canvas fallback สำหรับโลโก้หรือภาพพื้นหลังเรียบ และมี Cloudflare AI fallback สำหรับงานที่ต้องใช้ AI เมื่อเครื่องไม่รองรับ WebGPU โดยผู้ใช้ต้องกดยืนยัน Turnstile ก่อนส่งรูป",
+        question: "หากอุปกรณ์หรือเว็บเบราว์เซอร์ไม่รองรับ WebGPU จะทำอย่างไร?",
+        answer: "ไม่มีปัญหาครับ ระบบถูกออกแบบมาให้มีเอนจินสำรองพร้อมใช้งานทันที โดยจะตรวจจับให้อัตโนมัติและสลับไปใช้ Canvas Heuristics เพื่อลบพื้นหลังแบบสีพื้นเรียบในพริบตา หรือผู้ใช้สามารถเลือกใช้ Cloudflare AI Fallback ในการลบภาพซับซ้อน ซึ่งระบบนี้ต้องการการยืนยัน Turnstile ก่อนทำงานเพื่อป้องกันการโจมตีจากบอทภายนอก",
     },
     {
-        question: "ไฟล์ผลลัพธ์เป็นแบบไหน?",
-        answer: "ผลลัพธ์ดาวน์โหลดได้ทั้ง PNG และ WebP โปร่งใสเต็มความละเอียดเดิมของรูป เหมาะสำหรับรูปสินค้า โปรไฟล์ โพสต์โซเชียล และงานออกแบบ",
+        question: "ไฟล์รูปภาพผลลัพธ์ที่ได้มีลักษณะเป็นอย่างไร?",
+        answer: "รูปภาพที่ลบพื้นหลังสำเร็จสามารถเลือกดาวน์โหลดได้ทั้งแบบไฟล์ PNG ที่โปร่งใสและรักษาความละเอียดดั้งเดิมของกล้องไว้แบบ 100% เหมาะสำหรับนำไปตัดต่อต่อ หรือเลือกดาวน์โหลดไฟล์ WebP โปร่งใสที่มีการบีบอัดให้ขนาดไฟล์เล็กลงมากโดยยังคงรายละเอียดที่คมชัด เหมาะสำหรับนำไปโพสต์ขึ้นหน้าเว็บหรือโซเชียลมีเดีย",
     },
     {
-        question: "Cloudflare fallback คิดโควต้าอย่างไร?",
-        answer: "เว็บเรียก Cloudflare Images เพียงครั้งเดียวต่อการลบพื้นหลังสำเร็จหนึ่งรูปเพื่อรับ PNG จากนั้นแปลง WebP ในเบราว์เซอร์ จึงไม่เรียก Cloudflare เพิ่มเพื่อสร้าง WebP และปุ่ม Cloudflare จะถูกปิดสำหรับรูปเดิมหลังสำเร็จ",
+        question: "โควต้าของ Cloudflare AI Fallback มีการจัดการอย่างไร?",
+        answer: "เพื่อประหยัดทรัพยากรการส่งรูป ระบบจะเรียกใช้ API ของ Cloudflare เพียง 1 ครั้งต่อรูปภาพนั้นๆ เพื่อรับผลลัพธ์ PNG กลับมา จากนั้นการแปลงเป็นไฟล์ WebP จะเกิดขึ้นบนเบราว์เซอร์ของตัวเครื่องโดยตรง และปุ่มเรียกใช้ Cloudflare สำหรับรูปเดิมจะถูกปิดใช้งานทันทีหลังทำสำเร็จ เพื่อหลีกเลี่ยงการยิงคำสั่งซ้ำซ้อนโดยไม่จำเป็น",
+    },
+    {
+        question: "ขนาดไฟล์และมิติของรูปภาพที่เหมาะสมกับการใช้งานคือเท่าไหร่?",
+        answer: "หน้าเว็บของเรารองรับรูปภาพขนาดใหญ่สุดได้ถึง 32 Megapixel อย่างไรก็ตาม เพื่อประสิทธิภาพที่ดีที่สุดและป้องกันการขาดแคลนหน่วยความจำ (Out of Memory) ในเบราว์เซอร์ขณะรัน AI บนการ์ดจอ ขอแนะนำให้เลือกใช้รูปที่มีขนาดไฟล์ทั่วไปไม่เกิน 15-20MB",
+    },
+    {
+        question: "สามารถใช้งานระบบตัดพื้นหลังตอนที่ไม่มีอินเทอร์เน็ตได้หรือไม่?",
+        answer: "ได้เลยครับ! หากอุปกรณ์ของคุณเคยผ่านขั้นตอนการโหลดโมเดล AI (WebGPU) สำเร็จมาก่อนหน้านั้นแล้ว ตัวโมเดลจะถูกดึงไปเก็บใน Cache Storage ของตัวเครื่อง คุณจึงสามารถลากรูปภาพมาลบพื้นหลังแบบออฟไลน์ได้ 100% โดยไม่จำเป็นต้องเชื่อมต่อเครือข่ายอินเทอร์เน็ตใดๆ",
+    },
+    {
+        question: "กรณีที่ต้องการลบโมเดล AI ออกจากอุปกรณ์ ต้องทำอย่างไร?",
+        answer: "หากคุณกังวลเรื่องพื้นที่จัดเก็บข้อมูลในเครื่องและต้องการนำโมเดลออก สามารถทำได้ง่ายๆ โดยการล้างแคชของเบราว์เซอร์ (Clear Browser Cache) สำหรับโดเมน yuukub.com หรือเข้าไปที่หน้าต่างเครื่องมือผู้พัฒนาเว็บ (Developer Tools) ไปที่แท็บ Application -> Storage แล้วกดปุ่ม Clear site data ได้ทันที",
     },
 ];
 
@@ -834,7 +846,109 @@ export default function BackgroundRemoverPage() {
                     ))}
                 </section>
 
-                <section className="mt-12 space-y-4">
+                {/* ทำไมต้องลบพื้นหลังแบบ Local-first AI? */}
+                <section className="mt-16 space-y-6">
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">ทำไมถึงควรลบพื้นหลังรูปภาพแบบ Local-first?</h2>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">1. ปลอดภัยเรื่องข้อมูลส่วนตัว 100%</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                โดยทั่วไป เว็บไซต์ลบพื้นหลังส่วนใหญ่จะต้องอัปโหลดไฟล์รูปภาพของคุณขึ้นไปประมวลผลบนเซิร์ฟเวอร์ แต่ระบบแบบ Local-first ของเราจะประมวลผลผ่าน Transformers.js ร่วมกับ WebGPU ในเว็บเบราว์เซอร์ของตัวเครื่องโดยตรง ทำให้ไฟล์ภาพถ่ายบุคคล ภาพสินค้า หรือเอกสารสำคัญของคุณจะไม่ถูกส่งออกไปที่ใดเลย มั่นใจได้ในเรื่องความเป็นส่วนตัว
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">2. ใช้งานได้ฟรี ไม่จำกัดจำนวนรูป</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                การรัน AI บนคลาวด์มีค่าเซิร์ฟเวอร์ที่สูงมาก ทำให้บริการลบพื้นหลังมักจะจำกัดจำนวนครั้งที่ใช้ หรือลดความละเอียดภาพลงเหลือแค่ภาพขนาดเล็ก (Low-res) แต่เนื่องจากระบบนี้ใช้กำลังการประมวลผลจากชิป GPU/CPU ในเครื่องคอมพิวเตอร์หรือมือถือของคุณเอง คุณจึงสามารถลบพื้นหลังและดาวน์โหลดรูปโปร่งใสความละเอียดสูงได้แบบไม่จำกัดจำนวนครั้ง
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">3. ประหยัดปริมาณอินเทอร์เน็ต</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                สำหรับการรันผ่าน WebGPU ครั้งแรก ระบบจะดาวน์โหลดโมเดล AI ขนาดเล็ก (BiRefNet-lite) มาเก็บไว้ในเบราว์เซอร์แคชของเครื่อง หลังจากนั้นเมื่อคุณกดลบพื้นหลังในครั้งถัดไป ระบบจะดึงโมเดลมาใช้ได้ทันทีโดยไม่ต้องต่ออินเทอร์เน็ตหรืออัปโหลดรูปภาพขนาดหลายสิบเมกะไบต์ เหมาะมากสำหรับการทำงานขณะใช้อินเทอร์เน็ตมือถือ
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">4. สลับโหมดการประมวลผลได้ยืดหยุ่น</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                หากอุปกรณ์ของคุณไม่มี GPU แยก หรือใช้เบราว์เซอร์รุ่นเก่าที่ไม่รองรับ WebGPU ระบบจะสลับไปใช้ Canvas Fallback สำหรับลบพื้นหลังสีพื้นธรรมดา หรือคุณสามารถกดยืนยันผ่าน Turnstile เพื่อเลือกใช้ Cloudflare Workers AI Fallback ซึ่งช่วยให้เครื่องสเปกต่ำสามารถลบพื้นหลังภาพที่ซับซ้อนได้เช่นกัน
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* เปรียบเทียบโหมดการทำงาน */}
+                <section className="mt-16 space-y-6">
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">เปรียบเทียบโหมดการทำงานของเครื่องมือ</h2>
+                    <div className="overflow-x-auto rounded-xl border border-border/50 bg-card/50">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-border/50 bg-muted/40">
+                                    <th className="p-4 text-sm font-semibold">คุณสมบัติ</th>
+                                    <th className="p-4 text-sm font-semibold text-cyan-500">WebGPU AI (แนะนำ)</th>
+                                    <th className="p-4 text-sm font-semibold">Canvas Heuristics</th>
+                                    <th className="p-4 text-sm font-semibold">Cloudflare AI Fallback</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/50 text-sm">
+                                <tr>
+                                    <td className="p-4 font-medium">การอัปโหลดรูป</td>
+                                    <td className="p-4 text-muted-foreground">ทำงานในเครื่อง 100% ไม่มีการอัปโหลด</td>
+                                    <td className="p-4 text-muted-foreground">ทำงานในเครื่อง 100% ไม่มีการอัปโหลด</td>
+                                    <td className="p-4 text-muted-foreground">ส่งรูปไปประมวลผลในเมมโมรี่ของ Cloudflare (ไม่มีการบันทึกถาวร)</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 font-medium">ความเหมาะของรูป</td>
+                                    <td className="p-4 text-muted-foreground">ภาพคน สัตว์ สิ่งของ ที่มีขอบหยักซับซ้อน</td>
+                                    <td className="p-4 text-muted-foreground">โลโก้ ไอคอน หรือภาพที่มีสีพื้นหลังตัดกันชัดเจน</td>
+                                    <td className="p-4 text-muted-foreground">ภาพทุกประเภท (เหมาะเมื่อเครื่องไม่รองรับ WebGPU)</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 font-medium">ความเร็วในการทำงาน</td>
+                                    <td className="p-4 text-muted-foreground">เร็วมาก (ขึ้นอยู่กับความแรงของ GPU เครื่อง)</td>
+                                    <td className="p-4 text-muted-foreground">รวดเร็วทันทีภายในไม่กี่มิลลิวินาที</td>
+                                    <td className="p-4 text-muted-foreground">ปานกลาง (ขึ้นอยู่กับความเร็วอินเทอร์เน็ตในการส่งรูป)</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 font-medium">ข้อกำหนดของอุปกรณ์</td>
+                                    <td className="p-4 text-muted-foreground">ต้องการการ์ดจอ และเบราว์เซอร์รองรับ WebGPU</td>
+                                    <td className="p-4 text-muted-foreground">รองรับทุกอุปกรณ์และทุกเบราว์เซอร์</td>
+                                    <td className="p-4 text-muted-foreground">ต้องการการเชื่อมต่ออินเทอร์เน็ตและยืนยัน Turnstile</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* ขั้นตอนการใช้งานและวิธีลบพื้นหลังให้เนียนที่สุด */}
+                <section className="mt-16 space-y-6">
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">ขั้นตอนการใช้งานและเคล็ดลับเพื่อผลลัพธ์ที่ดีที่สุด</h2>
+                    <div className="grid sm:grid-cols-3 gap-6">
+                        <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">1</div>
+                            <h3 className="font-semibold text-foreground">เตรียมรูปภาพ</h3>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                เลือกรูปภาพที่มีแสงสว่างเพียงพอ และจุดที่ต้องการตัดมีความต่างของสีกับพื้นหลังอย่างชัดเจน หากใช้โหมด WebGPU AI ระบบสามารถช่วยแยกเส้นผม ขนสัตว์ หรือขอบวัตถุที่มีความฟุ้งได้ค่อนข้างเป็นธรรมชาติ
+                            </p>
+                        </div>
+                        <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">2</div>
+                            <h3 className="font-semibold text-foreground">เลือกเอนจินประมวลผล</h3>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                ระบบจะตรวจสเปกและเลือกเอนจินที่ดีที่สุดให้อัตโนมัติ หากรูปเป็นโลโก้ฉากหลังสีขาวล้วน แนะนำให้กดเลือกโหมด Canvas Heuristics เพื่อความรวดเร็ว แต่หากเป็นรูปถ่ายทั่วไป แนะนำให้ใช้ WebGPU AI หรือ Cloudflare AI
+                            </p>
+                        </div>
+                        <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">3</div>
+                            <h3 className="font-semibold text-foreground">บันทึกรูปและนำไปใช้</h3>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                คุณสามารถกดดาวน์โหลดผลลัพธ์ได้ทั้งไฟล์ PNG ความละเอียดต้นฉบับสำหรับการทำงานกราฟิกต่อ หรือเลือกดาวน์โหลดไฟล์ WebP โปร่งใสที่ประมวลผลบีบอัดขนาดไฟล์ลงมา เพื่อช่วยให้โหลดบนเว็บไซต์ได้รวดเร็วยิ่งขึ้น
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="mt-16 space-y-4">
                     <div className="flex items-center gap-2">
                         <Info className="h-5 w-5 text-cyan-500" />
                         <h2 className="text-2xl font-bold">คำถามที่พบบ่อย</h2>

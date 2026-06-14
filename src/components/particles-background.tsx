@@ -22,6 +22,7 @@ export const ParticlesBackground: React.FC = () => {
 
     // Wait for client-side mount
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true)
     }, [])
 

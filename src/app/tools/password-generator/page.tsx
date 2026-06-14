@@ -18,11 +18,10 @@ export default function PasswordGenerator() {
         numbers: true,
         symbols: true,
     });
-    const [strength, setStrength] = useState({ label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" });
     const [copied, setCopied] = useState(false);
     const [showPassword, setShowPassword] = useState(true);
 
-    const generatePassword = useCallback(() => {
+    const generatePassword = useCallback((len: number, opts: typeof options) => {
         const charset = {
             uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             lowercase: "abcdefghijklmnopqrstuvwxyz",
@@ -31,10 +30,10 @@ export default function PasswordGenerator() {
         };
 
         let characters = "";
-        if (options.uppercase) characters += charset.uppercase;
-        if (options.lowercase) characters += charset.lowercase;
-        if (options.numbers) characters += charset.numbers;
-        if (options.symbols) characters += charset.symbols;
+        if (opts.uppercase) characters += charset.uppercase;
+        if (opts.lowercase) characters += charset.lowercase;
+        if (opts.numbers) characters += charset.numbers;
+        if (opts.symbols) characters += charset.symbols;
 
         if (!characters) {
             setPassword("");
@@ -42,42 +41,37 @@ export default function PasswordGenerator() {
         }
 
         let result = "";
-        const array = new Uint32Array(length);
+        const array = new Uint32Array(len);
         window.crypto.getRandomValues(array);
 
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < len; i++) {
             result += characters.charAt(array[i] % characters.length);
         }
         setPassword(result);
-    }, [length, options]);
+    }, []);
 
     useEffect(() => {
-        generatePassword();
+        generatePassword(length, options);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [generatePassword]);
 
-    useEffect(() => {
-        // More robust strength calculator (Entropy-based heuristic)
-        let entropy = 0;
-        const poolSize =
-            (options.lowercase ? 26 : 0) +
-            (options.uppercase ? 26 : 0) +
-            (options.numbers ? 10 : 0) +
-            (options.symbols ? 32 : 0);
+    // More robust strength calculator (Entropy-based heuristic computed on render)
+    let entropy = 0;
+    const poolSize =
+        (options.lowercase ? 26 : 0) +
+        (options.uppercase ? 26 : 0) +
+        (options.numbers ? 10 : 0) +
+        (options.symbols ? 32 : 0);
 
-        if (poolSize > 0 && password.length > 0) {
-            entropy = Math.floor(password.length * Math.log2(poolSize));
-        }
+    if (poolSize > 0 && password.length > 0) {
+        entropy = Math.floor(password.length * Math.log2(poolSize));
+    }
 
-        // Standard entropy thresholds:
-        // < 40: Weak
-        // 40-60: Medium
-        // 60-80: Strong
-        // > 80: Very Strong
-        if (entropy < 40) setStrength({ label: "Weak", score: 1, color: "text-red-500", bg: "bg-red-500" });
-        else if (entropy < 60) setStrength({ label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" });
-        else if (entropy < 80) setStrength({ label: "Strong", score: 3, color: "text-emerald-500", bg: "bg-emerald-500" });
-        else setStrength({ label: "Very Strong", score: 4, color: "text-blue-500", bg: "bg-blue-500" });
-    }, [password, options]);
+    let strength = { label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" };
+    if (entropy < 40) strength = { label: "Weak", score: 1, color: "text-red-500", bg: "bg-red-500" };
+    else if (entropy < 60) strength = { label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" };
+    else if (entropy < 80) strength = { label: "Strong", score: 3, color: "text-emerald-500", bg: "bg-emerald-500" };
+    else strength = { label: "Very Strong", score: 4, color: "text-blue-500", bg: "bg-blue-500" };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(password);
@@ -134,7 +128,7 @@ export default function PasswordGenerator() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-10 w-10 text-muted-foreground hover:text-primary"
-                                            onClick={generatePassword}
+                                            onClick={() => generatePassword(length, options)}
                                         >
                                             <RefreshCw className="h-5 w-5" />
                                         </Button>
@@ -190,7 +184,11 @@ export default function PasswordGenerator() {
                                     min="8"
                                     max="32"
                                     value={length}
-                                    onChange={(e) => setLength(parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        setLength(val);
+                                        generatePassword(val, options);
+                                    }}
                                     className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
                             </div>
@@ -210,7 +208,11 @@ export default function PasswordGenerator() {
                                         <input
                                             type="checkbox"
                                             checked={options[opt]}
-                                            onChange={() => setOptions(prev => ({ ...prev, [opt]: !prev[opt] }))}
+                                            onChange={() => {
+                                                const newOpts = { ...options, [opt]: !options[opt] };
+                                                setOptions(newOpts);
+                                                generatePassword(length, newOpts);
+                                            }}
                                             className="w-4 h-4 accent-primary cursor-pointer"
                                         />
                                     </label>

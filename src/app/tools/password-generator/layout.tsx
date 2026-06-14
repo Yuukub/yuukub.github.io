@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Secure Password Generator | เครื่องมือสร้างรหัสผ่านที่ปลอดภัย",
+    title: "Secure Password Generator สร้างรหัสผ่านปลอดภัย",
     description: "สร้างรหัสผ่านที่แข็งแรงและคาดเดายากภายในเครื่องของคุณเอง ไม่มีการส่งข้อมูลผ่านอินเทอร์เน็ต มั่นใจในความปลอดภัยระดับสูงสุด",
     keywords: ["Secure Password Generator", "เครื่องมือสร้างรหัสผ่าน", "Random password maker", "ความปลอดภัยของรหัสผ่าน"],
     alternates: {

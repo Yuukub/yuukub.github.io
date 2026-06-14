@@ -686,7 +686,7 @@ export default function PdfToolsPage() {
                                 {mergeFiles.length > 0 ? (
                                     <>
                                         <p className="font-semibold">{mergeFiles.length} ไฟล์พร้อมรวม</p>
-                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือกด "เพิ่มไฟล์"</p>
+                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือกด &quot;เพิ่มไฟล์&quot;</p>
                                     </>
                                 ) : (
                                     <>

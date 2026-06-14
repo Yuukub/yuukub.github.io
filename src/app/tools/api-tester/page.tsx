@@ -128,7 +128,7 @@ function parseImportCode(code: string): ParsedRequest {
 
         const bodyMatch = trimmed.match(/CURLOPT_POSTFIELDS\s*(?:=>|,)\s*([\s\S]*?)(?:,\s*\n|\n|\]|\))/);
         if (bodyMatch) {
-            let raw = bodyMatch[1].trim();
+            const raw = bodyMatch[1].trim();
             if (raw.includes("json_encode")) {
                 const arrMatch = raw.match(/json_encode\s*\(\s*[\[{]([\s\S]*?)[\]}]\s*\)/);
                 if (arrMatch) {
@@ -199,7 +199,7 @@ function parseImportCode(code: string): ParsedRequest {
 
         const bodyMatch = trimmed.match(/(?:json|data)\s*=\s*(\{[\s\S]*?\})/);
         if (bodyMatch) {
-            let raw = bodyMatch[1].replace(/'/g, '"').replace(/True/g, "true").replace(/False/g, "false").replace(/None/g, "null");
+            const raw = bodyMatch[1].replace(/'/g, '"').replace(/True/g, "true").replace(/False/g, "false").replace(/None/g, "null");
             try { result.body = JSON.stringify(JSON.parse(raw), null, 2); } catch { result.body = raw; }
         }
         return result;
@@ -961,7 +961,7 @@ export default function ApiTesterPage() {
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Proxy ที่ใช้ในการส่ง request ทำงานบน <strong className="text-foreground">Cloudflare Workers</strong> ซึ่งเป็น edge runtime ที่ไม่เก็บ log การเชื่อมต่อหรือ payload ใดๆ ทำหน้าที่แค่ส่งต่อ request และรับ response กลับมาให้เท่านั้น ส่วนประวัติการยิงทั้งหมดถูกบันทึกเฉพาะใน localStorage ของเบราว์เซอร์คุณ และสามารถลบได้ตลอดเวลาผ่านปุ่ม "ล้างทั้งหมด"
+                                Proxy ที่ใช้ในการส่ง request ทำงานบน <strong className="text-foreground">Cloudflare Workers</strong> ซึ่งเป็น edge runtime ที่ไม่เก็บ log การเชื่อมต่อหรือ payload ใดๆ ทำหน้าที่แค่ส่งต่อ request และรับ response กลับมาให้เท่านั้น ส่วนประวัติการยิงทั้งหมดถูกบันทึกเฉพาะใน localStorage ของเบราว์เซอร์คุณ และสามารถลบได้ตลอดเวลาผ่านปุ่ม &quot;ล้างทั้งหมด&quot;
                             </p>
                             <div className="flex flex-wrap gap-2 pt-1">
                                 <Badge variant="outline" className="text-[11px]">No Log</Badge>

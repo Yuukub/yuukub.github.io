@@ -58,10 +58,16 @@ const ATTACK_TYPES = [
     },
 ];
 
+interface ScanResult {
+    isEnabled: boolean;
+    message: string;
+    url: string;
+}
+
 export default function XmlRpcCheckerPage() {
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<ScanResult | null>(null);
     const [error, setError] = useState("");
 
     const checkXmlRpc = async () => {
@@ -87,8 +93,8 @@ export default function XmlRpcCheckerPage() {
             }
 
             setResult(data);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setLoading(false);
         }
@@ -245,7 +251,7 @@ deny from all
                                 <strong className="text-foreground">XML-RPC</strong> (XML Remote Procedure Call) คือ protocol ที่ WordPress ใช้เพื่อให้แอปพลิเคชันภายนอกสามารถสื่อสารและควบคุมเว็บไซต์ได้จากระยะไกลผ่านไฟล์ <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">xmlrpc.php</code> ในอดีตมันถูกใช้โดยแอปมือถือ WordPress และบริการอย่าง Jetpack เพื่อโพสต์บทความและจัดการเนื้อหาโดยไม่ต้องเข้า admin panel
                             </p>
                             <p>
-                                อย่างไรก็ตาม ตั้งแต่ WordPress 4.7 เป็นต้นมา <strong className="text-foreground">REST API</strong> ได้เข้ามาทำหน้าที่แทน XML-RPC ได้อย่างสมบูรณ์แบบและปลอดภัยกว่ามาก ส่งผลให้ xmlrpc.php กลายเป็น "ประตูหลัง" ที่เปิดทิ้งไว้โดยไม่จำเป็น และตกเป็นเป้าหมายหลักของแฮกเกอร์ที่สแกนหาเว็บ WordPress ที่ยังเปิดไฟล์นี้อยู่
+                                อย่างไรก็ตาม ตั้งแต่ WordPress 4.7 เป็นต้นมา <strong className="text-foreground">REST API</strong> ได้เข้ามาทำหน้าที่แทน XML-RPC ได้อย่างสมบูรณ์แบบและปลอดภัยกว่ามาก ส่งผลให้ xmlrpc.php กลายเป็น &quot;ประตูหลัง&quot; ที่เปิดทิ้งไว้โดยไม่จำเป็น และตกเป็นเป้าหมายหลักของแฮกเกอร์ที่สแกนหาเว็บ WordPress ที่ยังเปิดไฟล์นี้อยู่
                             </p>
                             <p>
                                 จากรายงานของ Wordfence พบว่าการโจมตีผ่าน XML-RPC คิดเป็นสัดส่วนสูงในการโจมตี WordPress ทั้งหมด เนื่องจากแฮกเกอร์ใช้ <strong className="text-foreground">ฟีเจอร์ multicall</strong> ที่ช่วยให้ส่งคำสั่งหลายพันคำสั่งในคำขอ HTTP เพียงครั้งเดียว ทำให้การโจมตีมีประสิทธิภาพสูงกว่าการโจมตีหน้า login ปกติมาก

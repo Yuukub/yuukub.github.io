@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AdUnit } from "@/components/ad-unit";
 
 export const metadata: Metadata = {
-    title: "Premium Tools for Security & Productivity รวมเครื่องมือและยูทิลิตี้",
+    title: "รวมเครื่องมือออนไลน์ Developer & Security Tools",
     description: "รวมหลากหลายเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
     alternates: { canonical: "https://yuukub.com/tools/" },
 };

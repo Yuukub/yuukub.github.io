@@ -4,6 +4,8 @@
  * Runs off the main thread to keep the UI responsive.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // We'll dynamically import the @jsquash modules and manually init their WASM
 // using fetch() from the public/wasm/ folder.
 
@@ -14,7 +16,8 @@ let avifDecModule: any = null;
 let avifEncModule: any = null;
 let jpegDecModule: any = null;
 let jpegEncModule: any = null;
-let pngModule: any = null;
+let pngDecModule: any = null;
+let pngEncModule: any = null;
 let webpDecModule: any = null;
 let webpEncModule: any = null;
 
@@ -27,28 +30,36 @@ async function fetchWasm(url: string): Promise<ArrayBuffer> {
 async function initDecoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
-            const module = await import('@jsquash/jpeg/decode');
+            if (jpegDecModule) return jpegDecModule;
+            const wasmModule = await import('@jsquash/jpeg/decode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/mozjpeg_dec.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).decode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            jpegDecModule = (wasmModule as any).decode || (wasmModule as any).default;
+            return jpegDecModule;
         }
         case 'png': {
-            const module = await import('@jsquash/png/decode');
+            if (pngDecModule) return pngDecModule;
+            const wasmModule = await import('@jsquash/png/decode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/squoosh_png_bg.wasm`);
-            await (module as any).init(wasmBinary);
-            return (module as any).decode || (module as any).default;
+            await (wasmModule as any).init(wasmBinary);
+            pngDecModule = (wasmModule as any).decode || (wasmModule as any).default;
+            return pngDecModule;
         }
         case 'webp': {
-            const module = await import('@jsquash/webp/decode');
+            if (webpDecModule) return webpDecModule;
+            const wasmModule = await import('@jsquash/webp/decode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/webp_dec.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).decode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            webpDecModule = (wasmModule as any).decode || (wasmModule as any).default;
+            return webpDecModule;
         }
         case 'avif': {
-            const module = await import('@jsquash/avif/decode');
+            if (avifDecModule) return avifDecModule;
+            const wasmModule = await import('@jsquash/avif/decode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/avif_dec.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).decode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            avifDecModule = (wasmModule as any).decode || (wasmModule as any).default;
+            return avifDecModule;
         }
         default:
             throw new Error(`Unsupported input format: ${format}`);
@@ -58,28 +69,36 @@ async function initDecoder(format: string): Promise<any> {
 async function initEncoder(format: string): Promise<any> {
     switch (format) {
         case 'jpeg': {
-            const module = await import('@jsquash/jpeg/encode');
+            if (jpegEncModule) return jpegEncModule;
+            const wasmModule = await import('@jsquash/jpeg/encode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/mozjpeg_enc.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).encode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            jpegEncModule = (wasmModule as any).encode || (wasmModule as any).default;
+            return jpegEncModule;
         }
         case 'png': {
-            const module = await import('@jsquash/png/encode');
+            if (pngEncModule) return pngEncModule;
+            const wasmModule = await import('@jsquash/png/encode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/squoosh_png_bg.wasm`);
-            await (module as any).init(wasmBinary);
-            return (module as any).encode || (module as any).default;
+            await (wasmModule as any).init(wasmBinary);
+            pngEncModule = (wasmModule as any).encode || (wasmModule as any).default;
+            return pngEncModule;
         }
         case 'webp': {
-            const module = await import('@jsquash/webp/encode');
+            if (webpEncModule) return webpEncModule;
+            const wasmModule = await import('@jsquash/webp/encode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/webp_enc.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).encode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            webpEncModule = (wasmModule as any).encode || (wasmModule as any).default;
+            return webpEncModule;
         }
         case 'avif': {
-            const module = await import('@jsquash/avif/encode');
+            if (avifEncModule) return avifEncModule;
+            const wasmModule = await import('@jsquash/avif/encode');
             const wasmBinary = await fetchWasm(`${WASM_BASE}/avif_enc.wasm`);
-            await module.init({ wasmBinary });
-            return (module as any).encode || (module as any).default;
+            await wasmModule.init({ wasmBinary });
+            avifEncModule = (wasmModule as any).encode || (wasmModule as any).default;
+            return avifEncModule;
         }
         default:
             throw new Error(`Unsupported output format: ${format}`);
