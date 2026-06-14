@@ -414,23 +414,29 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="bg-primary/5 rounded-[2rem] p-12 md:p-20 text-center border overflow-hidden relative selection:bg-white selection:text-primary">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent z-0" />
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight leading-[1.3]">ยกระดับมาตรฐานความปลอดภัยและประสิทธิภาพให้กับโปรเจกต์ของคุณ</h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              ผมพร้อมแบ่งปันความเชี่ยวชาญในฐานะที่ปรึกษาและนักพัฒนาในโปรเจกต์เชิงเทคนิค มาร่วมสร้างวิสัยทัศน์ของคุณให้เป็นจริงด้วยมาตรฐานระดับสูงครับ
+        {/* Yomu Player Highlight Section */}
+        <section className="bg-gradient-to-r from-violet-600/10 via-primary/5 to-indigo-600/10 rounded-[2rem] p-12 md:p-20 text-center border border-indigo-500/20 overflow-hidden relative selection:bg-white selection:text-primary">
+          <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none" />
+          <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+            <Badge variant="outline" className="rounded-full border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 font-semibold text-xs tracking-wider uppercase">
+              Project Spotlight — Upcoming Android App
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-primary to-indigo-600">
+              Yomu Player
+            </h2>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground/80 tracking-wide">
+              The All-in-One VN & RPG Player with Live Translation
+            </h3>
+            <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              แอปพลิเคชัน Android Engine Container ประสิทธิภาพสูงสำหรับการรันเกม PC Visual Novel และ RPG (เช่น Ren&apos;Py, Godot, RPG Maker) บนมือถือโดยเฉพาะ พร้อมระบบแปลภาษาแบบเรียลไทม์ (Live Translation) ที่ปรับแต่งเป็นพิเศษสำหรับแปล JP &rarr; TH และ EN &rarr; TH มอบประสบการณ์เล่นเกมแปลไทยที่รวดเร็ว ลื่นไหล และปลอดภัยในระบบ Sandbox
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact">
-                <Button size="lg" className="rounded-full h-14 px-10 gap-2 font-bold shadow-2xl">
-                  ติดต่อร่วมงาน
-                </Button>
-              </Link>
-              <a href="https://www.linkedin.com/in/saranyoo-m">
+            <div className="flex flex-wrap justify-center gap-4 pt-4">
+              <Button size="lg" disabled className="rounded-full h-14 px-10 gap-2 font-bold bg-muted text-muted-foreground border border-border/50 cursor-not-allowed">
+                Coming Soon
+              </Button>
+              <a href="https://github.com/Yuukub" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="outline" className="rounded-full h-14 px-10 gap-2 font-bold">
-                  LinkedIn <Linkedin className="h-4 w-4" />
+                  GitHub Profile <ExternalLink className="h-4 w-4" />
                 </Button>
               </a>
             </div>
