@@ -350,7 +350,7 @@ export default function Home() {
               <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Code2 className="h-6 w-6 text-indigo-600" />
               </div>
-              <h4 className="text-xl font-bold mb-3">แก้ไข เพิ่ม ปรับแต่ง เว็บไซต์</h4>
+              <h4 className="text-xl font-bold mb-3">Website Fixes & Customization</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                 แก้ไขบั๊ก เพิ่มเติมระบบ ปรับแต่งความเร็ว และอัปเกรดฟังก์ชันการทำงานใหม่ๆ ให้กับเว็บไซต์เดิมของคุณทั้ง WordPress และ Custom Web
               </p>
