@@ -350,18 +350,19 @@ export default function Home() {
               <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Code2 className="h-6 w-6 text-indigo-600" />
               </div>
-              <h4 className="text-xl font-bold mb-3">Landing Page & Web Systems</h4>
+              <h4 className="text-xl font-bold mb-3">แก้ไข เพิ่ม ปรับแต่ง เว็บไซต์</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                สร้าง Landing Page ที่เน้น Conversion และระบบดูแลจัดการข้อมูลหลังบ้านที่เสถียรปลอดภัย รองรับผู้ใช้งานจำนวนมาก
+                แก้ไขบั๊ก เพิ่มเติมระบบ ปรับแต่งความเร็ว และอัปเกรดฟังก์ชันการทำงานใหม่ๆ ให้กับเว็บไซต์เดิมของคุณทั้ง WordPress และ Custom Web
               </p>
               <div className="mt-auto space-y-4">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-[10px] bg-indigo-500/5 text-indigo-700 border-indigo-200/50 uppercase tracking-tighter">WordPress</Badge>
-                  <Badge variant="secondary" className="text-[10px] bg-indigo-500/5 text-indigo-700 border-indigo-200/50 uppercase tracking-tighter">WordPress Plugin</Badge>
+                  <Badge variant="secondary" className="text-[10px] bg-indigo-500/5 text-indigo-700 border-indigo-200/50 uppercase tracking-tighter">Bug Fixing</Badge>
+                  <Badge variant="secondary" className="text-[10px] bg-indigo-500/5 text-indigo-700 border-indigo-200/50 uppercase tracking-tighter">Custom Web</Badge>
                 </div>
                 <Link href="https://fastwork.co/user/yuukun992" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="w-full rounded-xl border-indigo-500/30 text-indigo-700 hover:bg-indigo-500 hover:text-white transition-all gap-2 group/btn">
-                    จ้างงานพัฒนาเว็บไซต์ <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                    จ้างงานแก้ไขและพัฒนาเว็บ <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
               </div>
