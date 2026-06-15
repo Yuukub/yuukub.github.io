@@ -59,6 +59,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify([articleJsonLd, breadcrumbJsonLd]) }}
