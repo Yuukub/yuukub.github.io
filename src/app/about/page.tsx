@@ -6,6 +6,7 @@ import { User, Terminal, ShieldCheck, Heart } from "lucide-react";
 export const metadata: Metadata = {
     title: "About Us - เกี่ยวกับเรา",
     description: "เรียนรู้เพิ่มเติมเกี่ยวกับเป้าหมายและพันธกิจของ yuukub.com คลังความรู้และเครื่องมือสำหรับนักพัฒนา",
+    alternates: { canonical: "https://yuukub.com/about/" },
 };
 
 export default function AboutPage() {

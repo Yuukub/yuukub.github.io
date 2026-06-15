@@ -6,6 +6,7 @@ import { FileText, Scale, ShieldAlert, CheckCircle } from "lucide-react";
 export const metadata: Metadata = {
     title: "Terms & Conditions - ข้อกำหนดและเงื่อนไข",
     description: "ข้อกำหนดและเงื่อนไขการใช้งานเว็บไซต์ yuukub.com ข้อมูลเกี่ยวกับการใช้งานเครื่องมือและลิขสิทธิ์เนื้อหา",
+    alternates: { canonical: "https://yuukub.com/terms/" },
 };
 
 export default function TermsPage() {

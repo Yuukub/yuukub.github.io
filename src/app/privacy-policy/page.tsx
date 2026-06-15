@@ -7,6 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
     title: "Privacy Policy - นโยบายความเป็นส่วนตัว",
     description: "นโยบายความเป็นส่วนตัวของ yuukub.com ข้อมูลเกี่ยวกับการทำงานของคุกกี้ AdSense และการประมวลผลข้อมูลแบบ Client-side",
+    alternates: { canonical: "https://yuukub.com/privacy-policy/" },
 };
 
 export default function PrivacyPolicyPage() {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
     title: "Contact Us - ติดต่อเรา",
     description: "ช่องทางการติดต่อ yuukub.com สำหรับสอบถามข้อมูล แจ้งปัญหาการใช้งาน หรือข้อเสนอแนะต่างๆ",
+    alternates: { canonical: "https://yuukub.com/contact/" },
 };
 
 export default function ContactPage() {
