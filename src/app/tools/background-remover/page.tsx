@@ -600,7 +600,7 @@ export default function BackgroundRemoverPage() {
             <main className="container mx-auto px-4 pt-28 pb-20 max-w-6xl">
                 <div className="mb-8 flex items-center justify-between gap-4">
                     <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-foreground">
-                        <Link href="/tools">
+                        <Link href="/tools/">
                             <ArrowLeft className="h-4 w-4" /> กลับไป Tools
                         </Link>
                     </Button>

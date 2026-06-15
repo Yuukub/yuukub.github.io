@@ -70,7 +70,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             <Navbar />
 
             <main className="container mx-auto px-4 pt-10 md:pt-24 pb-24 max-w-5xl">
-                <Link href="/blog">
+                <Link href="/blog/">
                     <Button variant="ghost" size="sm" className="gap-1 mb-8 text-muted-foreground hover:text-primary">
                         <ChevronLeft className="h-4 w-4" />
                         กลับไปที่คลังความรู้

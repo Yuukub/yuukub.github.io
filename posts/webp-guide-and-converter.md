@@ -82,7 +82,7 @@ WebP ใช้ **Intra-prediction modes** เพื่อ "เดา" ค่า�
 
 เพื่อให้คุณได้สัมผัสพลังของ WebP ทันที ผมได้พัฒนา Tools ที่ไม่ใช่แค่ "แปลงไฟล์" แต่เป็นการยกเอา **Encoder Engine (libwebp)** มาคอมไพล์เป็น **WebAssembly** รันบนเครื่องคุณโดยตรง:
 
-### [👉 ใช้งานเครื่องมือ: Advance Image Converter Suite](/tools/image-converter)
+### [👉 ใช้งานเครื่องมือ: Advance Image Converter Suite](/tools/image-converter/)
 
 **ทำไมต้องใช้ตัวนี้?**
 - **Security-First:** ไฟล์รูปภาพของคุณ *ไม่เคย* ถูกส่งออกไปนอกเครื่อง (No Uploads)

@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
                             </p>
                             <ul className="list-none pl-0">
                                 <li><strong>Email:</strong> <a href="mailto:yuukun.eutopia@gmail.com" className="text-primary hover:underline">yuukun.eutopia@gmail.com</a></li>
-                                <li><strong>Website:</strong> <Link href="/contact" className="text-primary hover:underline">หน้าติดต่อเรา</Link></li>
+                                <li><strong>Website:</strong> <Link href="/contact/" className="text-primary hover:underline">หน้าติดต่อเรา</Link></li>
                             </ul>
                         </section>
                     </div>

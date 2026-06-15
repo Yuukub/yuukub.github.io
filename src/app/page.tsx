@@ -106,7 +106,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4 translate-y-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
-            <Link href="/contact">
+            <Link href="/contact/">
               <Button size="lg" className="rounded-full h-12 px-8 gap-2 premium-glow animate-pulse-glow">
                 ติดต่อร่วมงาน <Mail className="h-4 w-4" />
               </Button>
@@ -290,7 +290,7 @@ export default function Home() {
                   เจาะลึกเรื่องความปลอดภัย WordPress, Technical SEO และการพัฒนา Full-stack สมัยใหม่
                 </p>
               </div>
-              <Link href="/blog">
+              <Link href="/blog/">
                 <Button variant="link" className="p-0 text-primary gap-2 font-bold group">
                   อ่านบทความ <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>

@@ -440,7 +440,7 @@ export default function ImageConverterPage() {
                 {/* Header */}
                 <div className="mb-10">
                     <Link
-                        href="/tools"
+                        href="/tools/"
                         className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit"
                     >
                         <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ

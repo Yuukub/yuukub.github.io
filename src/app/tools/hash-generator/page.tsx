@@ -74,7 +74,7 @@ export default function HashGenerator() {
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-3xl">
                 {/* Header Section */}
                 <div className="mb-10">
-                    <Link href="/tools" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
+                    <Link href="/tools/" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
                         <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
                     </Link>
                     <div className="flex items-center gap-3 mb-2">

@@ -745,7 +745,7 @@ ${inspectScript}
             <main className="flex-1 container mx-auto px-4 pt-32 pb-12 max-w-[1600px] flex flex-col">
                 <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 shrink-0">
                     <div>
-                        <Link href="/tools" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-fuchsia-500 mb-6 transition-colors group">
+                        <Link href="/tools/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-fuchsia-500 mb-6 transition-colors group">
                             <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
                             กลับไปหน้ารวมเครื่องมือ
                         </Link>

@@ -6,10 +6,10 @@ export function Footer() {
                     <h4 className="font-bold text-lg mb-2 underline decoration-primary/30 underline-offset-4">Saranyuu M.</h4>
                     <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} สงวนลิขสิทธิ์ตามกฎหมาย</p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mt-4 text-xs font-medium">
-                        <a href="/about" className="text-muted-foreground hover:text-primary transition-colors">About Us</a>
-                        <a href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
-                        <a href="/terms" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
-                        <a href="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
+                        <a href="/about/" className="text-muted-foreground hover:text-primary transition-colors">About Us</a>
+                        <a href="/privacy-policy/" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
+                        <a href="/terms/" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
+                        <a href="/contact/" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground max-w-xs md:text-right border-l-0 md:border-r border-border/50 md:pr-4">
