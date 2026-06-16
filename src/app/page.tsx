@@ -191,7 +191,7 @@ export default function Home() {
                       <div className="flex-grow min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-bold text-sm truncate">{project.title}</h4>
-                          <Badge variant="outline" className="text-[9px] uppercase tracking-tighter py-0 h-4 border-primary/20 text-primary/70">
+                          <Badge variant="outline" className="text-[9px] uppercase tracking-tighter py-0 h-4 border-primary/30 text-primary bg-primary/5 font-semibold">
                             {project.type}
                           </Badge>
                         </div>
@@ -271,7 +271,7 @@ export default function Home() {
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase tracking-widest text-primary/70 font-bold">Personal Pursuit</span>
+                    <span className="text-[10px] uppercase tracking-widest text-primary font-extrabold">Personal Pursuit</span>
                     <p className="text-sm font-medium leading-normal text-foreground/90">
                       สำรวจกลไกตลาดหุ้นปันผล US และการผสาน AI สู่ระบบนิเวศแห่งอนาคต
                     </p>
