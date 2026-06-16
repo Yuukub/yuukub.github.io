@@ -81,6 +81,31 @@ interface HistoryItem {
     body: string;
 }
 
+interface Tab {
+    id: string;
+    name: string;
+    method: string;
+    url: string;
+    headers: KeyValue[];
+    params: KeyValue[];
+    bodyMode: "none" | "json" | "raw" | "form-data" | "x-www-form-urlencoded";
+    bodyRaw: string;
+    bodyFormData: KeyValue[];
+    bodyUrlEncoded: KeyValue[];
+    authType: "none" | "bearer" | "basic" | "api-key";
+    authBearerToken: string;
+    authBasicUser: string;
+    authBasicPass: string;
+    authApiKeyName: string;
+    authApiKeyValue: string;
+    authApiKeyIn: "header" | "query";
+    response: ApiResponse | null;
+    loading: boolean;
+    error: string;
+    isCorsError: boolean;
+    associatedRequestId?: string;
+}
+
 // ─────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────
@@ -390,11 +415,14 @@ function statusColor(code: number): string {
 // Component
 // ─────────────────────────────────────────────────────────
 export default function ApiTesterPage() {
-    // Form state
-    const [url, setUrl] = useState("");
-    const [method, setMethod] = useState("GET");
-    const [headersText, setHeadersText] = useState("");
-    const [bodyText, setBodyText] = useState("");
+    // Tabs state
+    const [tabs, setTabs] = useState<Tab[]>([]);
+    const [activeTabId, setActiveTabId] = useState<string>("");
+    const [reqTab, setReqTab] = useState<"params" | "auth" | "headers" | "body">("params");
+    const [responseTab, setResponseTab] = useState<"body" | "headers">("body");
+    const [renamingTabId, setRenamingTabId] = useState<string | null>(null);
+    const [renamingName, setRenamingName] = useState<string>("");
+    const [copied, setCopied] = useState(false);
 
     // Import state
     const [importCode, setImportCode] = useState("");
@@ -402,19 +430,11 @@ export default function ApiTesterPage() {
     const [importSuccess, setImportSuccess] = useState("");
     const [detectedLang, setDetectedLang] = useState("");
 
-    // Response state
-    const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<ApiResponse | null>(null);
-    const [error, setError] = useState("");
-    const [responseTab, setResponseTab] = useState<"body" | "headers">("body");
-    const [copied, setCopied] = useState(false);
-
     // History state
     const [history, setHistory] = useState<HistoryItem[]>([]);
 
     // ─── Postgirl Additions ───────────────────────────────
     const [directMode, setDirectMode] = useState<boolean>(false);
-    const [isCorsError, setIsCorsError] = useState<boolean>(false);
 
     // Environments state
     const [environments, setEnvironments] = useState<Environment[]>([]);
@@ -434,6 +454,30 @@ export default function ApiTesterPage() {
     
     // File upload ref
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const defaultTab = (): Tab => ({
+        id: crypto.randomUUID(),
+        name: "GET Request",
+        method: "GET",
+        url: "",
+        headers: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+        params: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+        bodyMode: "none",
+        bodyRaw: "",
+        bodyFormData: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+        bodyUrlEncoded: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+        authType: "none",
+        authBearerToken: "",
+        authBasicUser: "",
+        authBasicPass: "",
+        authApiKeyName: "",
+        authApiKeyValue: "",
+        authApiKeyIn: "header",
+        response: null,
+        loading: false,
+        error: "",
+        isCorsError: false
+    });
 
     // Load states from localStorage
     useEffect(() => {
@@ -460,8 +504,46 @@ export default function ApiTesterPage() {
             const savedReqs = localStorage.getItem("api-tester-collections-requests");
             if (savedCols) setCollections(JSON.parse(savedCols));
             if (savedReqs) setCollectionsRequests(JSON.parse(savedReqs));
-        } catch { /* ignore */ }
+
+            // Load tabs
+            const savedTabs = localStorage.getItem("api-tester-workspace-tabs");
+            const savedActiveTabId = localStorage.getItem("api-tester-workspace-active-tab-id");
+            if (savedTabs) {
+                const parsedTabs = JSON.parse(savedTabs);
+                setTabs(parsedTabs);
+                if (savedActiveTabId && parsedTabs.some((t: Tab) => t.id === savedActiveTabId)) {
+                    setActiveTabId(savedActiveTabId);
+                } else if (parsedTabs.length > 0) {
+                    setActiveTabId(parsedTabs[0].id);
+                }
+            } else {
+                const initialTab = defaultTab();
+                setTabs([initialTab]);
+                setActiveTabId(initialTab.id);
+            }
+        } catch { 
+            const initialTab = defaultTab();
+            setTabs([initialTab]);
+            setActiveTabId(initialTab.id);
+        }
     }, []);
+
+    // Save tabs to localStorage
+    useEffect(() => {
+        if (tabs.length > 0) {
+            try {
+                localStorage.setItem("api-tester-workspace-tabs", JSON.stringify(tabs));
+            } catch { /* ignore */ }
+        }
+    }, [tabs]);
+
+    useEffect(() => {
+        if (activeTabId) {
+            try {
+                localStorage.setItem("api-tester-workspace-active-tab-id", activeTabId);
+            } catch { /* ignore */ }
+        }
+    }, [activeTabId]);
 
     const saveEnvironments = (updated: Environment[]) => {
         setEnvironments(updated);
@@ -484,7 +566,7 @@ export default function ApiTesterPage() {
 
     const saveDirectMode = (val: boolean) => {
         setDirectMode(val);
-        setIsCorsError(false);
+        setTabs(prev => prev.map(t => ({ ...t, isCorsError: false })));
         try { localStorage.setItem("api-tester-direct-mode", JSON.stringify(val)); } catch { /* ignore */ }
     };
 
@@ -492,25 +574,152 @@ export default function ApiTesterPage() {
     const activeEnv = environments.find((e) => e.id === activeEnvironmentId);
     const activeVariables = activeEnv ? activeEnv.variables : [];
 
+    // Active tab selector
+    const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0] || {
+        id: "",
+        name: "GET Request",
+        method: "GET",
+        url: "",
+        headers: [],
+        params: [],
+        bodyMode: "none",
+        bodyRaw: "",
+        bodyFormData: [],
+        bodyUrlEncoded: [],
+        authType: "none",
+        authBearerToken: "",
+        authBasicUser: "",
+        authBasicPass: "",
+        authApiKeyName: "",
+        authApiKeyValue: "",
+        authApiKeyIn: "header",
+        response: null,
+        loading: false,
+        error: "",
+        isCorsError: false
+    };
+
+    const {
+        url,
+        method,
+        response,
+        loading,
+        error,
+        isCorsError
+    } = activeTab;
+
+    const setError = (msg: string) => {
+        setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, error: msg } : t));
+    };
+
     // Live URL preview
-    const resolvedUrl = resolveVariables(url, activeVariables);
+    const resolvedUrl = resolveVariables(activeTab.url || "", activeVariables);
 
     // Auto-detect language while typing import code
     useEffect(() => {
         setDetectedLang(detectLanguage(importCode));
     }, [importCode]);
 
+    // Parse URL query parameters helper
+    const parseUrlToParams = (urlString: string): { baseUrl: string; params: KeyValue[] } => {
+        try {
+            const qIdx = urlString.indexOf("?");
+            if (qIdx === -1) {
+                return { baseUrl: urlString, params: [] };
+            }
+            const baseUrl = urlString.slice(0, qIdx);
+            const queryStr = urlString.slice(qIdx + 1);
+            if (!queryStr.trim()) {
+                return { baseUrl, params: [] };
+            }
+            
+            const params: KeyValue[] = queryStr.split("&").map((pair) => {
+                const eqIdx = pair.indexOf("=");
+                let key = pair;
+                let value = "";
+                if (eqIdx !== -1) {
+                    key = pair.slice(0, eqIdx);
+                    value = pair.slice(eqIdx + 1);
+                }
+                return {
+                    id: crypto.randomUUID(),
+                    key: safeDecode(key),
+                    value: safeDecode(value),
+                    enabled: true,
+                };
+            });
+            
+            return { baseUrl, params };
+        } catch {
+            return { baseUrl: urlString, params: [] };
+        }
+    };
+
+    const compileUrl = (baseUrl: string, params: KeyValue[]): string => {
+        const activeParams = params.filter((p) => p.enabled && p.key.trim());
+        if (activeParams.length === 0) {
+            return baseUrl;
+        }
+        const queryStr = activeParams
+            .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+            .join("&");
+        
+        const base = baseUrl.split("?")[0];
+        return `${base}?${queryStr}`;
+    };
+
+    const safeDecode = (val: string): string => {
+        try {
+            return decodeURIComponent(val);
+        } catch {
+            return val;
+        }
+    };
+
     // ─── Import Handler ─────────────────────────────────
     const handleImport = useCallback(() => {
         if (!importCode.trim()) return;
         const parsed = parseImportCode(importCode);
 
-        if (parsed.url) setUrl(parsed.url);
-        if (parsed.method) setMethod(parsed.method);
-        if (Object.keys(parsed.headers).length > 0) {
-            setHeadersText(JSON.stringify(parsed.headers, null, 2));
-        }
-        if (parsed.body) setBodyText(parsed.body);
+        const mapRows = (obj: Record<string, string>): KeyValue[] => {
+            const mapped = Object.entries(obj).map(([k, v]) => ({
+                id: crypto.randomUUID(),
+                key: k,
+                value: String(v),
+                enabled: true,
+            }));
+            mapped.push({ id: crypto.randomUUID(), key: "", value: "", enabled: true });
+            return mapped;
+        };
+
+        const parsedUrl = parseUrlToParams(parsed.url || "");
+
+        const newT: Tab = {
+            id: crypto.randomUUID(),
+            name: `${parsed.method || "GET"} Request`,
+            method: parsed.method || "GET",
+            url: parsed.url || "",
+            headers: mapRows(parsed.headers),
+            params: parsedUrl.params.length > 0 ? [...parsedUrl.params, { id: crypto.randomUUID(), key: "", value: "", enabled: true }] : [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            bodyMode: parsed.body ? "json" : "none",
+            bodyRaw: parsed.body || "",
+            bodyFormData: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            bodyUrlEncoded: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            authType: "none",
+            authBearerToken: "",
+            authBasicUser: "",
+            authBasicPass: "",
+            authApiKeyName: "",
+            authApiKeyValue: "",
+            authApiKeyIn: "header",
+            response: null,
+            loading: false,
+            error: "",
+            isCorsError: false
+        };
+
+        setTabs(prev => [...prev, newT]);
+        setActiveTabId(newT.id);
 
         setImportSuccess(`✅ สำเร็จ! แยกข้อมูลจาก ${parsed.language} เรียบร้อย`);
         setImportCode("");
@@ -519,38 +728,96 @@ export default function ApiTesterPage() {
 
     // ─── Send Request Handler ───────────────────────────
     const sendRequest = useCallback(async () => {
-        if (!url.trim()) return;
-        setLoading(true);
-        setResponse(null);
-        setError("");
-        setIsCorsError(false);
+        if (!activeTab || !activeTab.url.trim()) return;
 
-        // Resolve variables
-        const resolvedUrlStr = resolveVariables(url.trim(), activeVariables);
-        const resolvedHeadersStr = resolveVariables(headersText, activeVariables);
-        const resolvedBodyStr = resolveVariables(bodyText, activeVariables);
+        setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, loading: true, response: null, error: "", isCorsError: false } : t));
 
-        // Parse headers from text
-        let parsedHeaders: Record<string, string> = {};
-        if (resolvedHeadersStr.trim()) {
-            try {
-                parsedHeaders = JSON.parse(resolvedHeadersStr);
-            } catch {
-                setError("Headers ไม่ใช่ JSON ที่ถูกต้อง กรุณาตรวจสอบ format");
-                setLoading(false);
-                return;
+        // Resolve variables on URL
+        let finalUrl = resolveVariables(activeTab.url.trim(), activeVariables);
+
+        // Build headers dictionary
+        const finalHeaders: Record<string, string> = {};
+
+        // 1. Custom headers
+        activeTab.headers.forEach((h) => {
+            if (h.enabled && h.key.trim()) {
+                const resolvedKey = resolveVariables(h.key.trim(), activeVariables);
+                const resolvedVal = resolveVariables(h.value, activeVariables);
+                finalHeaders[resolvedKey] = resolvedVal;
+            }
+        });
+
+        // 2. Auth credentials
+        if (activeTab.authType === "bearer" && activeTab.authBearerToken) {
+            const token = resolveVariables(activeTab.authBearerToken, activeVariables);
+            finalHeaders["Authorization"] = `Bearer ${token}`;
+        } else if (activeTab.authType === "basic") {
+            const user = resolveVariables(activeTab.authBasicUser, activeVariables);
+            const pass = resolveVariables(activeTab.authBasicPass, activeVariables);
+            const base64 = btoa(`${user}:${pass}`);
+            finalHeaders["Authorization"] = `Basic ${base64}`;
+        } else if (activeTab.authType === "api-key" && activeTab.authApiKeyName && activeTab.authApiKeyValue) {
+            const keyName = resolveVariables(activeTab.authApiKeyName, activeVariables);
+            const keyValue = resolveVariables(activeTab.authApiKeyValue, activeVariables);
+            if (activeTab.authApiKeyIn === "query") {
+                const sep = finalUrl.includes("?") ? "&" : "?";
+                finalUrl += `${sep}${encodeURIComponent(keyName)}=${encodeURIComponent(keyValue)}`;
+            } else {
+                finalHeaders[keyName] = keyValue;
+            }
+        }
+
+        // 3. Request Body
+        let finalBody: any = undefined;
+        if (activeTab.method !== "GET" && activeTab.method !== "HEAD") {
+            if (activeTab.bodyMode === "json" || activeTab.bodyMode === "raw") {
+                finalBody = resolveVariables(activeTab.bodyRaw, activeVariables);
+            } else if (activeTab.bodyMode === "x-www-form-urlencoded") {
+                const urlParams = new URLSearchParams();
+                activeTab.bodyUrlEncoded.forEach((kv) => {
+                    if (kv.enabled && kv.key.trim()) {
+                        urlParams.append(
+                            resolveVariables(kv.key.trim(), activeVariables),
+                            resolveVariables(kv.value, activeVariables)
+                        );
+                    }
+                });
+                finalBody = urlParams.toString();
+                finalHeaders["Content-Type"] = "application/x-www-form-urlencoded";
+            } else if (activeTab.bodyMode === "form-data") {
+                if (directMode) {
+                    const formData = new FormData();
+                    activeTab.bodyFormData.forEach((kv) => {
+                        if (kv.enabled && kv.key.trim()) {
+                            formData.append(
+                                resolveVariables(kv.key.trim(), activeVariables),
+                                resolveVariables(kv.value, activeVariables)
+                            );
+                        }
+                    });
+                    finalBody = formData;
+                } else {
+                    const obj: Record<string, string> = {};
+                    activeTab.bodyFormData.forEach((kv) => {
+                        if (kv.enabled && kv.key.trim()) {
+                            obj[kv.key.trim()] = kv.value;
+                        }
+                    });
+                    finalBody = JSON.stringify(obj);
+                    finalHeaders["Content-Type"] = "application/json";
+                }
             }
         }
 
         try {
             let data: ApiResponse;
+            const startTime = performance.now();
 
             if (directMode) {
-                const startTime = performance.now();
-                const res = await fetch(resolvedUrlStr, {
-                    method,
-                    headers: parsedHeaders,
-                    body: method !== "GET" && method !== "HEAD" ? resolvedBodyStr : undefined,
+                const res = await fetch(finalUrl, {
+                    method: activeTab.method,
+                    headers: finalHeaders,
+                    body: finalBody,
                 });
                 const endTime = performance.now();
                 const responseBody = await res.text();
@@ -567,14 +834,19 @@ export default function ApiTesterPage() {
                     elapsed_ms: Math.round(endTime - startTime),
                 };
             } else {
+                let proxyBody = finalBody;
+                if (typeof proxyBody === "object" && !(proxyBody instanceof FormData) && proxyBody !== null) {
+                    proxyBody = JSON.stringify(proxyBody);
+                }
+
                 const res = await fetch(PROXY_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        url: resolvedUrlStr,
-                        method,
-                        headers: parsedHeaders,
-                        body: method !== "GET" && method !== "HEAD" ? resolvedBodyStr : undefined,
+                        url: finalUrl,
+                        method: activeTab.method,
+                        headers: finalHeaders,
+                        body: proxyBody,
                     }),
                 });
 
@@ -585,46 +857,277 @@ export default function ApiTesterPage() {
                 }
             }
 
-            setResponse(data);
+            setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, loading: false, response: data } : t));
 
             // Save to history
             const newItem: HistoryItem = {
                 id: Date.now().toString(),
-                url: url.trim(),
-                method,
+                url: activeTab.url.trim(),
+                method: activeTab.method,
                 statusCode: data.status_code,
                 elapsedMs: data.elapsed_ms,
                 timestamp: Date.now(),
-                headers: headersText,
-                body: bodyText,
+                headers: JSON.stringify(finalHeaders),
+                body: typeof finalBody === "string" ? finalBody : "",
             };
             setHistory((prev) => {
-                const updated = [newItem, ...prev].slice(0, MAX_HISTORY);
+                const updated = [newItem, ...prev].slice(0, 100);
                 try { localStorage.setItem(HISTORY_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
                 return updated;
             });
         } catch (err: unknown) {
+            let errorMsg = "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+            let corsErr = false;
+
             if (directMode && err instanceof TypeError) {
-                setIsCorsError(true);
-                setError("CORS Blocked หรือ Network Error: การเรียกใช้ API ข้ามโดเมนล้มเหลวเนื่องจากความปลอดภัยของเบราว์เซอร์");
-            } else {
-                const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
-                setError(msg);
+                corsErr = true;
+                errorMsg = "CORS Blocked หรือ Network Error: การเรียกใช้ API ข้ามโดเมนล้มเหลวเนื่องจากความปลอดภัยของเบราว์เซอร์";
+            } else if (err instanceof Error) {
+                errorMsg = err.message;
             }
-        } finally {
-            setLoading(false);
+
+            setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, loading: false, error: errorMsg, isCorsError: corsErr } : t));
         }
-    }, [url, method, headersText, bodyText, directMode, activeVariables]);
+    }, [activeTab, activeVariables, directMode]);
 
     // ─── History Helpers ────────────────────────────────
     const loadFromHistory = useCallback((item: HistoryItem) => {
-        setUrl(item.url);
-        setMethod(item.method);
-        setHeadersText(item.headers);
-        setBodyText(item.body);
-        setResponse(null);
-        setError("");
+        const parseHeaders = (hStr: string): KeyValue[] => {
+            try {
+                if (!hStr.trim()) return [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }];
+                const parsed = JSON.parse(hStr);
+                const mapped = Object.entries(parsed).map(([k, v]) => ({
+                    id: crypto.randomUUID(),
+                    key: k,
+                    value: String(v),
+                    enabled: true,
+                }));
+                mapped.push({ id: crypto.randomUUID(), key: "", value: "", enabled: true });
+                return mapped;
+            } catch {
+                return [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }];
+            }
+        };
+
+        const parsedParams = parseUrlToParams(item.url);
+
+        const newT: Tab = {
+            id: crypto.randomUUID(),
+            name: `${item.method} Request`,
+            method: item.method,
+            url: item.url,
+            headers: parseHeaders(item.headers),
+            params: parsedParams.params.length > 0 ? [...parsedParams.params, { id: crypto.randomUUID(), key: "", value: "", enabled: true }] : [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            bodyMode: item.body ? "json" : "none",
+            bodyRaw: item.body || "",
+            bodyFormData: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            bodyUrlEncoded: [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            authType: "none",
+            authBearerToken: "",
+            authBasicUser: "",
+            authBasicPass: "",
+            authApiKeyName: "",
+            authApiKeyValue: "",
+            authApiKeyIn: "header",
+            response: null,
+            loading: false,
+            error: "",
+            isCorsError: false
+        };
+
+        setTabs(prev => [...prev, newT]);
+        setActiveTabId(newT.id);
     }, []);
+
+    const handleCloseTab = (id: string) => {
+        if (tabs.length === 1) return;
+        const idx = tabs.findIndex(t => t.id === id);
+        const updated = tabs.filter(t => t.id !== id);
+        setTabs(updated);
+        
+        if (activeTabId === id) {
+            const nextActiveIdx = idx === 0 ? 0 : idx - 1;
+            setActiveTabId(updated[nextActiveIdx].id);
+        }
+    };
+
+    const handleMethodChange = (newMethod: string) => {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, method: newMethod } : t));
+    };
+
+    const handleBodyModeChange = (mode: "none" | "json" | "raw" | "form-data" | "x-www-form-urlencoded") => {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, bodyMode: mode } : t));
+    };
+
+    const handleBodyRawChange = (raw: string) => {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, bodyRaw: raw } : t));
+    };
+
+    const handleAuthTypeChange = (type: "none" | "bearer" | "basic" | "api-key") => {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, authType: type } : t));
+    };
+
+    const handleAuthFieldChange = (field: "authBearerToken" | "authBasicUser" | "authBasicPass" | "authApiKeyName" | "authApiKeyValue" | "authApiKeyIn", val: string) => {
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, [field]: val } : t));
+    };
+
+    const handleTabNameChange = (tabId: string, newName: string) => {
+        setTabs(prev => prev.map(t => t.id === tabId ? { ...t, name: newName } : t));
+    };
+
+    const handleAddTab = () => {
+        const newTab = defaultTab();
+        setTabs(prev => [...prev, newTab]);
+        setActiveTabId(newTab.id);
+    };
+
+    const handleUrlChange = (newUrl: string) => {
+        setTabs(prev => prev.map(t => {
+            if (t.id !== activeTabId) return t;
+            
+            const qIdx = newUrl.indexOf("?");
+            if (qIdx === -1) {
+                return { ...t, url: newUrl, params: t.params.filter(p => !p.enabled || p.key.trim() === "") };
+            }
+            
+            const baseUrl = newUrl.slice(0, qIdx);
+            const queryStr = newUrl.slice(qIdx + 1);
+            const parsedPairs = queryStr.split("&").map(pair => {
+                const eqIdx = pair.indexOf("=");
+                const k = eqIdx === -1 ? pair : pair.slice(0, eqIdx);
+                const v = eqIdx === -1 ? "" : pair.slice(eqIdx + 1);
+                return { key: safeDecode(k), value: safeDecode(v) };
+            });
+            
+            const updatedParams: KeyValue[] = [];
+            const existingParams = [...t.params];
+            
+            parsedPairs.forEach((pair) => {
+                const matchIndex = existingParams.findIndex(p => p.key === pair.key && p.value === pair.value);
+                if (matchIndex !== -1) {
+                    updatedParams.push(existingParams[matchIndex]);
+                    existingParams.splice(matchIndex, 1);
+                } else {
+                    updatedParams.push({
+                        id: crypto.randomUUID(),
+                        key: pair.key,
+                        value: pair.value,
+                        enabled: true
+                    });
+                }
+            });
+            
+            existingParams.forEach(p => {
+                if (!p.enabled || !p.key.trim()) {
+                    updatedParams.push(p);
+                }
+            });
+            
+            return { ...t, url: newUrl, params: updatedParams };
+        }));
+    };
+
+    const handleParamChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+        setTabs(prev => prev.map(t => {
+            if (t.id !== activeTabId) return t;
+            
+            const updatedParams = [...t.params];
+            updatedParams[index] = {
+                ...updatedParams[index],
+                [field]: val
+            };
+            
+            const lastParam = updatedParams[updatedParams.length - 1];
+            if (lastParam && (lastParam.key.trim() || lastParam.value.trim()) && index === updatedParams.length - 1) {
+                updatedParams.push({
+                    id: crypto.randomUUID(),
+                    key: "",
+                    value: "",
+                    enabled: true
+                });
+            }
+            
+            const newUrl = compileUrl(t.url.split("?")[0], updatedParams);
+            return { ...t, params: updatedParams, url: newUrl };
+        }));
+    };
+
+    const handleHeaderChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+        setTabs(prev => prev.map(t => {
+            if (t.id !== activeTabId) return t;
+            
+            const updated = [...t.headers];
+            updated[index] = {
+                ...updated[index],
+                [field]: val
+            };
+            
+            const last = updated[updated.length - 1];
+            if (last && (last.key.trim() || last.value.trim()) && index === updated.length - 1) {
+                updated.push({
+                    id: crypto.randomUUID(),
+                    key: "",
+                    value: "",
+                    enabled: true
+                });
+            }
+            
+            return { ...t, headers: updated };
+        }));
+    };
+
+    const handleBodyKVChange = (type: "formData" | "urlEncoded", index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+        setTabs(prev => prev.map(t => {
+            if (t.id !== activeTabId) return t;
+            
+            const updated = type === "formData" ? [...t.bodyFormData] : [...t.bodyUrlEncoded];
+            updated[index] = {
+                ...updated[index],
+                [field]: val
+            };
+            
+            const last = updated[updated.length - 1];
+            if (last && (last.key.trim() || last.value.trim()) && index === updated.length - 1) {
+                updated.push({
+                    id: crypto.randomUUID(),
+                    key: "",
+                    value: "",
+                    enabled: true
+                });
+            }
+            
+            if (type === "formData") return { ...t, bodyFormData: updated };
+            return { ...t, bodyUrlEncoded: updated };
+        }));
+    };
+
+    const handleDeleteRow = (tabId: string, type: "params" | "headers" | "formData" | "urlEncoded", index: number) => {
+        setTabs(prev => prev.map(t => {
+            if (t.id !== tabId) return t;
+            
+            let updated: KeyValue[];
+            if (type === "params") updated = [...t.params];
+            else if (type === "headers") updated = [...t.headers];
+            else if (type === "formData") updated = [...t.bodyFormData];
+            else updated = [...t.bodyUrlEncoded];
+            
+            updated.splice(index, 1);
+            
+            if (updated.length === 0) {
+                updated.push({ id: crypto.randomUUID(), key: "", value: "", enabled: true });
+            }
+            
+            let newUrl = t.url;
+            if (type === "params") {
+                newUrl = compileUrl(t.url.split("?")[0], updated);
+            }
+            
+            if (type === "params") return { ...t, params: updated, url: newUrl };
+            if (type === "headers") return { ...t, headers: updated };
+            if (type === "formData") return { ...t, bodyFormData: updated };
+            return { ...t, bodyUrlEncoded: updated };
+        }));
+    };
 
     const clearHistory = useCallback(() => {
         setHistory([]);
@@ -780,7 +1283,6 @@ export default function ApiTesterPage() {
         if (!targetColId && updatedCols.length > 0) {
             targetColId = updatedCols[0].id;
         } else if (!targetColId) {
-            // If no collections exist, create one
             const defaultCol: Collection = {
                 id: crypto.randomUUID(),
                 name: "My Collection",
@@ -793,45 +1295,48 @@ export default function ApiTesterPage() {
         }
 
         const newReq: ApiRequest = {
-            id: crypto.randomUUID(),
+            id: activeTab.associatedRequestId || crypto.randomUUID(),
             name: saveRequestName.trim(),
-            method,
-            url,
-            params: [],
-            headers: [],
+            method: activeTab.method,
+            url: activeTab.url,
+            params: activeTab.params.filter(p => p.key.trim() || p.value.trim()),
+            headers: activeTab.headers.filter(h => h.key.trim() || h.value.trim()),
             body: {
-                mode: method !== "GET" && method !== "HEAD" ? "json" : "none",
-                raw: bodyText,
+                mode: activeTab.bodyMode,
+                raw: activeTab.bodyRaw,
+                formData: activeTab.bodyMode === "form-data" ? activeTab.bodyFormData.filter(f => f.key.trim() || f.value.trim()) : 
+                          activeTab.bodyMode === "x-www-form-urlencoded" ? activeTab.bodyUrlEncoded.filter(u => u.key.trim() || u.value.trim()) : undefined
             },
-            auth: { type: "none" },
+            auth: {
+                type: activeTab.authType,
+                bearerToken: activeTab.authBearerToken,
+                basicUser: activeTab.authBasicUser,
+                basicPass: activeTab.authBasicPass,
+                apiKeyName: activeTab.authApiKeyName,
+                apiKeyValue: activeTab.authApiKeyValue,
+                apiKeyIn: activeTab.authApiKeyIn
+            },
             collectionId: targetColId,
             createdAt: Date.now(),
             updatedAt: Date.now(),
         };
 
-        // If headers isn't JSON list, map correctly
-        try {
-            if (headersText.trim()) {
-                const parsed = JSON.parse(headersText);
-                newReq.headers = Object.entries(parsed).map(([k, v]) => ({
-                    id: crypto.randomUUID(),
-                    key: k,
-                    value: String(v),
-                    enabled: true,
-                }));
+        const reqIdx = updatedReqs.findIndex(r => r.id === newReq.id);
+        if (reqIdx >= 0) {
+            updatedReqs[reqIdx] = newReq;
+        } else {
+            updatedReqs.push(newReq);
+            const colIdx = updatedCols.findIndex((c) => c.id === targetColId);
+            if (colIdx >= 0) {
+                updatedCols[colIdx].requestIds.push(newReq.id);
+                updatedCols[colIdx].updatedAt = Date.now();
             }
-        } catch { /* ignore and use empty list */ }
-
-        updatedReqs.push(newReq);
-        
-        // Add request to collection
-        const colIdx = updatedCols.findIndex((c) => c.id === targetColId);
-        if (colIdx >= 0) {
-            updatedCols[colIdx].requestIds.push(newReq.id);
-            updatedCols[colIdx].updatedAt = Date.now();
         }
 
         saveCollectionsAndRequests(updatedCols, updatedReqs);
+        
+        setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, name: newReq.name, associatedRequestId: newReq.id } : t));
+
         setSaveRequestName("");
         setShowSaveModal(false);
         setImportSuccess("✅ บันทึกเข้า Collection สำเร็จ!");
@@ -839,19 +1344,55 @@ export default function ApiTesterPage() {
     };
 
     const loadCollectionRequest = (req: ApiRequest) => {
-        setUrl(req.url);
-        setMethod(req.method);
-        
-        // Format headers back to JSON string
-        const headerObj: Record<string, string> = {};
-        req.headers.forEach((h) => {
-            if (h.enabled) headerObj[h.key] = h.value;
-        });
-        setHeadersText(Object.keys(headerObj).length > 0 ? JSON.stringify(headerObj, null, 2) : "");
+        const mapRows = (rows: any[] | undefined): KeyValue[] => {
+            if (!Array.isArray(rows)) return [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }];
+            const mapped: KeyValue[] = rows.map(r => ({
+                id: r.id || crypto.randomUUID(),
+                key: r.key || "",
+                value: r.value || "",
+                enabled: r.disabled !== true && r.enabled !== false,
+                description: r.description
+            }));
+            if (mapped.length === 0 || mapped[mapped.length - 1].key.trim() || mapped[mapped.length - 1].value.trim()) {
+                mapped.push({ id: crypto.randomUUID(), key: "", value: "", enabled: true });
+            }
+            return mapped;
+        };
 
-        setBodyText(req.body.raw ?? "");
-        setResponse(null);
-        setError("");
+        const parsedUrl = parseUrlToParams(req.url || "");
+
+        const newTab: Tab = {
+            id: crypto.randomUUID(),
+            name: req.name || "GET Request",
+            method: req.method || "GET",
+            url: req.url || "",
+            headers: mapRows(req.headers),
+            params: parsedUrl.params.length > 0 ? [...parsedUrl.params, { id: crypto.randomUUID(), key: "", value: "", enabled: true }] : [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            bodyMode: req.body?.mode || "none",
+            bodyRaw: req.body?.raw || "",
+            bodyFormData: mapRows(req.body?.formData),
+            bodyUrlEncoded: mapRows(req.body?.formData),
+            authType: req.auth?.type || "none",
+            authBearerToken: req.auth?.bearerToken || "",
+            authBasicUser: req.auth?.basicUser || "",
+            authBasicPass: req.auth?.basicPass || "",
+            authApiKeyName: req.auth?.apiKeyName || "",
+            authApiKeyValue: req.auth?.apiKeyValue || "",
+            authApiKeyIn: req.auth?.apiKeyIn || "header",
+            response: null,
+            loading: false,
+            error: "",
+            isCorsError: false,
+            associatedRequestId: req.id
+        };
+
+        const isEmpty = !activeTab.url.trim() && activeTab.response === null;
+        if (isEmpty) {
+            setTabs(prev => prev.map(t => t.id === activeTab.id ? newTab : t));
+        } else {
+            setTabs(prev => [...prev, newTab]);
+            setActiveTabId(newTab.id);
+        }
     };
 
     const handleDeleteCollection = (colId: string) => {
@@ -869,6 +1410,7 @@ export default function ApiTesterPage() {
             return c;
         });
         saveCollectionsAndRequests(updatedCols, updatedReqs);
+        setTabs(prev => prev.map(t => t.associatedRequestId === reqId ? { ...t, associatedRequestId: undefined } : t));
     };
 
     const copyResponse = useCallback(() => {
@@ -887,6 +1429,72 @@ export default function ApiTesterPage() {
             return response.body;
         }
     })();
+
+    const renderKeyValueEditor = (
+        type: "params" | "headers" | "formData" | "urlEncoded",
+        rows: KeyValue[]
+    ) => {
+        const onChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+            if (type === "params") handleParamChange(index, field, val);
+            else if (type === "headers") handleHeaderChange(index, field, val);
+            else handleBodyKVChange(type === "formData" ? "formData" : "urlEncoded", index, field, val);
+        };
+
+        const onDelete = (index: number) => {
+            handleDeleteRow(activeTab.id, type, index);
+        };
+
+        return (
+            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 items-center text-[10px] font-bold text-muted-foreground uppercase px-2">
+                    <div></div>
+                    <div>Key</div>
+                    <div>Value</div>
+                    <div></div>
+                </div>
+                <div className="space-y-1.5">
+                    {rows.map((row, idx) => (
+                        <div key={row.id} className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 items-center group">
+                            <div className="flex justify-center">
+                                <input
+                                    type="checkbox"
+                                    checked={row.enabled}
+                                    onChange={(e) => onChange(idx, "enabled", e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border-border text-cyan-600 focus:ring-cyan-500/20"
+                                />
+                            </div>
+                            <Input
+                                value={row.key}
+                                onChange={(e) => onChange(idx, "key", e.target.value)}
+                                placeholder="Key"
+                                className="h-8 text-xs font-mono focus:border-cyan-500/50"
+                            />
+                            <Input
+                                value={row.value}
+                                onChange={(e) => onChange(idx, "value", e.target.value)}
+                                placeholder="Value"
+                                className="h-8 text-xs font-mono focus:border-cyan-500/50"
+                            />
+                            <div className="flex justify-center">
+                                {idx < rows.length - 1 ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onDelete(idx)}
+                                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-md"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                ) : (
+                                    <div className="w-7 h-7" />
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     const faqJsonLd = {
         "@context": "https://schema.org",
@@ -1126,11 +1734,11 @@ export default function ApiTesterPage() {
                                                             <p className="text-[10px] text-muted-foreground italic px-2 py-1">ไม่มีข้อมูล</p>
                                                         ) : (
                                                             colReqs.map((req) => (
-                                                                <div 
-                                                                    key={req.id} 
+                                                                <div
+                                                                    key={req.id}
                                                                     className="group flex items-center justify-between px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer"
                                                                 >
-                                                                    <div 
+                                                                    <div
                                                                         className="flex items-center gap-2 flex-1 min-w-0"
                                                                         onClick={() => loadCollectionRequest(req)}
                                                                     >
@@ -1166,13 +1774,95 @@ export default function ApiTesterPage() {
 
                     {/* ─── Right Area: Request Form & Response Panel ─── */}
                     <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
-                        
+
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             {/* ── Request Form ─────────────────────── */}
-                            <Card className="border-border/50 bg-card flex flex-col h-full">
-                                <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-                                    <CardTitle className="text-base font-bold flex items-center gap-2">
-                                        <Send className="h-4 w-4 text-cyan-500" /> Request
+                            <Card className="border-border/50 bg-card flex flex-col h-full overflow-hidden">
+                                {/* Tabs bar at the top of the request card */}
+                                <div className="flex items-center gap-1 border-b border-border/30 bg-muted/20 px-3 py-2 overflow-x-auto no-scrollbar shrink-0">
+                                    {tabs.map((t) => {
+                                        const isActive = t.id === activeTabId;
+                                        const getMethodColor = (m: string) => {
+                                            switch (m) {
+                                                case "GET": return "text-emerald-500";
+                                                case "POST": return "text-blue-500";
+                                                case "PUT": return "text-amber-500";
+                                                case "PATCH": return "text-purple-500";
+                                                case "DELETE": return "text-red-500";
+                                                default: return "text-muted-foreground";
+                                            }
+                                        };
+                                        return (
+                                            <div
+                                                key={t.id}
+                                                className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none shrink-0 ${
+                                                    isActive
+                                                        ? "bg-background border-border/50 shadow-sm text-foreground"
+                                                        : "bg-transparent border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                                                }`}
+                                                onClick={() => setActiveTabId(t.id)}
+                                            >
+                                                <span className={`text-[9px] font-extrabold font-mono tracking-tight ${getMethodColor(t.method)}`}>
+                                                    {t.method}
+                                                </span>
+                                                {renamingTabId === t.id ? (
+                                                    <input
+                                                        value={renamingName}
+                                                        onChange={(e) => setRenamingName(e.target.value)}
+                                                        onBlur={() => {
+                                                            handleTabNameChange(t.id, renamingName || t.name);
+                                                            setRenamingTabId(null);
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                handleTabNameChange(t.id, renamingName || t.name);
+                                                                setRenamingTabId(null);
+                                                            }
+                                                        }}
+                                                        autoFocus
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="bg-transparent border-b border-cyan-500 outline-none text-xs w-20 px-0.5 py-0 font-medium text-foreground"
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        onDoubleClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setRenamingTabId(t.id);
+                                                            setRenamingName(t.name);
+                                                        }}
+                                                        className="truncate max-w-[100px]"
+                                                        title="ดับเบิ้ลคลิกเพื่อเปลี่ยนชื่อ"
+                                                    >
+                                                        {t.name}
+                                                    </span>
+                                                )}
+                                                {tabs.length > 1 && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCloseTab(t.id);
+                                                        }}
+                                                        className="text-muted-foreground hover:text-foreground opacity-60 group-hover:opacity-100 hover:bg-muted p-0.5 rounded transition-colors shrink-0"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleAddTab}
+                                        className="h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/30 shrink-0 ml-1"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+
+                                <CardHeader className="pb-3 pt-4 flex flex-row items-center justify-between space-y-0 shrink-0">
+                                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                                        <Send className="h-4 w-4 text-cyan-500" /> Request Settings
                                     </CardTitle>
                                     
                                     {/* Direct Mode Toggle */}
@@ -1201,14 +1891,15 @@ export default function ApiTesterPage() {
                                         </button>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+
+                                <CardContent className="space-y-4 flex-1 flex flex-col justify-between overflow-y-auto">
                                     <div className="space-y-4">
                                         {/* Method + URL */}
                                         <div className="space-y-1">
                                             <div className="flex gap-2">
                                                 <select
                                                     value={method}
-                                                    onChange={(e) => setMethod(e.target.value)}
+                                                    onChange={(e) => handleMethodChange(e.target.value)}
                                                     className="h-10 rounded-lg border border-border/50 bg-background px-3 text-sm font-bold focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all cursor-pointer min-w-[100px]"
                                                 >
                                                     {["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"].map((m) => (
@@ -1217,7 +1908,7 @@ export default function ApiTesterPage() {
                                                 </select>
                                                 <Input
                                                     value={url}
-                                                    onChange={(e) => setUrl(e.target.value)}
+                                                    onChange={(e) => handleUrlChange(e.target.value)}
                                                     onKeyDown={(e) => e.key === "Enter" && sendRequest()}
                                                     placeholder="https://api.example.com/endpoint หรือ {{url}}/endpoint"
                                                     className="flex-1 font-mono text-sm focus:border-cyan-500/50"
@@ -1225,7 +1916,7 @@ export default function ApiTesterPage() {
                                             </div>
 
                                             {/* Live Resolved URL Preview */}
-                                            {url.includes("{{") && (
+                                            {url && url.includes("{{") && (
                                                 <div className="text-[10px] font-mono text-muted-foreground truncate bg-muted/40 px-2.5 py-1.5 rounded border border-border/30 mt-1.5 flex items-center gap-1.5 animate-in fade-in">
                                                     <Globe className="h-3 w-3 shrink-0 text-cyan-500" />
                                                     <span className="shrink-0 text-cyan-600 font-semibold">Preview URL:</span>
@@ -1234,38 +1925,220 @@ export default function ApiTesterPage() {
                                             )}
                                         </div>
 
-                                        {/* Headers */}
-                                        <div>
-                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                                                Headers (JSON)
-                                            </label>
-                                            <textarea
-                                                value={headersText}
-                                                onChange={(e) => setHeadersText(e.target.value)}
-                                                rows={3}
-                                                className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-xs resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-muted-foreground/40"
-                                                placeholder='{ "Authorization": "Bearer {{token}}" }'
-                                            />
+                                        {/* Sub-tabs Navigation */}
+                                        <div className="flex gap-1 border-b border-border/30 pb-0 shrink-0">
+                                            {[
+                                                { id: "params", label: `Params`, count: activeTab.params ? activeTab.params.filter(p => p.key.trim() || p.value.trim()).length : 0 },
+                                                { id: "auth", label: "Auth", count: activeTab.authType !== "none" ? 1 : 0 },
+                                                { id: "headers", label: "Headers", count: activeTab.headers ? activeTab.headers.filter(h => h.key.trim() || h.value.trim()).length : 0 },
+                                                { id: "body", label: "Body", count: activeTab.bodyMode !== "none" ? 1 : 0 }
+                                            ].map((tab) => {
+                                                const isActive = reqTab === tab.id;
+                                                return (
+                                                    <button
+                                                        key={tab.id}
+                                                        type="button"
+                                                        onClick={() => setReqTab(tab.id as any)}
+                                                        className={`px-3 py-1.5 text-xs font-semibold rounded-t-md border-b-2 transition-all ${
+                                                            isActive
+                                                                ? "border-cyan-500 text-cyan-500 font-bold"
+                                                                : "border-transparent text-muted-foreground hover:text-foreground"
+                                                        }`}
+                                                    >
+                                                        {tab.label}
+                                                        {tab.count > 0 && (
+                                                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-500 text-[9px] font-bold">
+                                                                {tab.id === "auth" ? "●" : tab.count}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
 
-                                        {/* Body */}
-                                        <div>
-                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                                                Body {method === "GET" || method === "HEAD" ? <span className="text-muted-foreground/50 normal-case font-normal">(ไม่ใช้กับ {method})</span> : ""}
-                                            </label>
-                                            <textarea
-                                                value={bodyText}
-                                                onChange={(e) => setBodyText(e.target.value)}
-                                                rows={4}
-                                                disabled={method === "GET" || method === "HEAD"}
-                                                className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-xs resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed placeholder:text-muted-foreground/40"
-                                                placeholder='{ "username": "{{user}}" }'
-                                            />
+                                        {/* Sub-tabs Panes */}
+                                        <div className="flex-1 min-h-[220px]">
+                                            {/* Params Pane */}
+                                            {reqTab === "params" && (
+                                                <div className="space-y-3 animate-in fade-in duration-150">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Query Parameters</span>
+                                                    </div>
+                                                    {activeTab.params && renderKeyValueEditor("params", activeTab.params)}
+                                                </div>
+                                            )}
+
+                                            {/* Auth Pane */}
+                                            {reqTab === "auth" && (
+                                                <div className="space-y-4 animate-in fade-in duration-150">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Type</label>
+                                                        <select
+                                                            value={activeTab.authType}
+                                                            onChange={(e) => handleAuthTypeChange(e.target.value as any)}
+                                                            className="w-full max-w-[200px] h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
+                                                        >
+                                                            <option value="none">No Auth</option>
+                                                            <option value="bearer">Bearer Token</option>
+                                                            <option value="basic">Basic Auth</option>
+                                                            <option value="api-key">API Key</option>
+                                                        </select>
+                                                    </div>
+
+                                                    {activeTab.authType === "none" && (
+                                                        <p className="text-xs text-muted-foreground mt-2">
+                                                            คำขอส่งไม่มีข้อมูลประจำตัว (No Authentication)
+                                                        </p>
+                                                    )}
+
+                                                    {activeTab.authType === "bearer" && (
+                                                        <div className="space-y-2 max-w-md animate-in fade-in duration-100">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase">Token</label>
+                                                                <Input
+                                                                    value={activeTab.authBearerToken}
+                                                                    onChange={(e) => handleAuthFieldChange("authBearerToken", e.target.value)}
+                                                                    placeholder="Bearer Token หรือ {{token}}"
+                                                                    className="h-9 text-xs font-mono focus:border-cyan-500/50"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {activeTab.authType === "basic" && (
+                                                        <div className="grid grid-cols-2 gap-3 max-w-md animate-in fade-in duration-100">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase">Username</label>
+                                                                <Input
+                                                                    value={activeTab.authBasicUser}
+                                                                    onChange={(e) => handleAuthFieldChange("authBasicUser", e.target.value)}
+                                                                    placeholder="Username"
+                                                                    className="h-9 text-xs focus:border-cyan-500/50"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase">Password</label>
+                                                                <Input
+                                                                    type="password"
+                                                                    value={activeTab.authBasicPass}
+                                                                    onChange={(e) => handleAuthFieldChange("authBasicPass", e.target.value)}
+                                                                    placeholder="Password"
+                                                                    className="h-9 text-xs focus:border-cyan-500/50"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {activeTab.authType === "api-key" && (
+                                                        <div className="space-y-3 max-w-md animate-in fade-in duration-100">
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Key</label>
+                                                                    <Input
+                                                                        value={activeTab.authApiKeyName}
+                                                                        onChange={(e) => handleAuthFieldChange("authApiKeyName", e.target.value)}
+                                                                        placeholder="e.g. X-API-Key"
+                                                                        className="h-9 text-xs font-mono focus:border-cyan-500/50"
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Value</label>
+                                                                    <Input
+                                                                        value={activeTab.authApiKeyValue}
+                                                                        onChange={(e) => handleAuthFieldChange("authApiKeyValue", e.target.value)}
+                                                                        placeholder="API Key Value"
+                                                                        className="h-9 text-xs font-mono focus:border-cyan-500/50"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase">Add to</label>
+                                                                <select
+                                                                    value={activeTab.authApiKeyIn}
+                                                                    onChange={(e) => handleAuthFieldChange("authApiKeyIn", e.target.value as any)}
+                                                                    className="w-full h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
+                                                                >
+                                                                    <option value="header">Header</option>
+                                                                    <option value="query">Query Params</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Headers Pane */}
+                                            {reqTab === "headers" && (
+                                                <div className="space-y-3 animate-in fade-in duration-150">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Headers</span>
+                                                    </div>
+                                                    {activeTab.headers && renderKeyValueEditor("headers", activeTab.headers)}
+                                                </div>
+                                            )}
+
+                                            {/* Body Pane */}
+                                            {reqTab === "body" && (
+                                                <div className="space-y-3 animate-in fade-in duration-150 flex flex-col h-full">
+                                                    <div className="flex items-center gap-1.5 bg-muted/40 p-0.5 rounded-lg border border-border/30 w-fit shrink-0">
+                                                        {[
+                                                            { id: "none", label: "none" },
+                                                            { id: "json", label: "JSON" },
+                                                            { id: "raw", label: "raw" },
+                                                            { id: "form-data", label: "form-data" },
+                                                            { id: "x-www-form-urlencoded", label: "x-www-form-urlencoded" }
+                                                        ].map((mode) => (
+                                                            <button
+                                                                key={mode.id}
+                                                                type="button"
+                                                                onClick={() => handleBodyModeChange(mode.id as any)}
+                                                                className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
+                                                                    activeTab.bodyMode === mode.id
+                                                                        ? "bg-cyan-500/15 text-cyan-500 shadow-sm"
+                                                                        : "text-muted-foreground hover:text-foreground"
+                                                                }`}
+                                                            >
+                                                                {mode.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex-1 mt-2 min-h-[160px]">
+                                                        {activeTab.bodyMode === "none" && (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                คำขอนี้ไม่มี Request Body (No Body)
+                                                            </p>
+                                                        )}
+
+                                                        {(activeTab.bodyMode === "json" || activeTab.bodyMode === "raw") && (
+                                                            <textarea
+                                                                value={activeTab.bodyRaw}
+                                                                onChange={(e) => handleBodyRawChange(e.target.value)}
+                                                                rows={6}
+                                                                className="w-full h-full rounded-lg border border-border/50 bg-background p-3 font-mono text-xs resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-muted-foreground/40"
+                                                                placeholder={activeTab.bodyMode === "json" ? '{\n  "key": "value"\n}' : "Text body goes here..."}
+                                                            />
+                                                        )}
+
+                                                        {activeTab.bodyMode === "form-data" && (
+                                                            <div className="space-y-3">
+                                                                {activeTab.bodyFormData && renderKeyValueEditor("formData", activeTab.bodyFormData)}
+                                                            </div>
+                                                        )}
+
+                                                        {activeTab.bodyMode === "x-www-form-urlencoded" && (
+                                                            <div className="space-y-3">
+                                                                {activeTab.bodyUrlEncoded && renderKeyValueEditor("urlEncoded", activeTab.bodyUrlEncoded)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Error Alert */}
                                         {error && (
-                                            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                                            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 shrink-0">
                                                 <AlertCircle className="h-4 w-4" />
                                                 <AlertTitle>ข้อผิดพลาด</AlertTitle>
                                                 <AlertDescription className="text-xs">{error}</AlertDescription>
@@ -1274,7 +2147,7 @@ export default function ApiTesterPage() {
 
                                         {/* CORS Explainer Card */}
                                         {isCorsError && (
-                                            <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-500 animate-in fade-in slide-in-from-top-2">
+                                            <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-500 animate-in fade-in slide-in-from-top-2 shrink-0">
                                                 <AlertCircle className="h-4 w-4 text-amber-500" />
                                                 <AlertTitle className="font-bold text-xs">CORS Blocked (เบราว์เซอร์บล็อกการเรียกใช้)</AlertTitle>
                                                 <AlertDescription className="text-[11px] space-y-2 mt-1">
@@ -1295,7 +2168,7 @@ export default function ApiTesterPage() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex gap-2 pt-4 border-t border-border/20 mt-4">
+                                    <div className="flex gap-2 pt-4 border-t border-border/20 mt-4 shrink-0">
                                         <Button
                                             variant="outline"
                                             onClick={() => {
