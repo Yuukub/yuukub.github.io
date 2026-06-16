@@ -88,7 +88,7 @@ export default function Home() {
       <main className="container mx-auto px-4 pt-32 pb-24 max-w-5xl">
         {/* Hero Section */}
         <section className="flex flex-col items-center text-center gap-6 mb-32">
-          <Badge variant="outline" className="rounded-full border-emerald-500/20 bg-emerald-500/5 text-emerald-600 px-4 py-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <Badge variant="outline" className="rounded-full border-emerald-500/20 bg-emerald-500/5 text-emerald-600 px-4 py-1 md:animate-in md:fade-in md:slide-in-from-bottom-2 md:duration-700">
             <span className="relative flex h-2 w-2 mr-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -96,16 +96,16 @@ export default function Home() {
             พร้อมสำหรับโปรเจกต์ใหม่และงานที่ปรึกษาทางเทคนิค
           </Badge>
 
-          <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 leading-[1.1]">
+          <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight mb-8 md:animate-in md:fade-in md:slide-in-from-bottom-4 md:duration-700 md:delay-100 leading-[1.1]">
             ระบบที่ดีเริ่มต้นที่<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">ความปลอดภัย</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl text-balance leading-relaxed animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl text-balance leading-relaxed md:animate-in md:fade-in md:slide-in-from-bottom-3 md:duration-700 md:delay-150">
             เมื่อรากฐานมั่นคง ธุรกิจจึงเติบโตได้อย่างไร้ขีดจำกัด — ผมออกแบบระบบด้วยหลัก <span className="text-foreground font-medium">Security-driven Growth</span> ผ่านวิศวกรรมที่แม่นยำและเทคโนโลยีสมัยใหม่ เพราะความปลอดภัยคือหัวใจของทุกระบบ
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 translate-y-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4 translate-y-2 md:animate-in md:fade-in md:slide-in-from-bottom-2 md:duration-700 md:delay-200">
             <Link href="/contact/">
               <Button size="lg" className="rounded-full h-12 px-8 gap-2 premium-glow animate-pulse-glow">
                 ติดต่อร่วมงาน <Mail className="h-4 w-4" />

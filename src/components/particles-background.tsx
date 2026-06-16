@@ -40,9 +40,10 @@ export const ParticlesBackground: React.FC = () => {
         let particles: Particle[] = []
 
         // Configuration
-        const particleCount = 80
-        const connectionDistance = 150
-        const mouseRadius = 150
+        const isMobile = window.innerWidth < 768
+        const particleCount = isMobile ? 12 : 80
+        const connectionDistance = isMobile ? 0 : 150
+        const mouseRadius = isMobile ? 0 : 150
 
         const resize = () => {
             canvas.width = window.innerWidth
@@ -100,19 +101,21 @@ export const ParticlesBackground: React.FC = () => {
                 ctx.fill()
 
                 // Draw connections
-                for (let j = i + 1; j < particles.length; j++) {
-                    const p2 = particles[j]
-                    const dx = p.x - p2.x
-                    const dy = p.y - p2.y
-                    const dist = Math.sqrt(dx * dx + dy * dy)
+                if (connectionDistance > 0) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j]
+                        const dx = p.x - p2.x
+                        const dy = p.y - p2.y
+                        const dist = Math.sqrt(dx * dx + dy * dy)
 
-                    if (dist < connectionDistance) {
-                        ctx.beginPath()
-                        ctx.moveTo(p.x, p.y)
-                        ctx.lineTo(p2.x, p2.y)
-                        ctx.strokeStyle = lineColor
-                        ctx.lineWidth = 1 - dist / connectionDistance
-                        ctx.stroke()
+                        if (dist < connectionDistance) {
+                            ctx.beginPath()
+                            ctx.moveTo(p.x, p.y)
+                            ctx.lineTo(p2.x, p2.y)
+                            ctx.strokeStyle = lineColor
+                            ctx.lineWidth = 1 - dist / connectionDistance
+                            ctx.stroke()
+                        }
                     }
                 }
             })

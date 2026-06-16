@@ -73,7 +73,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet" />
       </head>
       <body
-        className="font-sans antialiased"
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <script
           type="application/ld+json"
