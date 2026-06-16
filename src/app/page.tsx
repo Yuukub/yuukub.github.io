@@ -132,10 +132,10 @@ export default function Home() {
                   เพื่อสร้างรากฐานที่แข็งแกร่งและปกป้องทุกโอกาสในการเติบโตขององค์กร
                 </p>
               </div>
-              <div className="flex gap-4 relative z-10 mt-6">
-                <a href="https://github.com/Yuukub" className="hover:text-primary transition-colors"><Github className="h-5 w-5" /></a>
-                <a href="https://www.linkedin.com/in/saranyoo-m" className="hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
-                <a href="https://facebook.com/saranyou.meekumlang" className="hover:text-primary transition-colors"><Facebook className="h-5 w-5" /></a>
+               <div className="flex gap-4 relative z-10 mt-6">
+                <a href="https://github.com/Yuukub" className="hover:text-primary transition-colors" aria-label="GitHub Profile"><Github className="h-5 w-5" /></a>
+                <a href="https://www.linkedin.com/in/saranyoo-m" className="hover:text-primary transition-colors" aria-label="LinkedIn Profile"><Linkedin className="h-5 w-5" /></a>
+                <a href="https://facebook.com/saranyou.meekumlang" className="hover:text-primary transition-colors" aria-label="Facebook Profile"><Facebook className="h-5 w-5" /></a>
               </div>
               {/* Abstract decorative element */}
               <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />

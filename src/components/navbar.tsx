@@ -23,7 +23,7 @@ export function Navbar() {
                     </Link>
                     <div className="flex items-center gap-3 pl-2 border-l border-border/50">
                         <ModeToggle />
-                        <Link href="/contact/">
+                        <Link href="/contact/" aria-label="Contact">
                             <Button size="sm" className="rounded-full px-5 hidden sm:flex">Contact</Button>
                         </Link>
                     </div>
