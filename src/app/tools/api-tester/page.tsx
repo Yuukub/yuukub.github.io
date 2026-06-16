@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,10 @@ import Link from "next/link";
 import {
     ArrowLeft, Zap, Send, Loader2, Clock, Copy, CheckCircle2,
     Trash2, ChevronDown, ChevronUp, AlertCircle, Code2, RotateCcw, History,
-    Info, HelpCircle, Layers, Shield
+    Info, HelpCircle, Layers, Shield, Globe, Plus, Folder, Save, Upload, X, Sliders, ExternalLink
 } from "lucide-react";
+import { resolveVariables, findUnresolvedVariables, type EnvVariable, type Environment } from "./lib/variables";
+import { importFile, type ApiRequest, type Collection, type KeyValue } from "./lib/importExport";
 
 // ─────────────────────────────────────────────────────────
 // SEO Data
@@ -410,13 +412,88 @@ export default function ApiTesterPage() {
     // History state
     const [history, setHistory] = useState<HistoryItem[]>([]);
 
-    // Load history from localStorage
+    // ─── Postgirl Additions ───────────────────────────────
+    const [directMode, setDirectMode] = useState<boolean>(false);
+    const [isCorsError, setIsCorsError] = useState<boolean>(false);
+
+    // Environments state
+    const [environments, setEnvironments] = useState<Environment[]>([]);
+    const [activeEnvironmentId, setActiveEnvironmentId] = useState<string>("");
+    
+    // UI variables edit state
+    const [tempVars, setTempVars] = useState<string>("");
+    const [envName, setEnvName] = useState<string>("");
+    const [isManagingEnvs, setIsManagingEnvs] = useState<boolean>(false);
+
+    // Collections state
+    const [collections, setCollections] = useState<Collection[]>([]);
+    const [collectionsRequests, setCollectionsRequests] = useState<ApiRequest[]>([]);
+    const [saveRequestName, setSaveRequestName] = useState<string>("");
+    const [selectedCollectionId, setSelectedCollectionId] = useState<string>("");
+    const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+    
+    // File upload ref
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Load states from localStorage
     useEffect(() => {
         try {
-            const saved = localStorage.getItem(HISTORY_KEY);
-            if (saved) setHistory(JSON.parse(saved));
+            const savedHistory = localStorage.getItem(HISTORY_KEY);
+            if (savedHistory) setHistory(JSON.parse(savedHistory));
+
+            const savedMode = localStorage.getItem("api-tester-direct-mode");
+            if (savedMode) setDirectMode(JSON.parse(savedMode));
+
+            const savedEnvs = localStorage.getItem("api-tester-environments");
+            if (savedEnvs) {
+                const parsed = JSON.parse(savedEnvs);
+                setEnvironments(parsed);
+                const savedActiveId = localStorage.getItem("api-tester-active-env-id");
+                if (savedActiveId) {
+                    setActiveEnvironmentId(savedActiveId);
+                } else if (parsed.length > 0) {
+                    setActiveEnvironmentId(parsed[0].id);
+                }
+            }
+
+            const savedCols = localStorage.getItem("api-tester-collections");
+            const savedReqs = localStorage.getItem("api-tester-collections-requests");
+            if (savedCols) setCollections(JSON.parse(savedCols));
+            if (savedReqs) setCollectionsRequests(JSON.parse(savedReqs));
         } catch { /* ignore */ }
     }, []);
+
+    const saveEnvironments = (updated: Environment[]) => {
+        setEnvironments(updated);
+        try { localStorage.setItem("api-tester-environments", JSON.stringify(updated)); } catch { /* ignore */ }
+    };
+
+    const saveActiveEnvId = (id: string) => {
+        setActiveEnvironmentId(id);
+        try { localStorage.setItem("api-tester-active-env-id", id); } catch { /* ignore */ }
+    };
+
+    const saveCollectionsAndRequests = (updatedCols: Collection[], updatedReqs: ApiRequest[]) => {
+        setCollections(updatedCols);
+        setCollectionsRequests(updatedReqs);
+        try {
+            localStorage.setItem("api-tester-collections", JSON.stringify(updatedCols));
+            localStorage.setItem("api-tester-collections-requests", JSON.stringify(updatedReqs));
+        } catch { /* ignore */ }
+    };
+
+    const saveDirectMode = (val: boolean) => {
+        setDirectMode(val);
+        setIsCorsError(false);
+        try { localStorage.setItem("api-tester-direct-mode", JSON.stringify(val)); } catch { /* ignore */ }
+    };
+
+    // Get active environment variables
+    const activeEnv = environments.find((e) => e.id === activeEnvironmentId);
+    const activeVariables = activeEnv ? activeEnv.variables : [];
+
+    // Live URL preview
+    const resolvedUrl = resolveVariables(url, activeVariables);
 
     // Auto-detect language while typing import code
     useEffect(() => {
@@ -446,12 +523,18 @@ export default function ApiTesterPage() {
         setLoading(true);
         setResponse(null);
         setError("");
+        setIsCorsError(false);
+
+        // Resolve variables
+        const resolvedUrlStr = resolveVariables(url.trim(), activeVariables);
+        const resolvedHeadersStr = resolveVariables(headersText, activeVariables);
+        const resolvedBodyStr = resolveVariables(bodyText, activeVariables);
 
         // Parse headers from text
         let parsedHeaders: Record<string, string> = {};
-        if (headersText.trim()) {
+        if (resolvedHeadersStr.trim()) {
             try {
-                parsedHeaders = JSON.parse(headersText);
+                parsedHeaders = JSON.parse(resolvedHeadersStr);
             } catch {
                 setError("Headers ไม่ใช่ JSON ที่ถูกต้อง กรุณาตรวจสอบ format");
                 setLoading(false);
@@ -460,21 +543,46 @@ export default function ApiTesterPage() {
         }
 
         try {
-            const res = await fetch(PROXY_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    url: url.trim(),
+            let data: ApiResponse;
+
+            if (directMode) {
+                const startTime = performance.now();
+                const res = await fetch(resolvedUrlStr, {
                     method,
                     headers: parsedHeaders,
-                    body: method !== "GET" && method !== "HEAD" ? bodyText : undefined,
-                }),
-            });
+                    body: method !== "GET" && method !== "HEAD" ? resolvedBodyStr : undefined,
+                });
+                const endTime = performance.now();
+                const responseBody = await res.text();
+                const headersObj: Record<string, string> = {};
+                res.headers.forEach((v, k) => {
+                    headersObj[k] = v;
+                });
+                
+                data = {
+                    status_code: res.status,
+                    status_text: res.statusText,
+                    headers: headersObj,
+                    body: responseBody,
+                    elapsed_ms: Math.round(endTime - startTime),
+                };
+            } else {
+                const res = await fetch(PROXY_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        url: resolvedUrlStr,
+                        method,
+                        headers: parsedHeaders,
+                        body: method !== "GET" && method !== "HEAD" ? resolvedBodyStr : undefined,
+                    }),
+                });
 
-            const data: ApiResponse = await res.json();
+                data = await res.json();
 
-            if (!res.ok) {
-                throw new Error((data as unknown as { error: string }).error || `Proxy error: ${res.status}`);
+                if (!res.ok) {
+                    throw new Error((data as unknown as { error: string }).error || `Proxy error: ${res.status}`);
+                }
             }
 
             setResponse(data);
@@ -496,12 +604,17 @@ export default function ApiTesterPage() {
                 return updated;
             });
         } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
-            setError(msg);
+            if (directMode && err instanceof TypeError) {
+                setIsCorsError(true);
+                setError("CORS Blocked หรือ Network Error: การเรียกใช้ API ข้ามโดเมนล้มเหลวเนื่องจากความปลอดภัยของเบราว์เซอร์");
+            } else {
+                const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+                setError(msg);
+            }
         } finally {
             setLoading(false);
         }
-    }, [url, method, headersText, bodyText]);
+    }, [url, method, headersText, bodyText, directMode, activeVariables]);
 
     // ─── History Helpers ────────────────────────────────
     const loadFromHistory = useCallback((item: HistoryItem) => {
@@ -517,6 +630,246 @@ export default function ApiTesterPage() {
         setHistory([]);
         try { localStorage.removeItem(HISTORY_KEY); } catch { /* ignore */ }
     }, []);
+
+    // ─── Postgirl Environment & Collection Helpers ────────
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target?.result as string);
+                const report = importFile(json, Date.now());
+
+                if (report.environments.length > 0) {
+                    const mergedEnvs = [...environments];
+                    report.environments.forEach((newEnv) => {
+                        const idx = mergedEnvs.findIndex((x) => x.name === newEnv.name);
+                        if (idx >= 0) {
+                            mergedEnvs[idx] = { ...newEnv, name: `${newEnv.name} (Imported)` };
+                        } else {
+                            mergedEnvs.push(newEnv);
+                        }
+                    });
+                    saveEnvironments(mergedEnvs);
+                    if (mergedEnvs.length > 0 && !activeEnvironmentId) {
+                        saveActiveEnvId(mergedEnvs[mergedEnvs.length - 1].id);
+                    }
+                    setImportSuccess(`✅ นำเข้า Environment (${report.environments.map(e => e.name).join(", ")}) สำเร็จ!`);
+                }
+
+                if (report.collections.length > 0) {
+                    const mergedCols = [...collections];
+                    const mergedReqs = [...collectionsRequests];
+                    
+                    report.collections.forEach((newCol) => {
+                        const idx = mergedCols.findIndex((x) => x.name === newCol.name);
+                        if (idx >= 0) {
+                            newCol.name = `${newCol.name} (Imported)`;
+                        }
+                        mergedCols.push(newCol);
+                    });
+
+                    report.requests.forEach((newReq) => {
+                        mergedReqs.push(newReq);
+                    });
+
+                    saveCollectionsAndRequests(mergedCols, mergedReqs);
+                    setImportSuccess(`✅ นำเข้า Collection (${report.collections.map(c => c.name).join(", ")}) สำเร็จ!`);
+                }
+
+                if (report.warnings.length > 0) {
+                    setError(`คำเตือน: ${report.warnings.join(", ")}`);
+                } else {
+                    setError("");
+                }
+
+                setTimeout(() => setImportSuccess(""), 4000);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการโหลดไฟล์ JSON");
+            }
+        };
+        reader.readAsText(file);
+        // Reset file input value
+        if (e.target) e.target.value = "";
+    };
+
+    const handleCreateEnv = () => {
+        if (!envName.trim()) return;
+        const newEnv: Environment = {
+            id: crypto.randomUUID(),
+            name: envName.trim(),
+            variables: [],
+        };
+        const updated = [...environments, newEnv];
+        saveEnvironments(updated);
+        saveActiveEnvId(newEnv.id);
+        setEnvName("");
+    };
+
+    const handleDeleteEnv = (id: string) => {
+        const updated = environments.filter((e) => e.id !== id);
+        saveEnvironments(updated);
+        if (activeEnvironmentId === id) {
+            saveActiveEnvId(updated.length > 0 ? updated[0].id : "");
+        }
+    };
+
+    const handleSaveVariables = () => {
+        if (!activeEnvironmentId) return;
+        try {
+            const parsed = JSON.parse(tempVars);
+            if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+                throw new Error("ต้องเป็น JSON Object เท่านั้น เช่น { \"key\": \"value\" }");
+            }
+            const updatedVars: EnvVariable[] = Object.entries(parsed).map(([key, val]) => ({
+                id: crypto.randomUUID(),
+                key: key.trim(),
+                value: String(val),
+                enabled: true,
+            }));
+
+            const updatedEnvs = environments.map((env) => {
+                if (env.id === activeEnvironmentId) {
+                    return { ...env, variables: updatedVars };
+                }
+                return env;
+            });
+            saveEnvironments(updatedEnvs);
+            setImportSuccess("✅ บันทึกตัวแปรสภาพแวดล้อมสำเร็จ!");
+            setTimeout(() => setImportSuccess(""), 2000);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "รูปแบบ JSON ไม่ถูกต้อง ตัวอย่าง: { \"domain\": \"api.com\" }");
+        }
+    };
+
+    // Load variables into editor when active environment changes
+    useEffect(() => {
+        if (activeEnvironmentId && activeEnv) {
+            const varObj: Record<string, string> = {};
+            activeEnv.variables.forEach((v) => {
+                varObj[v.key] = v.value;
+            });
+            setTempVars(JSON.stringify(varObj, null, 2));
+        } else {
+            setTempVars("{}");
+        }
+    }, [activeEnvironmentId, environments]);
+
+    const handleSaveRequestToCollection = () => {
+        if (!saveRequestName.trim()) return;
+        
+        let targetColId = selectedCollectionId;
+        const updatedCols = [...collections];
+        const updatedReqs = [...collectionsRequests];
+
+        // Create new collection if needed
+        if (selectedCollectionId === "new") {
+            const newCol: Collection = {
+                id: crypto.randomUUID(),
+                name: "Collection ใหม่",
+                requestIds: [],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            };
+            updatedCols.push(newCol);
+            targetColId = newCol.id;
+        }
+
+        if (!targetColId && updatedCols.length > 0) {
+            targetColId = updatedCols[0].id;
+        } else if (!targetColId) {
+            // If no collections exist, create one
+            const defaultCol: Collection = {
+                id: crypto.randomUUID(),
+                name: "My Collection",
+                requestIds: [],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            };
+            updatedCols.push(defaultCol);
+            targetColId = defaultCol.id;
+        }
+
+        const newReq: ApiRequest = {
+            id: crypto.randomUUID(),
+            name: saveRequestName.trim(),
+            method,
+            url,
+            params: [],
+            headers: [],
+            body: {
+                mode: method !== "GET" && method !== "HEAD" ? "json" : "none",
+                raw: bodyText,
+            },
+            auth: { type: "none" },
+            collectionId: targetColId,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        };
+
+        // If headers isn't JSON list, map correctly
+        try {
+            if (headersText.trim()) {
+                const parsed = JSON.parse(headersText);
+                newReq.headers = Object.entries(parsed).map(([k, v]) => ({
+                    id: crypto.randomUUID(),
+                    key: k,
+                    value: String(v),
+                    enabled: true,
+                }));
+            }
+        } catch { /* ignore and use empty list */ }
+
+        updatedReqs.push(newReq);
+        
+        // Add request to collection
+        const colIdx = updatedCols.findIndex((c) => c.id === targetColId);
+        if (colIdx >= 0) {
+            updatedCols[colIdx].requestIds.push(newReq.id);
+            updatedCols[colIdx].updatedAt = Date.now();
+        }
+
+        saveCollectionsAndRequests(updatedCols, updatedReqs);
+        setSaveRequestName("");
+        setShowSaveModal(false);
+        setImportSuccess("✅ บันทึกเข้า Collection สำเร็จ!");
+        setTimeout(() => setImportSuccess(""), 3000);
+    };
+
+    const loadCollectionRequest = (req: ApiRequest) => {
+        setUrl(req.url);
+        setMethod(req.method);
+        
+        // Format headers back to JSON string
+        const headerObj: Record<string, string> = {};
+        req.headers.forEach((h) => {
+            if (h.enabled) headerObj[h.key] = h.value;
+        });
+        setHeadersText(Object.keys(headerObj).length > 0 ? JSON.stringify(headerObj, null, 2) : "");
+
+        setBodyText(req.body.raw ?? "");
+        setResponse(null);
+        setError("");
+    };
+
+    const handleDeleteCollection = (colId: string) => {
+        const updatedCols = collections.filter((c) => c.id !== colId);
+        const updatedReqs = collectionsRequests.filter((r) => r.collectionId !== colId);
+        saveCollectionsAndRequests(updatedCols, updatedReqs);
+    };
+
+    const handleDeleteRequest = (reqId: string, colId: string) => {
+        const updatedReqs = collectionsRequests.filter((r) => r.id !== reqId);
+        const updatedCols = collections.map((c) => {
+            if (c.id === colId) {
+                return { ...c, requestIds: c.requestIds.filter((id) => id !== reqId) };
+            }
+            return c;
+        });
+        saveCollectionsAndRequests(updatedCols, updatedReqs);
+    };
 
     const copyResponse = useCallback(() => {
         if (!response) return;
@@ -623,169 +976,436 @@ export default function ApiTesterPage() {
                     )}
                 </Card>
 
-                {/* ─── Main Grid: Request + Response ─────── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* ── Request Form ─────────────────────── */}
-                    <Card className="border-border/50 bg-card">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base font-bold flex items-center gap-2">
-                                <Send className="h-4 w-4 text-cyan-500" /> Request
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {/* Method + URL */}
-                            <div className="flex gap-2">
-                                <select
-                                    value={method}
-                                    onChange={(e) => setMethod(e.target.value)}
-                                    className="h-10 rounded-lg border border-border/50 bg-background px-3 text-sm font-bold focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all cursor-pointer min-w-[100px]"
-                                >
-                                    {["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"].map((m) => (
-                                        <option key={m} value={m}>{m}</option>
-                                    ))}
-                                </select>
-                                <Input
-                                    value={url}
-                                    onChange={(e) => setUrl(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && sendRequest()}
-                                    placeholder="https://api.example.com/endpoint"
-                                    className="flex-1 font-mono text-sm focus:border-cyan-500/50"
-                                />
-                            </div>
-
-                            {/* Headers */}
-                            <div>
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                                    Headers (JSON)
-                                </label>
-                                <textarea
-                                    value={headersText}
-                                    onChange={(e) => setHeadersText(e.target.value)}
-                                    rows={3}
-                                    className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-sm resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-muted-foreground/40"
-                                    placeholder='{ "Authorization": "Bearer token..." }'
-                                />
-                            </div>
-
-                            {/* Body */}
-                            <div>
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                                    Body {method === "GET" || method === "HEAD" ? <span className="text-muted-foreground/50 normal-case font-normal">(ไม่ใช้กับ {method})</span> : ""}
-                                </label>
-                                <textarea
-                                    value={bodyText}
-                                    onChange={(e) => setBodyText(e.target.value)}
-                                    rows={4}
-                                    disabled={method === "GET" || method === "HEAD"}
-                                    className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-sm resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed placeholder:text-muted-foreground/40"
-                                    placeholder='{ "key": "value" }'
-                                />
-                            </div>
-
-                            {/* Error */}
-                            {error && (
-                                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <AlertTitle>ข้อผิดพลาด</AlertTitle>
-                                    <AlertDescription className="text-sm">{error}</AlertDescription>
-                                </Alert>
-                            )}
-
-                            {/* Send Button */}
-                            <Button
-                                onClick={sendRequest}
-                                disabled={loading || !url.trim()}
-                                className="w-full h-11 text-sm font-bold gap-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all"
-                            >
-                                {loading ? (
-                                    <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</>
-                                ) : (
-                                    <><Send className="h-4 w-4" /> Send Request</>
-                                )}
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    {/* ── Response Panel ─────────────────────── */}
-                    <Card className="border-border/50 bg-zinc-950 text-zinc-100 overflow-hidden flex flex-col">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                                    Response
+                {/* ─── Grid: Sidebar + Main Area ─────────── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-start animate-in fade-in duration-300">
+                    
+                    {/* ─── Left Sidebar: Collections & Environments ─── */}
+                    <div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-6">
+                        
+                        {/* 1. Environments Panel */}
+                        <Card className="border-border/50 bg-card">
+                            <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+                                <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
+                                    <Sliders className="h-4 w-4 text-cyan-500" /> สภาพแวดล้อม (Env)
                                 </CardTitle>
-                                {response && (
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className={`${statusColor(response.status_code)} border text-xs font-bold`}>
-                                            {response.status_code} {response.status_text}
-                                        </Badge>
-                                        <span className="text-xs text-zinc-500 flex items-center gap-1">
-                                            <Clock className="h-3 w-3" /> {response.elapsed_ms}ms
-                                        </span>
+                                {activeEnvironmentId && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-6 text-[10px] text-red-500 hover:text-red-600 hover:bg-red-500/5 px-1.5"
+                                        onClick={() => handleDeleteEnv(activeEnvironmentId)}
+                                    >
+                                        ลบ Env นี้
+                                    </Button>
+                                )}
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {/* Env Selector */}
+                                <div className="space-y-1">
+                                    <select
+                                        value={activeEnvironmentId}
+                                        onChange={(e) => saveActiveEnvId(e.target.value)}
+                                        className="w-full h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
+                                    >
+                                        <option value="">-- เลือกสภาพแวดล้อม (No Env) --</option>
+                                        {environments.map((env) => (
+                                            <option key={env.id} value={env.id}>{env.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Active Env variables JSON Editor */}
+                                {activeEnvironmentId ? (
+                                    <div className="space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">ตัวแปร (JSON Object)</span>
+                                            <Button 
+                                                size="sm" 
+                                                variant="ghost" 
+                                                className="h-6 text-[10.5px] font-bold text-cyan-600 hover:text-cyan-700 hover:bg-cyan-500/5 px-2"
+                                                onClick={handleSaveVariables}
+                                            >
+                                                บันทึกตัวแปร
+                                            </Button>
+                                        </div>
+                                        <textarea
+                                            value={tempVars}
+                                            onChange={(e) => setTempVars(e.target.value)}
+                                            rows={5}
+                                            className="w-full rounded-lg border border-border/50 bg-background p-2.5 font-mono text-[11px] resize-y focus:border-cyan-500/50 outline-none transition-all"
+                                            placeholder='{ "baseUrl": "https://api.com" }'
+                                        />
+                                        <p className="text-[10px] text-muted-foreground/85 leading-relaxed">
+                                            เรียกใช้ด้วย <code className="bg-cyan-500/10 px-1 rounded text-cyan-600 font-mono">{"{{key}}"}</code> ใน URL, Headers หรือ Body
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-muted/20 border border-border/30 rounded-lg text-center">
+                                        <p className="text-[11px] text-muted-foreground">ไม่มีสภาพแวดล้อมที่เลือกอยู่</p>
                                     </div>
                                 )}
-                            </div>
 
-                            {/* Tabs */}
-                            {response && (
-                                <div className="flex gap-1 mt-3 border-b border-zinc-800 pb-0">
-                                    <button
-                                        onClick={() => setResponseTab("body")}
-                                        className={`px-3 py-1.5 text-xs font-semibold rounded-t-md transition-colors ${responseTab === "body" ? "bg-zinc-800 text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
-                                    >
-                                        Body
-                                    </button>
-                                    <button
-                                        onClick={() => setResponseTab("headers")}
-                                        className={`px-3 py-1.5 text-xs font-semibold rounded-t-md transition-colors ${responseTab === "headers" ? "bg-zinc-800 text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
-                                    >
-                                        Headers ({response.headers ? Object.keys(response.headers).length : 0})
-                                    </button>
-                                    <div className="flex-1" />
+                                {/* Create Env Form */}
+                                <div className="border-t border-border/30 pt-3 space-y-2">
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase block">สร้าง Env ใหม่</span>
+                                    <div className="flex gap-1.5">
+                                        <Input
+                                            value={envName}
+                                            onChange={(e) => setEnvName(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleCreateEnv()}
+                                            placeholder="ชื่อสภาพแวดล้อม..."
+                                            className="h-8 text-xs focus:border-cyan-500/50"
+                                        />
+                                        <Button
+                                            onClick={handleCreateEnv}
+                                            disabled={!envName.trim()}
+                                            size="sm"
+                                            className="h-8 bg-cyan-600 hover:bg-cyan-700 text-white"
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* 2. Collections Panel */}
+                        <Card className="border-border/50 bg-card">
+                            <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+                                <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
+                                    <Folder className="h-4 w-4 text-cyan-500" /> คอลเลกชัน (Collections)
+                                </CardTitle>
+                                <div>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                        accept=".json"
+                                        className="hidden"
+                                    />
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-7 text-xs text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800 gap-1"
-                                        onClick={copyResponse}
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="h-7 text-[10px] text-cyan-600 hover:text-cyan-700 hover:bg-cyan-500/5 gap-1 font-bold"
                                     >
-                                        {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-                                        {copied ? "Copied!" : "Copy"}
+                                        <Upload className="h-3 w-3" /> นำเข้า
                                     </Button>
                                 </div>
-                            )}
-                        </CardHeader>
-                        <CardContent className="flex-1 min-h-[300px] pt-0">
-                            {loading && (
-                                <div className="flex items-center justify-center h-full gap-3 text-zinc-500">
-                                    <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
-                                    <span className="text-sm">กำลังส่ง request...</span>
-                                </div>
-                            )}
-                            {!loading && !response && !error && (
-                                <div className="flex flex-col items-center justify-center h-full gap-3 text-zinc-600">
-                                    <Zap className="h-10 w-10 opacity-20" />
-                                    <span className="text-sm">กรอกข้อมูลแล้วกด Send Request</span>
-                                </div>
-                            )}
-                            {response && responseTab === "body" && (
-                                <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-all text-emerald-400/90 overflow-auto max-h-[500px] animate-in fade-in">
-                                    {formattedBody || <span className="text-zinc-600 italic">Empty response body</span>}
-                                </pre>
-                            )}
-                            {response && responseTab === "headers" && (
-                                <div className="space-y-1 animate-in fade-in">
-                                    {response.headers && Object.entries(response.headers).map(([key, value]) => (
-                                        <div key={key} className="flex gap-2 text-xs sm:text-sm font-mono py-1 border-b border-zinc-800/50 last:border-0">
-                                            <span className="text-cyan-400 font-semibold whitespace-nowrap">{key}:</span>
-                                            <span className="text-zinc-400 break-all">{value}</span>
+                            </CardHeader>
+                            <CardContent className="space-y-3 pt-0">
+                                {collections.length === 0 ? (
+                                    <div className="p-4 bg-muted/20 border border-dashed border-border/50 rounded-xl text-center">
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                            ยังไม่มี Collection<br />
+                                            บันทึก Request หรือนำเข้าไฟล์ Postman เพื่อเริ่มต้น
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                                        {collections.map((col) => {
+                                            const colReqs = collectionsRequests.filter(r => r.collectionId === col.id);
+                                            return (
+                                                <div key={col.id} className="border border-border/50 rounded-lg overflow-hidden bg-muted/10">
+                                                    <div className="bg-muted/30 px-3 py-2 flex items-center justify-between border-b border-border/30">
+                                                        <span className="text-xs font-semibold truncate flex items-center gap-1.5" title={col.name}>
+                                                            <Folder className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
+                                                            {col.name}
+                                                        </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                                                            onClick={() => handleDeleteCollection(col.id)}
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="p-1.5 space-y-1">
+                                                        {colReqs.length === 0 ? (
+                                                            <p className="text-[10px] text-muted-foreground italic px-2 py-1">ไม่มีข้อมูล</p>
+                                                        ) : (
+                                                            colReqs.map((req) => (
+                                                                <div 
+                                                                    key={req.id} 
+                                                                    className="group flex items-center justify-between px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer"
+                                                                >
+                                                                    <div 
+                                                                        className="flex items-center gap-2 flex-1 min-w-0"
+                                                                        onClick={() => loadCollectionRequest(req)}
+                                                                    >
+                                                                        <span className={`text-[8px] font-bold px-1 rounded font-mono shrink-0 w-8 text-center py-0.5 border ${
+                                                                            req.method === "GET" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                                                                            req.method === "POST" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                                            "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                                                        }`}>
+                                                                            {req.method}
+                                                                        </span>
+                                                                        <span className="text-[11px] font-medium truncate text-muted-foreground hover:text-foreground">
+                                                                            {req.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <button
+                                                                        className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                                                                        onClick={() => handleDeleteRequest(req.id, col.id)}
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* ─── Right Area: Request Form & Response Panel ─── */}
+                    <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
+                        
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            {/* ── Request Form ─────────────────────── */}
+                            <Card className="border-border/50 bg-card flex flex-col h-full">
+                                <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
+                                    <CardTitle className="text-base font-bold flex items-center gap-2">
+                                        <Send className="h-4 w-4 text-cyan-500" /> Request
+                                    </CardTitle>
+                                    
+                                    {/* Direct Mode Toggle */}
+                                    <div className="flex items-center gap-1.5 bg-muted/40 p-0.5 rounded-lg border border-border/30">
+                                        <button
+                                            onClick={() => saveDirectMode(true)}
+                                            title="ยิงตรงจาก Browser ของคุณ (ใช้กับ localhost ได้ดี)"
+                                            className={`px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
+                                                directMode
+                                                    ? "bg-cyan-500/15 text-cyan-500 shadow-sm"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                        >
+                                            <Globe className="h-3 w-3" /> Direct
+                                        </button>
+                                        <button
+                                            onClick={() => saveDirectMode(false)}
+                                            title="ยิงผ่าน Cloudflare Worker Proxy (ช่วยแก้ปัญหา CORS)"
+                                            className={`px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
+                                                !directMode
+                                                    ? "bg-blue-500/15 text-blue-500 shadow-sm"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                        >
+                                            <Shield className="h-3 w-3" /> Proxy
+                                        </button>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-4">
+                                        {/* Method + URL */}
+                                        <div className="space-y-1">
+                                            <div className="flex gap-2">
+                                                <select
+                                                    value={method}
+                                                    onChange={(e) => setMethod(e.target.value)}
+                                                    className="h-10 rounded-lg border border-border/50 bg-background px-3 text-sm font-bold focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all cursor-pointer min-w-[100px]"
+                                                >
+                                                    {["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"].map((m) => (
+                                                        <option key={m} value={m}>{m}</option>
+                                                    ))}
+                                                </select>
+                                                <Input
+                                                    value={url}
+                                                    onChange={(e) => setUrl(e.target.value)}
+                                                    onKeyDown={(e) => e.key === "Enter" && sendRequest()}
+                                                    placeholder="https://api.example.com/endpoint หรือ {{url}}/endpoint"
+                                                    className="flex-1 font-mono text-sm focus:border-cyan-500/50"
+                                                />
+                                            </div>
+
+                                            {/* Live Resolved URL Preview */}
+                                            {url.includes("{{") && (
+                                                <div className="text-[10px] font-mono text-muted-foreground truncate bg-muted/40 px-2.5 py-1.5 rounded border border-border/30 mt-1.5 flex items-center gap-1.5 animate-in fade-in">
+                                                    <Globe className="h-3 w-3 shrink-0 text-cyan-500" />
+                                                    <span className="shrink-0 text-cyan-600 font-semibold">Preview URL:</span>
+                                                    <span className="truncate text-foreground/80">{resolvedUrl}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
-                                    {(!response.headers || Object.keys(response.headers).length === 0) && (
-                                        <span className="text-zinc-600 text-sm italic">No headers returned</span>
+
+                                        {/* Headers */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                                                Headers (JSON)
+                                            </label>
+                                            <textarea
+                                                value={headersText}
+                                                onChange={(e) => setHeadersText(e.target.value)}
+                                                rows={3}
+                                                className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-xs resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-muted-foreground/40"
+                                                placeholder='{ "Authorization": "Bearer {{token}}" }'
+                                            />
+                                        </div>
+
+                                        {/* Body */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                                                Body {method === "GET" || method === "HEAD" ? <span className="text-muted-foreground/50 normal-case font-normal">(ไม่ใช้กับ {method})</span> : ""}
+                                            </label>
+                                            <textarea
+                                                value={bodyText}
+                                                onChange={(e) => setBodyText(e.target.value)}
+                                                rows={4}
+                                                disabled={method === "GET" || method === "HEAD"}
+                                                className="w-full rounded-lg border border-border/50 bg-background p-3 font-mono text-xs resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed placeholder:text-muted-foreground/40"
+                                                placeholder='{ "username": "{{user}}" }'
+                                            />
+                                        </div>
+
+                                        {/* Error Alert */}
+                                        {error && (
+                                            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <AlertTitle>ข้อผิดพลาด</AlertTitle>
+                                                <AlertDescription className="text-xs">{error}</AlertDescription>
+                                            </Alert>
+                                        )}
+
+                                        {/* CORS Explainer Card */}
+                                        {isCorsError && (
+                                            <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-500 animate-in fade-in slide-in-from-top-2">
+                                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                                                <AlertTitle className="font-bold text-xs">CORS Blocked (เบราว์เซอร์บล็อกการเรียกใช้)</AlertTitle>
+                                                <AlertDescription className="text-[11px] space-y-2 mt-1">
+                                                    <p>
+                                                        เบราว์เซอร์ของคุณสกัดกั้นการเชื่อมต่อไปยังโฮสต์ปลายทาง เนื่องจากไม่ผ่านนโยบายความปลอดภัย CORS ปัญหานี้สามารถหลีกเลี่ยงได้ง่ายๆ ด้วยการยิงผ่าน Worker Proxy
+                                                    </p>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 bg-transparent h-7 text-[10px]"
+                                                        onClick={() => saveDirectMode(false)}
+                                                    >
+                                                        สลับเป็น Proxy Mode ทันที
+                                                    </Button>
+                                                </AlertDescription>
+                                            </Alert>
+                                        )}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2 pt-4 border-t border-border/20 mt-4">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                setSaveRequestName(url ? url.split("/").pop() || "Request ใหม่" : "Request ใหม่");
+                                                setShowSaveModal(true);
+                                            }}
+                                            disabled={!url.trim()}
+                                            className="h-11 px-4 text-sm font-semibold gap-2 border-border/50 hover:bg-muted/50"
+                                        >
+                                            <Save className="h-4 w-4 text-muted-foreground" />
+                                            <span className="hidden sm:inline">Save</span>
+                                        </Button>
+                                        <Button
+                                            onClick={sendRequest}
+                                            disabled={loading || !url.trim()}
+                                            className="flex-1 h-11 text-sm font-bold gap-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all"
+                                        >
+                                            {loading ? (
+                                                <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</>
+                                            ) : (
+                                                <><Send className="h-4 w-4" /> Send Request</>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* ── Response Panel ─────────────────────── */}
+                            <Card className="border-border/50 bg-zinc-950 text-zinc-100 overflow-hidden flex flex-col h-full min-h-[450px]">
+                                <CardHeader className="pb-3 shrink-0">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                                            Response
+                                        </CardTitle>
+                                        {response && (
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className={`${statusColor(response.status_code)} border text-xs font-bold`}>
+                                                    {response.status_code} {response.status_text}
+                                                </Badge>
+                                                <span className="text-xs text-zinc-500 flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" /> {response.elapsed_ms}ms
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tabs */}
+                                    {response && (
+                                        <div className="flex gap-1 mt-3 border-b border-zinc-800 pb-0">
+                                            <button
+                                                onClick={() => setResponseTab("body")}
+                                                className={`px-3 py-1.5 text-xs font-semibold rounded-t-md transition-colors ${responseTab === "body" ? "bg-zinc-800 text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
+                                            >
+                                                Body
+                                            </button>
+                                            <button
+                                                onClick={() => setResponseTab("headers")}
+                                                className={`px-3 py-1.5 text-xs font-semibold rounded-t-md transition-colors ${responseTab === "headers" ? "bg-zinc-800 text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}
+                                            >
+                                                Headers ({response.headers ? Object.keys(response.headers).length : 0})
+                                            </button>
+                                            <div className="flex-1" />
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-7 text-xs text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800 gap-1"
+                                                onClick={copyResponse}
+                                            >
+                                                {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                                                {copied ? "Copied!" : "Copy"}
+                                            </Button>
+                                        </div>
                                     )}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                </CardHeader>
+                                <CardContent className="flex-1 pt-0 overflow-y-auto">
+                                    {loading && (
+                                        <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-3 text-zinc-500">
+                                            <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+                                            <span className="text-sm">กำลังส่ง request...</span>
+                                        </div>
+                                    )}
+                                    {!loading && !response && !error && (
+                                        <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-3 text-zinc-600">
+                                            <Zap className="h-10 w-10 opacity-20" />
+                                            <span className="text-sm">กรอกข้อมูลแล้วกด Send Request</span>
+                                        </div>
+                                    )}
+                                    {response && responseTab === "body" && (
+                                        <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-all text-emerald-400/90 overflow-auto max-h-[500px] animate-in fade-in py-2">
+                                            {formattedBody || <span className="text-zinc-600 italic">Empty response body</span>}
+                                        </pre>
+                                    )}
+                                    {response && responseTab === "headers" && (
+                                        <div className="space-y-1 animate-in fade-in py-2">
+                                            {response.headers && Object.entries(response.headers).map(([key, value]) => (
+                                                <div key={key} className="flex gap-2 text-xs sm:text-sm font-mono py-1 border-b border-zinc-800/50 last:border-0">
+                                                    <span className="text-cyan-400 font-semibold whitespace-nowrap">{key}:</span>
+                                                    <span className="text-zinc-400 break-all">{value}</span>
+                                                </div>
+                                            ))}
+                                            {(!response.headers || Object.keys(response.headers).length === 0) && (
+                                                <span className="text-zinc-600 text-sm italic">No headers returned</span>
+                                            )}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                    </div>
                 </div>
 
                 {/* ─── History ────────────────────────────── */}
@@ -980,6 +1600,63 @@ export default function ApiTesterPage() {
                     responsive={true}
                     className="min-h-[250px] mt-20 bg-muted/10 rounded-xl py-20 border border-dashed border-muted"
                 />
+
+                {/* ─── Save Request Modal ────────────────── */}
+                {showSaveModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                        <Card className="w-full max-w-md border-border/50 bg-card/95 shadow-2xl">
+                            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                                <CardTitle className="text-base font-bold flex items-center gap-2">
+                                    <Folder className="h-4 w-4 text-cyan-500" /> บันทึก Request ลง Collection
+                                </CardTitle>
+                                <button 
+                                    onClick={() => setShowSaveModal(false)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase">ชื่อ Request</label>
+                                    <Input
+                                        value={saveRequestName}
+                                        onChange={(e) => setSaveRequestName(e.target.value)}
+                                        placeholder="เช่น ดึงข้อมูลผู้ใช้"
+                                    />
+                                </div>
+                                
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase">เลือก Collection</label>
+                                    <select
+                                        value={selectedCollectionId}
+                                        onChange={(e) => setSelectedCollectionId(e.target.value)}
+                                        className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
+                                    >
+                                        <option value="">-- เลือก Collection หรือสร้างใหม่ --</option>
+                                        {collections.map((col) => (
+                                            <option key={col.id} value={col.id}>{col.name}</option>
+                                        ))}
+                                        <option value="new">+ สร้าง Collection ใหม่</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex gap-2 justify-end pt-2">
+                                    <Button variant="ghost" onClick={() => setShowSaveModal(false)}>
+                                        ยกเลิก
+                                    </Button>
+                                    <Button 
+                                        onClick={handleSaveRequestToCollection}
+                                        disabled={!saveRequestName.trim()}
+                                        className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold"
+                                    >
+                                        บันทึก
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
             </main>
         </div>
     );
