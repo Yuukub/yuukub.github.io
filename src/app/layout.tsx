@@ -70,7 +70,18 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap';
+                document.head.appendChild(link);
+              })();
+            `
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
@@ -116,10 +127,33 @@ export default function RootLayout({
           </div>
         </ThemeProvider>
         <Script
-          id="adsbygoogle-init"
-          strategy="lazyOnload"
-          crossOrigin="anonymous"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1635737019041674`}
+          id="adsense-lazy"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var adsLoaded = false;
+                function loadAds() {
+                  if (adsLoaded) return;
+                  adsLoaded = true;
+                  window.removeEventListener('scroll', loadAds);
+                  window.removeEventListener('mousemove', loadAds);
+                  window.removeEventListener('touchstart', loadAds);
+                  
+                  var script = document.createElement('script');
+                  script.type = 'text/javascript';
+                  script.async = true;
+                  script.crossOrigin = 'anonymous';
+                  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1635737019041674';
+                  document.head.appendChild(script);
+                }
+                window.addEventListener('scroll', loadAds, { passive: true });
+                window.addEventListener('mousemove', loadAds, { passive: true });
+                window.addEventListener('touchstart', loadAds, { passive: true });
+                setTimeout(loadAds, 6000); // fallback after 6 seconds
+              })();
+            `
+          }}
         />
       </body>
     </html>
