@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AdUnit } from "@/components/ad-unit";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import {
     ArrowLeft, Zap, Send, Loader2, Clock, Copy, CheckCircle2,
     Trash2, ChevronDown, ChevronUp, AlertCircle, Code2, RotateCcw, History,

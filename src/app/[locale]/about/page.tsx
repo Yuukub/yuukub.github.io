@@ -3,13 +3,17 @@ import { Navbar } from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { User, Terminal, ShieldCheck, Heart } from "lucide-react";
 
+import { setRequestLocale } from "next-intl/server";
+
 export const metadata: Metadata = {
     title: "About Us - เกี่ยวกับเรา",
     description: "เรียนรู้เพิ่มเติมเกี่ยวกับเป้าหมายและพันธกิจของ yuukub.com คลังความรู้และเครื่องมือสำหรับนักพัฒนา",
     alternates: { canonical: "https://yuukub.com/about/" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    setRequestLocale(locale);
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />

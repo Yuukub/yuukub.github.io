@@ -24,7 +24,7 @@ import {
     HelpCircle,
 } from "lucide-react";
 import { AdUnit } from "@/components/ad-unit";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 /* ─── SEO Data ─────────────────────────────────────────────── */
 

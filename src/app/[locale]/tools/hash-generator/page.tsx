@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Hash, CheckCircle2, ShieldAlert, ArrowLeft, Terminal } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { AdUnit } from "@/components/ad-unit";
 
 // SIMPLE MD5 Implementation

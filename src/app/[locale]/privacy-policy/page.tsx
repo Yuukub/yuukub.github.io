@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Lock, Eye, ExternalLink, Mail } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+
+import { setRequestLocale } from "next-intl/server";
 
 export const metadata: Metadata = {
     title: "Privacy Policy - นโยบายความเป็นส่วนตัว",
@@ -10,7 +12,9 @@ export const metadata: Metadata = {
     alternates: { canonical: "https://yuukub.com/privacy-policy/" },
 };
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    setRequestLocale(locale);
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             {/* Mesh Background */}

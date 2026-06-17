@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getPostData, getAllPostSlugs } from "@/lib/blog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,8 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
-export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
+import { setRequestLocale } from "next-intl/server";
+
+export default async function Post({ params }: { params: Promise<{ slug: string; locale: string }> }) {
+    const { slug, locale } = await params;
+    setRequestLocale(locale);
     const postData = await getPostData(slug);
 
     const articleJsonLd = {

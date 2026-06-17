@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +80,11 @@ const TOOLS = [
     },
 ];
 
-export default function ToolsPage() {
+import { setRequestLocale } from "next-intl/server";
+
+export default async function ToolsPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    setRequestLocale(locale);
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             {/* Mesh Background */}

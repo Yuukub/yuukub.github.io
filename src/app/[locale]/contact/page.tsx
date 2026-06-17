@@ -4,13 +4,17 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, MessageSquare, Globe, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { setRequestLocale } from "next-intl/server";
+
 export const metadata: Metadata = {
     title: "Contact Us - ติดต่อเรา",
     description: "ช่องทางการติดต่อ yuukub.com สำหรับสอบถามข้อมูล แจ้งปัญหาการใช้งาน หรือข้อเสนอแนะต่างๆ",
     alternates: { canonical: "https://yuukub.com/contact/" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    setRequestLocale(locale);
     const contactEmail = "yuukun.eutopia@gmail.com";
 
     return (

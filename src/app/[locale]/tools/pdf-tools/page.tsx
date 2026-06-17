@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdUnit } from "@/components/ad-unit";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import {
     ArrowLeft, FileText, Upload, Download, Loader2, Trash2,
     CheckCircle2, XCircle, Clock, PackageOpen, ChevronUp, ChevronDown,

@@ -8,7 +8,11 @@ export const metadata: Metadata = {
     alternates: { canonical: "https://yuukub.com/tools/web-previewer/" },
 };
 
-export default function WebPreviewerPage() {
+import { setRequestLocale } from "next-intl/server";
+
+export default async function WebPreviewerPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    setRequestLocale(locale);
     return (
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-muted-foreground">กำลังโหลด...</div>}>
             <LiveWebPreviewer />

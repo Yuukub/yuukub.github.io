@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ShieldAlert, Loader2, ArrowLeft, CheckCircle2, XCircle, Info, HelpCircle, AlertTriangle, Lock, Zap, BookOpen } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AdUnit } from "@/components/ad-unit";
 

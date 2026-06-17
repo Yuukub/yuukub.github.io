@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Script from "next/script";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";

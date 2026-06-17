@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, ChangeEvent, useCallback } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { AdUnit } from "@/components/ad-unit";
