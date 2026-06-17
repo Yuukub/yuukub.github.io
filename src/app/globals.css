@@ -2,6 +2,23 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/google-sans.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Google Sans Flex';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/google-sans-flex.woff2') format('woff2');
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -48,7 +65,7 @@
 }
 
 :root {
-  --font-google-sans: "Google Sans", sans-serif;
+  --font-google-sans: "Google Sans Flex", "Google Sans", sans-serif;
   --radius: 0.75rem;
   --background: oklch(0.99 0.005 260);
   --foreground: oklch(0.15 0.02 260);
