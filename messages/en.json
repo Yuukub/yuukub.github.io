@@ -1,0 +1,58 @@
+{
+  "Metadata": {
+    "title": "Saranyuu M. | Systems Architect & Cybersecurity Consultant",
+    "description": "Google Certified Cybersecurity Professional and Full-stack Developer. Designing systems with Security-by-Design principles for stable business growth."
+  },
+  "Nav": {
+    "about": "About",
+    "work": "Work",
+    "blog": "Blog",
+    "contact": "Contact",
+    "tools": "Tools"
+  },
+  "Hero": {
+    "badge": "Available for new projects & consulting",
+    "title1": "Great systems start with",
+    "title2": "Security",
+    "description": "When the foundation is secure, businesses can grow limitlessly. I design systems based on Security-driven Growth through precise engineering and modern technologies.",
+    "btnContact": "Let's Work Together",
+    "btnExplore": "Explore Projects"
+  },
+  "About": {
+    "title": "Engineering Security for the Future",
+    "description": "I design solutions that integrate cybersecurity with business performance to create a strong foundation and protect every growth opportunity for organizations.",
+    "certTitle": "Licenses & Awards"
+  },
+  "Projects": {
+    "hubTitle": "Project Hub",
+    "hubDesc": "A collection of design and development works focusing on precision and technical efficiency.",
+    "explore": "Explore",
+    "types": {
+      "webapp": "Web Application",
+      "android": "Android App",
+      "automation": "Automation"
+    },
+    "items": {
+      "ads": {
+        "title": "Ads Budget Tracking",
+        "description": "Ad budget management system for agencies and marketing teams. Real-time visualization and secure storage."
+      },
+      "nfc": {
+        "title": "NFC Door Access",
+        "description": "Android application for controlling door access using NFC technology with encrypted card reading."
+      },
+      "line": {
+        "title": "LINE Automation",
+        "description": "Automated notification and CRM system via LINE Messaging API, connecting with external databases."
+      }
+    }
+  },
+  "Footer": {
+    "rights": "All rights reserved.",
+    "tagline": "Security. Marketing. Development. \nA unified technical approach for digital growth.",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "contact": "Contact"
+  }
+}
