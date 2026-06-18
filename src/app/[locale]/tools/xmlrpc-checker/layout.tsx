@@ -1,13 +1,31 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "WordPress XML-RPC Checker - ตรวจช่องโหว่ xmlrpc",
-    description: "ตรวจสอบว่าเว็บ WordPress ของคุณเปิด xmlrpc.php อยู่ไหม พร้อมวิธีปิดและป้องกันการโจมตี Brute Force, DDoS และ Pingback Amplification แบบ step-by-step",
-    keywords: ["XML-RPC checker", "WordPress security", "ปิด xmlrpc.php", "ตรวจสอบช่องโหว่ WordPress", "Brute Force WordPress", "WordPress hardening", "xmlrpc vulnerability"],
-    alternates: {
-        canonical: "https://yuukub.com/tools/xmlrpc-checker/",
-    },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'XmlRpcTool' });
+
+    return {
+        title: t('metaTitle'),
+        description: t('metaDesc'),
+        keywords: [
+            "XML-RPC checker",
+            "WordPress security",
+            locale === "th" ? "ปิด xmlrpc.php" : "disable xmlrpc.php",
+            locale === "th" ? "ตรวจสอบช่องโหว่ WordPress" : "wordpress vulnerability checker",
+            locale === "th" ? "Brute Force WordPress" : "WordPress brute force",
+            "WordPress hardening",
+            "xmlrpc vulnerability"
+        ],
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/xmlrpc-checker/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/xmlrpc-checker/",
+                en: "https://yuukub.com/en/tools/xmlrpc-checker/",
+                "x-default": "https://yuukub.com/th/tools/xmlrpc-checker/",
+            }
+        },
+    };
+}
 
 export default function XmlRpcCheckerLayout({
     children,

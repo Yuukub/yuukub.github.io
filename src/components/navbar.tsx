@@ -38,7 +38,7 @@ export function Navbar() {
                             size="icon"
                             onClick={toggleLanguage}
                             className="h-9 w-9 rounded-full text-xs font-bold hover:bg-muted pointer-events-auto cursor-pointer"
-                            aria-label={locale === 'th' ? 'Switch to English' : 'สลับเป็นภาษาไทย'}
+                            aria-label={t('switchLanguageAria')}
                         >
                             {locale === 'th' ? 'EN' : 'TH'}
                         </Button>

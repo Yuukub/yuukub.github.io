@@ -1,13 +1,22 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "WP Hash Generator - รีเซ็ตรหัสผ่าน WordPress",
-    description: "สร้างรหัส Hash สำหรับรหัสผ่าน WordPress เพื่อนำไปใช้ใน phpMyAdmin รองรับทั้ง MD5 และ SHA-256 ใช้งานง่ายและปลอดภัย",
-    keywords: ["WP password reset phpMyAdmin", "WordPress hash generator", "MD5 generator", "SHA-256 generator", "วิธีรีเซ็ตรหัสผ่าน WordPress"],
-    alternates: {
-        canonical: "https://yuukub.com/tools/hash-generator/",
-    },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'HashTool' });
+
+    return {
+        title: t('metaTitle'),
+        description: t('metaDesc'),
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/hash-generator/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/hash-generator/",
+                en: "https://yuukub.com/en/tools/hash-generator/",
+                "x-default": "https://yuukub.com/th/tools/hash-generator/",
+            }
+        },
+    };
+}
 
 export default function HashGeneratorLayout({
     children,

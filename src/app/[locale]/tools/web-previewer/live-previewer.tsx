@@ -30,27 +30,28 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { saveSnippet, loadSnippet, getClientIp } from "@/lib/supabase-snippets";
+import { useTranslations } from "next-intl";
 
-const DEFAULT_HTML = `<!DOCTYPE html>
+const getHtmlTemplate = (t: any) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Preview</title>
-    <!-- นำเข้าฟอนต์ Google Sans -->
+    <!-- ${t("defaultHtmlComment")} -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>Hello World</h1>
-    <p>เริ่มเขียนโค้ดของคุณที่นี่ หรือวางโค้ดที่ต้องการทดสอบได้เลย</p>
+    <p>${t("defaultHtmlParagraph")}</p>
 </body>
 </html>`;
 
-const DEFAULT_CSS = `/* เขียน CSS ของคุณที่นี่ */
+const getCssTemplate = (t: any) => `/* ${t("defaultCssComment1")} */
 body {
-    /* ใช้ฟอนต์ Google Sans */
+    /* ${t("defaultCssComment2")} */
     font-family: "Google Sans", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
@@ -59,7 +60,7 @@ body {
     padding: 20px;
 }`;
 
-const DEFAULT_JS = `// เขียน JavaScript ของคุณที่นี่
+const getJsTemplate = (t: any) => `// ${t("defaultJsComment")}
 console.log("Preview Ready!");`;
 
 type ViewportMode = "desktop" | "tablet" | "mobile";
@@ -80,12 +81,14 @@ function loadDraft(key: string, fallback: string): string {
 }
 
 export function LiveWebPreviewer() {
-    const [html, setHtml] = useState(() => loadDraft(LS_KEY_HTML, DEFAULT_HTML));
-    const [css, setCss] = useState(() => loadDraft(LS_KEY_CSS, DEFAULT_CSS));
-    const [js, setJs] = useState(() => loadDraft(LS_KEY_JS, DEFAULT_JS));
-    const [debouncedHtml, setDebouncedHtml] = useState(() => loadDraft(LS_KEY_HTML, DEFAULT_HTML));
-    const [debouncedCss, setDebouncedCss] = useState(() => loadDraft(LS_KEY_CSS, DEFAULT_CSS));
-    const [debouncedJs, setDebouncedJs] = useState(() => loadDraft(LS_KEY_JS, DEFAULT_JS));
+    const t = useTranslations("WebPreviewer");
+
+    const [html, setHtml] = useState(() => loadDraft(LS_KEY_HTML, getHtmlTemplate(t)));
+    const [css, setCss] = useState(() => loadDraft(LS_KEY_CSS, getCssTemplate(t)));
+    const [js, setJs] = useState(() => loadDraft(LS_KEY_JS, getJsTemplate(t)));
+    const [debouncedHtml, setDebouncedHtml] = useState(() => loadDraft(LS_KEY_HTML, getHtmlTemplate(t)));
+    const [debouncedCss, setDebouncedCss] = useState(() => loadDraft(LS_KEY_CSS, getCssTemplate(t)));
+    const [debouncedJs, setDebouncedJs] = useState(() => loadDraft(LS_KEY_JS, getJsTemplate(t)));
     const [viewport, setViewport] = useState<ViewportMode>("desktop");
     const [showEditor, setShowEditor] = useState(true);
     const [activeTab, setActiveTab] = useState<EditorTab>("html");
@@ -114,6 +117,18 @@ export function LiveWebPreviewer() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
+    const getLocalizedError = useCallback((err: string): string => {
+        switch (err) {
+            case "HTML_TOO_LARGE": return t("errorHtmlTooLarge");
+            case "CSS_TOO_LARGE": return t("errorCssTooLarge");
+            case "JS_TOO_LARGE": return t("errorJsTooLarge");
+            case "RATE_LIMIT_EXCEEDED": return t("errorRateLimit");
+            case "INVALID_ID_FORMAT": return t("errorInvalidFormat");
+            case "SNIPPET_NOT_FOUND": return t("errorNotFound");
+            default: return err;
+        }
+    }, [t]);
+
     // Debounce to prevent lag while typing
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -132,7 +147,7 @@ export function LiveWebPreviewer() {
         (async () => {
             const result = await loadSnippet(snippetId);
             if ("error" in result) {
-                setShareError(result.error);
+                setShareError(getLocalizedError(result.error));
                 setShowShareModal(true);
                 return;
             }
@@ -184,7 +199,7 @@ export function LiveWebPreviewer() {
 
             if ("error" in result) {
                 setShareStatus("error");
-                setShareError(result.error);
+                setShareError(getLocalizedError(result.error));
                 return;
             }
 
@@ -196,9 +211,9 @@ export function LiveWebPreviewer() {
             router.replace(`?id=${result.id}`, { scroll: false });
         } catch {
             setShareStatus("error");
-            setShareError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
+            setShareError(t("connectionError"));
         }
-    }, [html, css, js, router, shareUrl]);
+    }, [html, css, js, router, shareUrl, t, getLocalizedError]);
 
     // --- Copy URL to Clipboard ---
     const handleCopy = useCallback(async () => {
@@ -242,18 +257,21 @@ export function LiveWebPreviewer() {
 
     // --- Reset draft ---
     const handleReset = useCallback(() => {
-        setHtml(DEFAULT_HTML);
-        setCss(DEFAULT_CSS);
-        setJs(DEFAULT_JS);
-        setDebouncedHtml(DEFAULT_HTML);
-        setDebouncedCss(DEFAULT_CSS);
-        setDebouncedJs(DEFAULT_JS);
+        const defaultHtml = getHtmlTemplate(t);
+        const defaultCss = getCssTemplate(t);
+        const defaultJs = getJsTemplate(t);
+        setHtml(defaultHtml);
+        setCss(defaultCss);
+        setJs(defaultJs);
+        setDebouncedHtml(defaultHtml);
+        setDebouncedCss(defaultCss);
+        setDebouncedJs(defaultJs);
         try {
             localStorage.removeItem(LS_KEY_HTML);
             localStorage.removeItem(LS_KEY_CSS);
             localStorage.removeItem(LS_KEY_JS);
         } catch { /* */ }
-    }, []);
+    }, [t]);
 
     // --- Inspect Mode: toggle via postMessage ---
     const toggleInspect = useCallback(() => {
@@ -719,7 +737,7 @@ ${inspectScript}
                         onClick={() => setIsFullscreen(false)}
                     >
                         <Minimize2 className="h-4 w-4" />
-                        Exit Full Screen
+                        {t("exitFullScreen")}
                     </Button>
                 </div>
 
@@ -747,19 +765,19 @@ ${inspectScript}
                     <div>
                         <Link href="/tools/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-fuchsia-500 mb-6 transition-colors group">
                             <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-                            กลับไปหน้ารวมเครื่องมือ
+                            {t("backToTools")}
                         </Link>
                         <div className="flex items-center gap-3 mb-4">
                             <Badge variant="outline" className="rounded-full border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-500 px-4 py-1">
-                                Developer Tools
+                                {t("badgeDeveloperTools")}
                             </Badge>
-                            <Badge variant="secondary" className="rounded-full">Client-Side Only</Badge>
+                            <Badge variant="secondary" className="rounded-full">{t("badgeClientSideOnly")}</Badge>
                         </div>
                         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">
                             Live <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-pink-600">Web Previewer</span>
                         </h1>
                         <p className="text-muted-foreground text-balance">
-                            เขียนและทดสอบโครงสร้าง HTML, CSS, JavaScript แบบเรียลไทม์
+                            {t("subtitle")}
                         </p>
                     </div>
 
@@ -777,7 +795,7 @@ ${inspectScript}
                             className="gap-2"
                         >
                             <Upload className="h-4 w-4" />
-                            อัปโหลด .html
+                            {t("uploadHtml")}
                         </Button>
                         <Button
                             variant={showEditor ? "default" : "secondary"}
@@ -785,7 +803,7 @@ ${inspectScript}
                             className="gap-2"
                         >
                             {showEditor ? <EyeOff className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
-                            {showEditor ? "ซ่อนกล่องข้อความโค้ด" : "แสดงกล่องข้อความโค้ด"}
+                            {showEditor ? t("hideCodeEditor") : t("showCodeEditor")}
                         </Button>
                         {/* Share Button */}
                         <Button
@@ -797,21 +815,21 @@ ${inspectScript}
                             {shareStatus === "loading"
                                 ? <Loader2 className="h-4 w-4 animate-spin" />
                                 : <Share2 className="h-4 w-4" />}
-                            แชร์โค้ด
+                            {t("shareCode")}
                         </Button>
                         {loadedFromShare && (
                             <Badge variant="outline" className="text-fuchsia-500 border-fuchsia-500/20 bg-fuchsia-500/10">
-                                โหลดจากลิงก์แชร์
+                                {t("loadedFromShare")}
                             </Badge>
                         )}
                         <Button
                             variant="outline"
                             onClick={handleReset}
                             className="gap-2 text-muted-foreground hover:text-red-500 hover:border-red-500/30"
-                            title="รีเซ็ตโค้ดกลับเป็นค่าเริ่มต้น"
+                            title={t("resetTooltip")}
                         >
                             <RotateCcw className="h-4 w-4" />
-                            รีเซ็ตโค้ด
+                            {t("resetCode")}
                         </Button>
                     </div>
                 </section>
@@ -851,7 +869,7 @@ ${inspectScript}
                                         size="sm"
                                         onClick={() => setIsHorizontal(!isHorizontal)}
                                         className="h-8 hidden lg:flex px-2 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                                        title={isHorizontal ? "Switch to Vertical Layout" : "Switch to Horizontal Layout"}
+                                        title={isHorizontal ? t("switchToVertical") : t("switchToHorizontal")}
                                     >
                                         {isHorizontal ? <Monitor className="h-4 w-4 rotate-90" /> : <Monitor className="h-4 w-4" />}
                                     </Button>
@@ -899,7 +917,7 @@ ${inspectScript}
                                     className={`h-8 px-2 rounded ${viewport === "desktop" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
                                 >
                                     <Monitor className="h-4 w-4 mr-1" />
-                                    <span className="hidden sm:inline">Desktop</span>
+                                    <span className="hidden sm:inline">{t("viewportDesktop")}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -908,7 +926,7 @@ ${inspectScript}
                                     className={`h-8 px-2 rounded ${viewport === "tablet" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
                                 >
                                     <Tablet className="h-4 w-4 mr-1" />
-                                    <span className="hidden sm:inline">Tablet</span>
+                                    <span className="hidden sm:inline">{t("viewportTablet")}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -917,7 +935,7 @@ ${inspectScript}
                                     className={`h-8 px-2 rounded ${viewport === "mobile" ? "bg-muted shadow-sm" : "hover:bg-muted/50"}`}
                                 >
                                     <Smartphone className="h-4 w-4 mr-1" />
-                                    <span className="hidden sm:inline">Mobile</span>
+                                    <span className="hidden sm:inline">{t("viewportMobile")}</span>
                                 </Button>
                             </div>
 
@@ -929,7 +947,7 @@ ${inspectScript}
                                     onClick={toggleInspect}
                                 >
                                     <MousePointerClick className="h-3.5 w-3.5" />
-                                    <span className="hidden sm:inline">Inspect</span>
+                                    <span className="hidden sm:inline">{t("btnInspect")}</span>
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -938,10 +956,10 @@ ${inspectScript}
                                     onClick={() => setIsFullscreen(true)}
                                 >
                                     <Maximize2 className="h-3.5 w-3.5" />
-                                    <span className="hidden sm:inline">Full Screen</span>
+                                    <span className="hidden sm:inline">{t("btnFullScreen")}</span>
                                 </Button>
                                 {!showEditor && (
-                                    <Badge variant="outline" className="text-fuchsia-500 border-fuchsia-500/20 bg-fuchsia-500/10 hidden lg:inline-flex">Full View Mode</Badge>
+                                    <Badge variant="outline" className="text-fuchsia-500 border-fuchsia-500/20 bg-fuchsia-500/10 hidden lg:inline-flex">{t("fullViewMode")}</Badge>
                                 )}
                             </div>
                         </div>
@@ -974,7 +992,7 @@ ${inspectScript}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">คลิก class → กระโดดไปยัง CSS</span>
+                                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("clickClassToJump")}</span>
                                         <button
                                             onClick={() => setInspectedEl(null)}
                                             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -989,7 +1007,7 @@ ${inspectScript}
                                             <button
                                                 key={cls}
                                                 onClick={() => jumpToCss(cls)}
-                                                title={`ค้นหา .${cls} ใน CSS Editor`}
+                                                title={t("searchClassInEditor", { className: cls })}
                                                 className="font-mono text-[11px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 hover:text-indigo-100 transition-all cursor-pointer"
                                             >
                                                 .{cls}
@@ -997,7 +1015,7 @@ ${inspectScript}
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground italic">ไม่มี CSS class บน element นี้</p>
+                                    <p className="text-xs text-muted-foreground italic">{t("noCssClass")}</p>
                                 )}
 
                                 {/* cssJumpResult sub-panel: picker (หลาย match) หรือ create (ไม่เจอ) */}
@@ -1007,13 +1025,13 @@ ${inspectScript}
                                             /* ไม่พบ class ใน CSS เลย */
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="text-xs text-amber-400/80">
-                                                    ไม่พบ <span className="font-mono">.{cssJumpResult.className}</span> ใน CSS
+                                                    {t("classNotFoundPrefix")}<span className="font-mono">.{cssJumpResult.className}</span>{t("classNotFoundSuffix")}
                                                 </span>
                                                 <button
                                                     onClick={() => createCssClass(cssJumpResult.className)}
                                                     className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all font-mono"
                                                 >
-                                                    <span className="text-sm font-bold">+</span> สร้าง .{cssJumpResult.className} {"{ }"}
+                                                    <span className="text-sm font-bold">+</span> {t("createClass", { className: cssJumpResult.className })}
                                                 </button>
                                                 <button onClick={() => setCssJumpResult(null)} className="text-muted-foreground hover:text-foreground ml-auto">
                                                     <X className="h-3 w-3" />
@@ -1024,7 +1042,7 @@ ${inspectScript}
                                             <div className="bg-black/20 dark:bg-black/40 rounded-lg p-2.5 border border-white/5">
                                                 <div className="flex items-center justify-between mb-2.5">
                                                     <span className="text-[11px] font-medium text-blue-300/90 uppercase tracking-widest pl-1">
-                                                        พบ {cssJumpResult.matches.length} ตำแหน่ง <span className="text-white/40 mx-1">•</span> เลือกบรรทัดที่ต้องการกระโดดไป
+                                                        {t("matchesFoundPrefix", { count: cssJumpResult.matches.length })} <span className="text-white/40 mx-1">•</span> {t("matchesFoundSuffix")}
                                                     </span>
                                                     <button onClick={() => setCssJumpResult(null)} className="text-white/40 hover:text-white bg-white/5 hover:bg-white/10 p-1 rounded-md transition-all">
                                                         <X className="h-3.5 w-3.5" />
@@ -1081,7 +1099,7 @@ ${inspectScript}
                                 {shareStatus === "loading" && (
                                     <div className="flex flex-col items-center gap-3 py-4">
                                         <Loader2 className="h-10 w-10 text-fuchsia-500 animate-spin" />
-                                        <p className="text-muted-foreground text-sm">กำลังบันทึกโค้ดของคุณ...</p>
+                                        <p className="text-muted-foreground text-sm">{t("savingCode")}</p>
                                     </div>
                                 )}
 
@@ -1093,8 +1111,8 @@ ${inspectScript}
                                                 <Check className="h-4 w-4 text-green-600" />
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold">แชร์โค้ดสำเร็จ!</h3>
-                                                <p className="text-xs text-muted-foreground">ลิงก์นี้จะหมดอายุภายใน 7 วัน</p>
+                                                <h3 className="font-semibold">{t("shareSuccess")}</h3>
+                                                <p className="text-xs text-muted-foreground">{t("linkExpiryNotice")}</p>
                                             </div>
                                         </div>
 
@@ -1110,11 +1128,11 @@ ${inspectScript}
                                                 className="shrink-0 gap-1.5 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
                                             >
                                                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                                                {copied ? "คัดลอกแล้ว!" : "คัดลอก"}
+                                                {copied ? t("copied") : t("copy")}
                                             </Button>
                                         </div>
                                         <p className="text-xs text-muted-foreground text-center">
-                                            ⚠️ โค้ดที่แชร์เป็นสาธารณะ ห้ามใส่ข้อมูลส่วนตัวหรือรหัสผ่าน
+                                            {t("shareWarning")}
                                         </p>
                                     </div>
                                 )}
@@ -1127,11 +1145,11 @@ ${inspectScript}
                                                 <X className="h-4 w-4 text-red-600" />
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold">ไม่สามารถแชร์โค้ดได้</h3>
+                                                <h3 className="font-semibold">{t("shareErrorMsg")}</h3>
                                                 <p className="text-xs text-red-500">{shareError}</p>
                                             </div>
                                         </div>
-                                        <Button variant="outline" size="sm" onClick={closeModal}>ปิด</Button>
+                                        <Button variant="outline" size="sm" onClick={closeModal}>{t("close")}</Button>
                                     </div>
                                 )}
                             </div>

@@ -1,21 +1,33 @@
-import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { Mail, MessageSquare, Globe, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { setRequestLocale } from "next-intl/server";
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'ContactPage' });
 
-export const metadata: Metadata = {
-    title: "Contact Us - ติดต่อเรา",
-    description: "ช่องทางการติดต่อ yuukub.com สำหรับสอบถามข้อมูล แจ้งปัญหาการใช้งาน หรือข้อเสนอแนะต่างๆ",
-    alternates: { canonical: "https://yuukub.com/contact/" },
-};
+    return {
+        title: t('title'),
+        description: t('emailDesc'),
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/contact/`,
+            languages: {
+                th: "https://yuukub.com/th/contact/",
+                en: "https://yuukub.com/en/contact/",
+                "x-default": "https://yuukub.com/th/contact/",
+            }
+        },
+    };
+}
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     setRequestLocale(locale);
     const contactEmail = "yuukun.eutopia@gmail.com";
+
+    const t = await getTranslations("ContactPage");
 
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
@@ -28,8 +40,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                         <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-primary/10 mb-6">
                             <MessageSquare className="h-8 w-8 text-primary" />
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Contact Us</h1>
-                        <p className="text-muted-foreground">ช่องทางการติดต่อและสอบถามข้อมูล</p>
+                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">{t('title')}</h1>
+                        <p className="text-muted-foreground">{t('tagline')}</p>
                     </header>
 
                     <Separator className="mb-12 opacity-50" />
@@ -39,13 +51,13 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                             <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <Mail className="h-7 w-7 text-primary" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Email Contact</h3>
+                            <h3 className="text-xl font-bold mb-2">{t('emailTitle')}</h3>
                             <p className="text-muted-foreground text-sm mb-6">
-                                สำหรับการสอบถามข้อมูลทั่วไป แจ้งปัญหาเทคนิค หรือติดต่องานที่ปรึกษา
+                                {t('emailDesc')}
                             </p>
                             <a href={`mailto:${contactEmail}`} className="w-full">
                                 <Button className="w-full rounded-xl gap-2">
-                                    <Send className="h-4 w-4" /> ส่งอีเมลหาเรา
+                                    <Send className="h-4 w-4" /> {t('emailBtn')}
                                 </Button>
                             </a>
                             <p className="mt-4 text-xs font-medium text-primary">{contactEmail}</p>
@@ -55,9 +67,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                             <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <Globe className="h-7 w-7 text-primary" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Social Hub</h3>
+                            <h3 className="text-xl font-bold mb-2">{t('socialTitle')}</h3>
                             <p className="text-muted-foreground text-sm mb-6">
-                                ติดตามอัปเดตและผลงานล่าสุดผ่านช่องทางโซเชียลมีเดียของเรา
+                                {t('socialDesc')}
                             </p>
                             <div className="flex flex-wrap gap-4 justify-center">
                                 <a href="https://github.com/Yuukub" target="_blank" rel="noopener noreferrer">
@@ -74,16 +86,15 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                     </div>
 
                     <div className="prose prose-zinc dark:prose-invert max-w-none">
-                        <h2 className="text-2xl font-bold mb-4">เวลาทำการ</h2>
+                        <h2 className="text-2xl font-bold mb-4">{t('hoursTitle')}</h2>
                         <p className="text-muted-foreground">
-                            คุณสามารถติดต่อเราได้ตลอด 24 ชั่วโมงผ่านทางอีเมล โดยปกติเราจะพยายามตอบกลับภายใน 1-2 วันทำการ
+                            {t('hoursDesc')}
                         </p>
-                        
+
                         <div className="bg-primary/5 border border-primary/10 rounded-xl p-6 mt-8">
-                            <h3 className="text-lg font-bold text-primary mb-2 italic">Note:</h3>
+                            <h3 className="text-lg font-bold text-primary mb-2 italic">{t('noteTitle')}</h3>
                             <p className="text-sm text-muted-foreground m-0">
-                                เว็บไซต์ yuukub.com ให้ความสำคัญกับการประมวลผลข้อมูลแบบ Client-side เพื่อความเป็นส่วนตัวสูงสุด 
-                                หากพบปัญหาการใช้งานเครื่องมือ (Tools) กรุณาระบุรายละเอียดเบราว์เซอร์และอุปกรณ์ที่ใช้งานเพื่อให้เราตรวจสอบได้แม่นยำขึ้น
+                                {t('noteDesc')}
                             </p>
                         </div>
                     </div>

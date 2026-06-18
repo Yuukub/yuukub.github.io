@@ -1,43 +1,42 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
-    description: "ลบพื้นหลังรูป JPG, PNG และ WebP เป็น PNG หรือ WebP โปร่งใสเต็มความละเอียด ใช้ WebGPU ในเครื่องเป็นหลัก พร้อม Cloudflare fallback ที่ยืนยันด้วย Turnstile เมื่อจำเป็น",
-    keywords: [
-        "ลบพื้นหลังรูป",
-        "ลบพื้นหลังออนไลน์",
-        "remove background online",
-        "AI background remover",
-        "background remover free",
-        "PNG โปร่งใส",
-        "WebP โปร่งใส",
-        "ตัดพื้นหลัง",
-        "ลบฉากหลัง",
-        "ลบพื้นหลังสินค้า",
-        "WebGPU AI",
-        "Cloudflare Turnstile",
-    ],
-    alternates: {
-        canonical: "https://yuukub.com/tools/background-remover/",
-    },
-    openGraph: {
-        title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
-        description: "แยกวัตถุออกจากพื้นหลังด้วย AI แบบ local-first ส่งออก PNG/WebP โปร่งใส และมี Cloudflare fallback พร้อม Turnstile เมื่อ WebGPU ใช้ไม่ได้",
-        url: "https://yuukub.com/tools/background-remover/",
-        siteName: "Saranyuu M.",
-        type: "website",
-        locale: "th_TH",
-    },
-    twitter: {
-        card: "summary",
-        title: "ลบพื้นหลังรูปออนไลน์ - AI Background Remover",
-        description: "ลบพื้นหลัง JPG, PNG, WebP เป็นไฟล์โปร่งใสเต็มความละเอียด ใช้ WebGPU ในเครื่องเป็นหลัก พร้อม Cloudflare fallback เมื่อจำเป็น",
-    },
-    robots: {
-        index: true,
-        follow: true,
-    },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: "BackgroundRemover" });
+
+    const keywords = t("metaKeywords").split(",").map((k) => k.trim());
+
+    return {
+        title: t("metaTitle"),
+        description: t("metaDesc"),
+        keywords: keywords,
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/background-remover/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/background-remover/",
+                en: "https://yuukub.com/en/tools/background-remover/",
+                "x-default": "https://yuukub.com/th/tools/background-remover/",
+            }
+        },
+        openGraph: {
+            title: t("ogTitle"),
+            description: t("ogDesc"),
+            url: `https://yuukub.com/${locale}/tools/background-remover/`,
+            siteName: "Saranyuu M.",
+            type: "website",
+            locale: locale === "th" ? "th_TH" : "en_US",
+        },
+        twitter: {
+            card: "summary",
+            title: t("twitterTitle"),
+            description: t("twitterDesc"),
+        },
+        robots: {
+            index: true,
+            follow: true,
+        },
+    };
+}
 
 export default function BackgroundRemoverLayout({ children }: { children: React.ReactNode }) {
     return <>{children}</>;

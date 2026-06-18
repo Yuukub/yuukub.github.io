@@ -9,6 +9,7 @@ import { Calendar, ArrowRight, Clock, Search, ChevronLeft, ChevronRight } from "
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { AdUnit } from "@/components/ad-unit";
+import { useTranslations, useLocale } from "next-intl";
 
 interface Post {
     slug: string;
@@ -29,6 +30,8 @@ const POSTS_PER_PAGE = 6;
 export function BlogList({ posts }: BlogListProps) {
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
+    const t = useTranslations("BlogList");
+    const locale = useLocale();
 
     // Filter posts by search query (title, description, tags)
     const filtered = useMemo(() => {
@@ -51,6 +54,8 @@ export function BlogList({ posts }: BlogListProps) {
         setPage(1); // Reset to page 1 on new search
     };
 
+    const dfLocale = locale === "th" ? th : undefined;
+
     return (
         <>
             {/* Search Bar */}
@@ -61,13 +66,13 @@ export function BlogList({ posts }: BlogListProps) {
                         type="text"
                         value={query}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="ค้นหาบทความ, แท็ก หรือคำอธิบาย..."
+                        placeholder={t("searchPlaceholder")}
                         className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />
                 </div>
                 {query && (
                     <p className="text-xs text-muted-foreground mt-1.5 pl-1">
-                        พบ {filtered.length} บทความ
+                        {t("foundCount", { count: filtered.length })}
                     </p>
                 )}
             </div>
@@ -90,7 +95,7 @@ export function BlogList({ posts }: BlogListProps) {
                                 <CardHeader className="pb-0 shrink-0">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                                         <Calendar className="h-3 w-3" />
-                                        <span>{format(new Date(date), "dd MMM yyyy", { locale: th })}</span>
+                                        <span>{format(new Date(date), "dd MMM yyyy", { locale: dfLocale })}</span>
                                         <span>•</span>
                                         <Clock className="h-3 w-3" />
                                         <span>{readingTime}</span>
@@ -114,7 +119,7 @@ export function BlogList({ posts }: BlogListProps) {
                                             ))}
                                         </div>
                                         <span className="flex items-center gap-1 text-xs font-medium text-primary whitespace-nowrap shrink-0">
-                                            อ่านต่อ <ArrowRight className="h-3 w-3" />
+                                            {t("readMore")} <ArrowRight className="h-3 w-3" />
                                         </span>
                                     </div>
                                 </CardContent>
@@ -125,10 +130,10 @@ export function BlogList({ posts }: BlogListProps) {
             ) : (
                 <div className="text-center py-24 text-muted-foreground">
                     <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-lg font-medium">ไม่พบบทความที่ตรงกับ &quot;{query}&quot;</p>
-                    <p className="text-sm mt-1">ลองค้นหาด้วยคำอื่น หรือดูบทความทั้งหมด</p>
+                    <p className="text-lg font-medium">{t("noArticles", { query })}</p>
+                    <p className="text-sm mt-1">{t("noArticlesDesc")}</p>
                     <Button variant="outline" className="mt-4" onClick={() => setQuery("")}>
-                        ล้างการค้นหา
+                        {t("clearSearch")}
                     </Button>
                 </div>
             )}
@@ -147,7 +152,7 @@ export function BlogList({ posts }: BlogListProps) {
                         size="icon"
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        aria-label="หน้าก่อนหน้า"
+                        aria-label={t("prevPage")}
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -158,7 +163,7 @@ export function BlogList({ posts }: BlogListProps) {
                             variant={currentPage === n ? "default" : "outline"}
                             size="icon"
                             onClick={() => setPage(n)}
-                            aria-label={`หน้า ${n}`}
+                            aria-label={t("pageIndicator", { page: n })}
                             className="w-9 h-9"
                         >
                             {n}
@@ -170,7 +175,7 @@ export function BlogList({ posts }: BlogListProps) {
                         size="icon"
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        aria-label="หน้าถัดไป"
+                        aria-label={t("nextPage")}
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -179,8 +184,8 @@ export function BlogList({ posts }: BlogListProps) {
 
             {/* Post count summary */}
             <p className="text-center text-xs text-muted-foreground mt-4">
-                แสดง {paginated.length} จาก {filtered.length} บทความ
-                {query && ` (กรองจากทั้งหมด ${posts.length} บทความ)`}
+                {t("showingIndicator", { paginated: paginated.length, filtered: filtered.length })}
+                {query && t("filteredIndicator", { total: posts.length })}
             </p>
         </>
     );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,38 +19,8 @@ import { resolveVariables, findUnresolvedVariables, type EnvVariable, type Envir
 import { importFile, type ApiRequest, type Collection, type KeyValue } from "./lib/importExport";
 
 // ─────────────────────────────────────────────────────────
-// SEO Data
+// (FAQ_ITEMS and HTTP_METHODS are now declared dynamically inside the component to support i18n)
 // ─────────────────────────────────────────────────────────
-const FAQ_ITEMS = [
-    {
-        question: "API Tester นี้แตกต่างจาก Postman อย่างไร?",
-        answer: "API Tester นี้ทำงานได้ทันทีจากเบราว์เซอร์โดยไม่ต้องติดตั้งโปรแกรมใดๆ เหมาะสำหรับการทดสอบแบบด่วนหรือเมื่ออยู่บนเครื่องที่ไม่สามารถติดตั้งซอฟต์แวร์ได้ ส่วน Postman มีฟีเจอร์ครบกว่าสำหรับงาน enterprise เช่น collection, environment variables และ automated testing",
-    },
-    {
-        question: "ทำไมถึงต้องใช้ Proxy ในการส่ง request?",
-        answer: "เบราว์เซอร์มีนโยบาย CORS (Cross-Origin Resource Sharing) ที่ป้องกันการเรียก API จาก domain อื่นโดยตรง Proxy ของเราทำหน้าที่เป็นตัวกลางส่ง request แทนเบราว์เซอร์เพื่อแก้ปัญหานี้ โดยไม่มีการเก็บ log หรือข้อมูลใดๆ ของคุณเลย",
-    },
-    {
-        question: "รองรับการ Import โค้ดจากภาษาอะไรบ้าง?",
-        answer: "รองรับ 7 รูปแบบ ได้แก่ Bash cURL, PHP cURL, JavaScript fetch, Axios, Python requests, HTTPie และ Go net/http เพียงวางโค้ดลงในช่อง Import แล้วกด Extract ระบบจะดึง URL, method, headers และ body มาใส่ฟอร์มให้อัตโนมัติ",
-    },
-    {
-        question: "ประวัติการยิง API ถูกเก็บไว้ที่ไหน?",
-        answer: "ประวัติทั้งหมดถูกเก็บไว้ใน localStorage ของเบราว์เซอร์คุณเท่านั้น ไม่มีการส่งข้อมูลไปยังเซิร์ฟเวอร์ใดๆ ซึ่งหมายความว่าถ้าเปลี่ยนเบราว์เซอร์หรือล้าง browser data ประวัติจะหายไปด้วย",
-    },
-    {
-        question: "ใช้ทดสอบ API ที่ต้องการ Authentication ได้ไหม?",
-        answer: "ได้ครับ ใส่ header ในช่อง Headers (JSON format) เช่น {\"Authorization\": \"Bearer your-token\"} หรือ {\"X-API-Key\": \"your-key\"} ระบบจะส่ง header เหล่านั้นไปพร้อมกับ request ทุกครั้ง",
-    },
-];
-
-const HTTP_METHODS = [
-    { method: "GET", color: "text-emerald-600", bg: "bg-emerald-500/10", desc: "ดึงข้อมูลจาก server ไม่แก้ไขข้อมูลใดๆ เหมาะสำหรับการโหลดรายการหรือรายละเอียดทรัพยากร" },
-    { method: "POST", color: "text-blue-600", bg: "bg-blue-500/10", desc: "สร้างข้อมูลใหม่บน server ส่ง body พร้อมกับ request ใช้สำหรับ login, สร้าง record ใหม่" },
-    { method: "PUT", color: "text-amber-600", bg: "bg-amber-500/10", desc: "แทนที่ข้อมูลทั้งหมดของทรัพยากรที่ระบุ ต้องส่งข้อมูลครบทุก field" },
-    { method: "PATCH", color: "text-purple-600", bg: "bg-purple-500/10", desc: "อัปเดตข้อมูลบางส่วนของทรัพยากร ส่งเฉพาะ field ที่ต้องการแก้ไข" },
-    { method: "DELETE", color: "text-red-600", bg: "bg-red-500/10", desc: "ลบทรัพยากรที่ระบุออกจาก server ระวัง: การกระทำนี้มักไม่สามารถย้อนกลับได้" },
-];
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -415,6 +386,39 @@ function statusColor(code: number): string {
 // Component
 // ─────────────────────────────────────────────────────────
 export default function ApiTesterPage() {
+    const t = useTranslations("ApiTester");
+
+    const FAQ_ITEMS = [
+        {
+            question: t("faq1Q"),
+            answer: t("faq1A"),
+        },
+        {
+            question: t("faq2Q"),
+            answer: t("faq2A"),
+        },
+        {
+            question: t("faq3Q"),
+            answer: t("faq3A"),
+        },
+        {
+            question: t("faq4Q"),
+            answer: t("faq4A"),
+        },
+        {
+            question: t("faq5Q"),
+            answer: t("faq5A"),
+        },
+    ];
+
+    const HTTP_METHODS = [
+        { method: "GET", color: "text-emerald-600", bg: "bg-emerald-500/10", desc: t("methodGetDesc") },
+        { method: "POST", color: "text-blue-600", bg: "bg-blue-500/10", desc: t("methodPostDesc") },
+        { method: "PUT", color: "text-amber-600", bg: "bg-amber-500/10", desc: t("methodPutDesc") },
+        { method: "PATCH", color: "text-purple-600", bg: "bg-purple-500/10", desc: t("methodPatchDesc") },
+        { method: "DELETE", color: "text-red-600", bg: "bg-red-500/10", desc: t("methodDeleteDesc") },
+    ];
+
     // Tabs state
     const [tabs, setTabs] = useState<Tab[]>([]);
     const [activeTabId, setActiveTabId] = useState<string>("");
@@ -721,7 +725,7 @@ export default function ApiTesterPage() {
         setTabs(prev => [...prev, newT]);
         setActiveTabId(newT.id);
 
-        setImportSuccess(`✅ สำเร็จ! แยกข้อมูลจาก ${parsed.language} เรียบร้อย`);
+        setImportSuccess(t("importSuccess", { language: parsed.language }));
         setImportCode("");
         setTimeout(() => setImportSuccess(""), 3000);
     }, [importCode]);
@@ -876,12 +880,12 @@ export default function ApiTesterPage() {
                 return updated;
             });
         } catch (err: unknown) {
-            let errorMsg = "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+            let errorMsg = t("unknownError");
             let corsErr = false;
 
             if (directMode && err instanceof TypeError) {
                 corsErr = true;
-                errorMsg = "CORS Blocked หรือ Network Error: การเรียกใช้ API ข้ามโดเมนล้มเหลวเนื่องจากความปลอดภัยของเบราว์เซอร์";
+                errorMsg = t("corsOrNetworkError");
             } else if (err instanceof Error) {
                 errorMsg = err.message;
             }
@@ -1159,7 +1163,7 @@ export default function ApiTesterPage() {
                     if (mergedEnvs.length > 0 && !activeEnvironmentId) {
                         saveActiveEnvId(mergedEnvs[mergedEnvs.length - 1].id);
                     }
-                    setImportSuccess(`✅ นำเข้า Environment (${report.environments.map(e => e.name).join(", ")}) สำเร็จ!`);
+                    setImportSuccess(t("importEnvSuccess", { names: report.environments.map(e => e.name).join(", ") }));
                 }
 
                 if (report.collections.length > 0) {
@@ -1179,18 +1183,22 @@ export default function ApiTesterPage() {
                     });
 
                     saveCollectionsAndRequests(mergedCols, mergedReqs);
-                    setImportSuccess(`✅ นำเข้า Collection (${report.collections.map(c => c.name).join(", ")}) สำเร็จ!`);
+                    setImportSuccess(t("importCollectionSuccess", { names: report.collections.map(c => c.name).join(", ") }));
                 }
 
                 if (report.warnings.length > 0) {
-                    setError(`คำเตือน: ${report.warnings.join(", ")}`);
+                    setError(t("warning", { warnings: report.warnings.join(", ") }));
                 } else {
                     setError("");
                 }
 
                 setTimeout(() => setImportSuccess(""), 4000);
             } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการโหลดไฟล์ JSON");
+                if (err instanceof Error && err.message === "INVALID_FORMAT") {
+                    setError(t("invalidFileFormat"));
+                } else {
+                    setError(err instanceof Error ? err.message : t("jsonLoadError"));
+                }
             }
         };
         reader.readAsText(file);
@@ -1224,7 +1232,7 @@ export default function ApiTesterPage() {
         try {
             const parsed = JSON.parse(tempVars);
             if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-                throw new Error("ต้องเป็น JSON Object เท่านั้น เช่น { \"key\": \"value\" }");
+                throw new Error(t("jsonObjectOnlyError"));
             }
             const updatedVars: EnvVariable[] = Object.entries(parsed).map(([key, val]) => ({
                 id: crypto.randomUUID(),
@@ -1240,10 +1248,10 @@ export default function ApiTesterPage() {
                 return env;
             });
             saveEnvironments(updatedEnvs);
-            setImportSuccess("✅ บันทึกตัวแปรสภาพแวดล้อมสำเร็จ!");
+            setImportSuccess(t("saveEnvSuccess"));
             setTimeout(() => setImportSuccess(""), 2000);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "รูปแบบ JSON ไม่ถูกต้อง ตัวอย่าง: { \"domain\": \"api.com\" }");
+            setError(err instanceof Error ? err.message : t("invalidJsonError"));
         }
     };
 
@@ -1271,7 +1279,7 @@ export default function ApiTesterPage() {
         if (selectedCollectionId === "new") {
             const newCol: Collection = {
                 id: crypto.randomUUID(),
-                name: "Collection ใหม่",
+                name: t("newCollectionDefaultName"),
                 requestIds: [],
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
@@ -1339,7 +1347,7 @@ export default function ApiTesterPage() {
 
         setSaveRequestName("");
         setShowSaveModal(false);
-        setImportSuccess("✅ บันทึกเข้า Collection สำเร็จ!");
+        setImportSuccess(t("saveCollectionSuccess"));
         setTimeout(() => setImportSuccess(""), 3000);
     };
 
@@ -1522,7 +1530,7 @@ export default function ApiTesterPage() {
                 {/* ─── Header ────────────────────────────── */}
                 <div className="mb-8">
                     <Link href="/tools/" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
-                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                        <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToTools")}
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
@@ -1531,10 +1539,10 @@ export default function ApiTesterPage() {
                         <h1 className="text-3xl font-bold tracking-tight">API Tester</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        ทดสอบยิง REST API ได้ทันทีจากเบราว์เซอร์ พร้อมระบบ Import โค้ดอัตโนมัติจากหลากหลายภาษา
+                        {t("subTitle")}
                     </p>
                 </div>
-
+ 
                 {/* ─── Import from Code ──────────────────── */}
                 <Card className="border-border/50 bg-muted/20 mb-6 overflow-hidden">
                     <button
@@ -1555,7 +1563,7 @@ export default function ApiTesterPage() {
                             {importExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </div>
                     </button>
-
+ 
                     {importExpanded && (
                         <CardContent className="pt-0 pb-5 px-6 animate-in slide-in-from-top-2 duration-200">
                             <textarea
@@ -1563,7 +1571,7 @@ export default function ApiTesterPage() {
                                 onChange={(e) => setImportCode(e.target.value)}
                                 rows={6}
                                 className="w-full rounded-lg border border-border/50 bg-background p-4 font-mono text-sm resize-y focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-muted-foreground/50"
-                                placeholder={"วางโค้ดที่นี่... เช่น:\n\ncurl -X GET 'https://api.example.com/data' \\\n  -H 'Authorization: Bearer token123'"}
+                                placeholder={t("importPlaceholder")}
                             />
                             <div className="flex items-center justify-between mt-3 gap-3">
                                 <div className="flex-1">
@@ -1583,7 +1591,7 @@ export default function ApiTesterPage() {
                         </CardContent>
                     )}
                 </Card>
-
+ 
                 {/* ─── Grid: Sidebar + Main Area ─────────── */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-start animate-in fade-in duration-300">
                     
@@ -1594,7 +1602,7 @@ export default function ApiTesterPage() {
                         <Card className="border-border/50 bg-card">
                             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                                 <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
-                                    <Sliders className="h-4 w-4 text-cyan-500" /> สภาพแวดล้อม (Env)
+                                    <Sliders className="h-4 w-4 text-cyan-500" /> {t("environmentHeader")}
                                 </CardTitle>
                                 {activeEnvironmentId && (
                                     <Button 
@@ -1603,7 +1611,7 @@ export default function ApiTesterPage() {
                                         className="h-6 text-[10px] text-red-500 hover:text-red-600 hover:bg-red-500/5 px-1.5"
                                         onClick={() => handleDeleteEnv(activeEnvironmentId)}
                                     >
-                                        ลบ Env นี้
+                                        {t("deleteEnv")}
                                     </Button>
                                 )}
                             </CardHeader>
@@ -1615,25 +1623,25 @@ export default function ApiTesterPage() {
                                         onChange={(e) => saveActiveEnvId(e.target.value)}
                                         className="w-full h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
                                     >
-                                        <option value="">-- เลือกสภาพแวดล้อม (No Env) --</option>
+                                        <option value="">{t("noEnvSelect")}</option>
                                         {environments.map((env) => (
                                             <option key={env.id} value={env.id}>{env.name}</option>
                                         ))}
                                     </select>
                                 </div>
-
+ 
                                 {/* Active Env variables JSON Editor */}
                                 {activeEnvironmentId ? (
                                     <div className="space-y-2.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">ตัวแปร (JSON Object)</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">{t("variablesLabel")}</span>
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost" 
                                                 className="h-6 text-[10.5px] font-bold text-cyan-600 hover:text-cyan-700 hover:bg-cyan-500/5 px-2"
                                                 onClick={handleSaveVariables}
                                             >
-                                                บันทึกตัวแปร
+                                                {t("saveVariables")}
                                             </Button>
                                         </div>
                                         <textarea
@@ -1644,24 +1652,26 @@ export default function ApiTesterPage() {
                                             placeholder='{ "baseUrl": "https://api.com" }'
                                         />
                                         <p className="text-[10px] text-muted-foreground/85 leading-relaxed">
-                                            เรียกใช้ด้วย <code className="bg-cyan-500/10 px-1 rounded text-cyan-600 font-mono">{"{{key}}"}</code> ใน URL, Headers หรือ Body
+                                            {t.rich("variablesHint", {
+                                                code: () => <code className="bg-cyan-500/10 px-1 rounded text-cyan-600 font-mono">{"{{key}}"}</code>
+                                            })}
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="p-3 bg-muted/20 border border-border/30 rounded-lg text-center">
-                                        <p className="text-[11px] text-muted-foreground">ไม่มีสภาพแวดล้อมที่เลือกอยู่</p>
+                                        <p className="text-[11px] text-muted-foreground">{t("noEnvSelected")}</p>
                                     </div>
                                 )}
-
+ 
                                 {/* Create Env Form */}
                                 <div className="border-t border-border/30 pt-3 space-y-2">
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase block">สร้าง Env ใหม่</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase block">{t("createNewEnvLabel")}</span>
                                     <div className="flex gap-1.5">
                                         <Input
                                             value={envName}
                                             onChange={(e) => setEnvName(e.target.value)}
                                             onKeyDown={(e) => e.key === "Enter" && handleCreateEnv()}
-                                            placeholder="ชื่อสภาพแวดล้อม..."
+                                            placeholder={t("envNamePlaceholder")}
                                             className="h-8 text-xs focus:border-cyan-500/50"
                                         />
                                         <Button
@@ -1681,7 +1691,7 @@ export default function ApiTesterPage() {
                         <Card className="border-border/50 bg-card">
                             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                                 <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
-                                    <Folder className="h-4 w-4 text-cyan-500" /> คอลเลกชัน (Collections)
+                                    <Folder className="h-4 w-4 text-cyan-500" /> {t("collectionsHeader")}
                                 </CardTitle>
                                 <div>
                                     <input
@@ -1697,16 +1707,15 @@ export default function ApiTesterPage() {
                                         onClick={() => fileInputRef.current?.click()}
                                         className="h-7 text-[10px] text-cyan-600 hover:text-cyan-700 hover:bg-cyan-500/5 gap-1 font-bold"
                                     >
-                                        <Upload className="h-3 w-3" /> นำเข้า
+                                        <Upload className="h-3 w-3" /> {t("import")}
                                     </Button>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-3 pt-0">
                                 {collections.length === 0 ? (
                                     <div className="p-4 bg-muted/20 border border-dashed border-border/50 rounded-xl text-center">
-                                        <p className="text-xs text-muted-foreground leading-relaxed">
-                                            ยังไม่มี Collection<br />
-                                            บันทึก Request หรือนำเข้าไฟล์ Postman เพื่อเริ่มต้น
+                                        <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                                            {t("noCollections")}
                                         </p>
                                     </div>
                                 ) : (
@@ -1731,7 +1740,7 @@ export default function ApiTesterPage() {
                                                     </div>
                                                     <div className="p-1.5 space-y-1">
                                                         {colReqs.length === 0 ? (
-                                                            <p className="text-[10px] text-muted-foreground italic px-2 py-1">ไม่มีข้อมูล</p>
+                                                            <p className="text-[10px] text-muted-foreground italic px-2 py-1">{t("noData")}</p>
                                                         ) : (
                                                             colReqs.map((req) => (
                                                                 <div
@@ -1780,8 +1789,8 @@ export default function ApiTesterPage() {
                             <Card className="border-border/50 bg-card flex flex-col h-full overflow-hidden">
                                 {/* Tabs bar at the top of the request card */}
                                 <div className="flex items-center gap-1 border-b border-border/30 bg-muted/20 px-3 py-2 overflow-x-auto no-scrollbar shrink-0">
-                                    {tabs.map((t) => {
-                                        const isActive = t.id === activeTabId;
+                                    {tabs.map((tabItem) => {
+                                        const isActive = tabItem.id === activeTabId;
                                         const getMethodColor = (m: string) => {
                                             switch (m) {
                                                 case "GET": return "text-emerald-500";
@@ -1794,28 +1803,28 @@ export default function ApiTesterPage() {
                                         };
                                         return (
                                             <div
-                                                key={t.id}
+                                                key={tabItem.id}
                                                 className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none shrink-0 ${
                                                     isActive
                                                         ? "bg-background border-border/50 shadow-sm text-foreground"
                                                         : "bg-transparent border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/10"
                                                 }`}
-                                                onClick={() => setActiveTabId(t.id)}
+                                                onClick={() => setActiveTabId(tabItem.id)}
                                             >
-                                                <span className={`text-[9px] font-extrabold font-mono tracking-tight ${getMethodColor(t.method)}`}>
-                                                    {t.method}
+                                                <span className={`text-[9px] font-extrabold font-mono tracking-tight ${getMethodColor(tabItem.method)}`}>
+                                                    {tabItem.method}
                                                 </span>
-                                                {renamingTabId === t.id ? (
+                                                {renamingTabId === tabItem.id ? (
                                                     <input
                                                         value={renamingName}
                                                         onChange={(e) => setRenamingName(e.target.value)}
                                                         onBlur={() => {
-                                                            handleTabNameChange(t.id, renamingName || t.name);
+                                                            handleTabNameChange(tabItem.id, renamingName || tabItem.name);
                                                             setRenamingTabId(null);
                                                         }}
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter") {
-                                                                handleTabNameChange(t.id, renamingName || t.name);
+                                                                handleTabNameChange(tabItem.id, renamingName || tabItem.name);
                                                                 setRenamingTabId(null);
                                                             }
                                                         }}
@@ -1827,20 +1836,20 @@ export default function ApiTesterPage() {
                                                     <span
                                                         onDoubleClick={(e) => {
                                                             e.stopPropagation();
-                                                            setRenamingTabId(t.id);
-                                                            setRenamingName(t.name);
+                                                            setRenamingTabId(tabItem.id);
+                                                            setRenamingName(tabItem.name);
                                                         }}
                                                         className="truncate max-w-[100px]"
-                                                        title="ดับเบิ้ลคลิกเพื่อเปลี่ยนชื่อ"
+                                                        title={t("doubleClickRename")}
                                                     >
-                                                        {t.name}
+                                                        {tabItem.name}
                                                     </span>
                                                 )}
                                                 {tabs.length > 1 && (
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleCloseTab(t.id);
+                                                            handleCloseTab(tabItem.id);
                                                         }}
                                                         className="text-muted-foreground hover:text-foreground opacity-60 group-hover:opacity-100 hover:bg-muted p-0.5 rounded transition-colors shrink-0"
                                                     >
@@ -1869,7 +1878,7 @@ export default function ApiTesterPage() {
                                     <div className="flex items-center gap-1.5 bg-muted/40 p-0.5 rounded-lg border border-border/30">
                                         <button
                                             onClick={() => saveDirectMode(true)}
-                                            title="ยิงตรงจาก Browser ของคุณ (ใช้กับ localhost ได้ดี)"
+                                            title={t("directModeTooltip")}
                                             className={`px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
                                                 directMode
                                                     ? "bg-cyan-500/15 text-cyan-500 shadow-sm"
@@ -1880,7 +1889,7 @@ export default function ApiTesterPage() {
                                         </button>
                                         <button
                                             onClick={() => saveDirectMode(false)}
-                                            title="ยิงผ่าน Cloudflare Worker Proxy (ช่วยแก้ปัญหา CORS)"
+                                            title={t("proxyModeTooltip")}
                                             className={`px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1 ${
                                                 !directMode
                                                     ? "bg-blue-500/15 text-blue-500 shadow-sm"
@@ -1910,7 +1919,7 @@ export default function ApiTesterPage() {
                                                     value={url}
                                                     onChange={(e) => handleUrlChange(e.target.value)}
                                                     onKeyDown={(e) => e.key === "Enter" && sendRequest()}
-                                                    placeholder="https://api.example.com/endpoint หรือ {{url}}/endpoint"
+                                                    placeholder={t("urlPlaceholder")}
                                                     className="flex-1 font-mono text-sm focus:border-cyan-500/50"
                                                 />
                                             </div>
@@ -1987,7 +1996,7 @@ export default function ApiTesterPage() {
 
                                                     {activeTab.authType === "none" && (
                                                         <p className="text-xs text-muted-foreground mt-2">
-                                                            คำขอส่งไม่มีข้อมูลประจำตัว (No Authentication)
+                                                            {t("noAuthDescription")}
                                                         </p>
                                                     )}
 
@@ -1998,7 +2007,7 @@ export default function ApiTesterPage() {
                                                                 <Input
                                                                     value={activeTab.authBearerToken}
                                                                     onChange={(e) => handleAuthFieldChange("authBearerToken", e.target.value)}
-                                                                    placeholder="Bearer Token หรือ {{token}}"
+                                                                    placeholder={t("bearerTokenPlaceholder")}
                                                                     className="h-9 text-xs font-mono focus:border-cyan-500/50"
                                                                 />
                                                             </div>
@@ -2106,7 +2115,7 @@ export default function ApiTesterPage() {
                                                     <div className="flex-1 mt-2 min-h-[160px]">
                                                         {activeTab.bodyMode === "none" && (
                                                             <p className="text-xs text-muted-foreground">
-                                                                คำขอนี้ไม่มี Request Body (No Body)
+                                                                {t("noBodyDescription")}
                                                             </p>
                                                         )}
 
@@ -2140,7 +2149,7 @@ export default function ApiTesterPage() {
                                         {error && (
                                             <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 shrink-0">
                                                 <AlertCircle className="h-4 w-4" />
-                                                <AlertTitle>ข้อผิดพลาด</AlertTitle>
+                                                <AlertTitle>{t("errorAlertTitle")}</AlertTitle>
                                                 <AlertDescription className="text-xs">{error}</AlertDescription>
                                             </Alert>
                                         )}
@@ -2149,10 +2158,10 @@ export default function ApiTesterPage() {
                                         {isCorsError && (
                                             <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-500 animate-in fade-in slide-in-from-top-2 shrink-0">
                                                 <AlertCircle className="h-4 w-4 text-amber-500" />
-                                                <AlertTitle className="font-bold text-xs">CORS Blocked (เบราว์เซอร์บล็อกการเรียกใช้)</AlertTitle>
+                                                <AlertTitle className="font-bold text-xs">{t("corsBlockedTitle")}</AlertTitle>
                                                 <AlertDescription className="text-[11px] space-y-2 mt-1">
                                                     <p>
-                                                        เบราว์เซอร์ของคุณสกัดกั้นการเชื่อมต่อไปยังโฮสต์ปลายทาง เนื่องจากไม่ผ่านนโยบายความปลอดภัย CORS ปัญหานี้สามารถหลีกเลี่ยงได้ง่ายๆ ด้วยการยิงผ่าน Worker Proxy
+                                                        {t("corsBlockedDesc")}
                                                     </p>
                                                     <Button
                                                         size="sm"
@@ -2160,7 +2169,7 @@ export default function ApiTesterPage() {
                                                         className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 bg-transparent h-7 text-[10px]"
                                                         onClick={() => saveDirectMode(false)}
                                                     >
-                                                        สลับเป็น Proxy Mode ทันที
+                                                        {t("switchToProxy")}
                                                     </Button>
                                                 </AlertDescription>
                                             </Alert>
@@ -2172,7 +2181,7 @@ export default function ApiTesterPage() {
                                         <Button
                                             variant="outline"
                                             onClick={() => {
-                                                setSaveRequestName(url ? url.split("/").pop() || "Request ใหม่" : "Request ใหม่");
+                                                setSaveRequestName(url ? url.split("/").pop() || t("newRequestDefaultName") : t("newRequestDefaultName"));
                                                 setShowSaveModal(true);
                                             }}
                                             disabled={!url.trim()}
@@ -2238,7 +2247,7 @@ export default function ApiTesterPage() {
                                                 onClick={copyResponse}
                                             >
                                                 {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-                                                {copied ? "Copied!" : "Copy"}
+                                                {copied ? t("copied") : t("copy")}
                                             </Button>
                                         </div>
                                     )}
@@ -2247,18 +2256,18 @@ export default function ApiTesterPage() {
                                     {loading && (
                                         <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-3 text-zinc-500">
                                             <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
-                                            <span className="text-sm">กำลังส่ง request...</span>
+                                            <span className="text-sm">{t("sendingRequest")}</span>
                                         </div>
                                     )}
                                     {!loading && !response && !error && (
                                         <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-3 text-zinc-600">
                                             <Zap className="h-10 w-10 opacity-20" />
-                                            <span className="text-sm">กรอกข้อมูลแล้วกด Send Request</span>
+                                            <span className="text-sm">{t("enterInfoSendRequest")}</span>
                                         </div>
                                     )}
                                     {response && responseTab === "body" && (
                                         <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-all text-emerald-400/90 overflow-auto max-h-[500px] animate-in fade-in py-2">
-                                            {formattedBody || <span className="text-zinc-600 italic">Empty response body</span>}
+                                            {formattedBody || <span className="text-zinc-600 italic">{t("emptyResponseBody")}</span>}
                                         </pre>
                                     )}
                                     {response && responseTab === "headers" && (
@@ -2270,7 +2279,7 @@ export default function ApiTesterPage() {
                                                 </div>
                                             ))}
                                             {(!response.headers || Object.keys(response.headers).length === 0) && (
-                                                <span className="text-zinc-600 text-sm italic">No headers returned</span>
+                                                <span className="text-zinc-600 text-sm italic">{t("noHeadersReturned")}</span>
                                             )}
                                         </div>
                                     )}
@@ -2287,10 +2296,10 @@ export default function ApiTesterPage() {
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
-                                    <History className="h-4 w-4" /> ประวัติล่าสุด
+                                    <History className="h-4 w-4" /> {t("recentHistory")}
                                 </CardTitle>
                                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive gap-1" onClick={clearHistory}>
-                                    <Trash2 className="h-3 w-3" /> ล้างทั้งหมด
+                                    <Trash2 className="h-3 w-3" /> {t("clearAll")}
                                 </Button>
                             </div>
                         </CardHeader>
@@ -2326,7 +2335,9 @@ export default function ApiTesterPage() {
                 <div className="p-4 bg-cyan-500/5 border border-cyan-500/10 rounded-xl flex gap-3 items-center mb-6">
                     <Zap className="h-5 w-5 text-cyan-500 shrink-0" />
                     <p className="text-[13px] text-muted-foreground leading-relaxed">
-                        Request ถูกส่งผ่าน Proxy เพื่อแก้ปัญหา CORS เท่านั้น — ไม่มีการเก็บหรือ log ข้อมูลใดๆ ประวัติการยิงถูกเก็บไว้ใน <code className="bg-cyan-500/10 px-1 rounded text-cyan-600 font-mono">localStorage</code> ของเครื่องคุณเท่านั้น
+                        {t.rich("privacyNotice", {
+                            code: (chunks) => <code className="bg-cyan-500/10 px-1 rounded text-cyan-600 font-mono">{chunks}</code>
+                        })}
                     </p>
                 </div>
 
@@ -2347,18 +2358,20 @@ export default function ApiTesterPage() {
                                 <Info className="h-5 w-5 text-cyan-500" />
                             </div>
                             <h2 id="intro-heading" className="text-xl font-bold tracking-tight">
-                                API Tester ออนไลน์คืออะไร?
+                                {t("whatIsApiTesterHeader")}
                             </h2>
                         </div>
                         <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                             <p>
-                                <strong className="text-foreground">API Tester</strong> คือเครื่องมือสำหรับทดสอบการเชื่อมต่อและตรวจสอบการทำงานของ <strong className="text-foreground">REST API</strong> โดยไม่ต้องเขียนโค้ดหรือติดตั้งโปรแกรมเพิ่มเติม นักพัฒนาใช้เครื่องมือประเภทนี้เพื่อส่ง HTTP request ไปยัง endpoint ต่างๆ และตรวจสอบ response ที่ได้รับ ไม่ว่าจะเป็น status code, headers หรือ body
+                                {t("whatIsApiTesterDesc1")}
                             </p>
                             <p>
-                                เครื่องมือนี้รองรับการ <strong className="text-foreground">Import โค้ดอัตโนมัติ</strong> จาก 7 รูปแบบ ได้แก่ Bash cURL, PHP cURL, JavaScript fetch, Axios, Python requests, HTTPie และ Go net/http ทำให้คุณสามารถนำโค้ดที่ได้จาก AI หรือ API documentation มาวางแล้วทดสอบได้ทันที โดยไม่ต้องแปลงด้วยมือ
+                                {t("whatIsApiTesterDesc2")}
                             </p>
                             <p>
-                                ทุก request ถูกส่งผ่าน <strong className="text-foreground">Cloudflare Worker Proxy</strong> เพื่อแก้ปัญหา CORS ที่เบราว์เซอร์บล็อกการเรียก API ข้าม domain โดยตรง และประวัติการยิงทั้งหมดถูกบันทึกไว้ใน <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">localStorage</code> ของเครื่องคุณเท่านั้น ไม่มีการเก็บ log บน server ใดๆ
+                                {t.rich("whatIsApiTesterDesc3", {
+                                    code: (chunks) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{chunks}</code>
+                                })}
                             </p>
                         </div>
                     </section>
@@ -2370,7 +2383,7 @@ export default function ApiTesterPage() {
                                 <Layers className="h-5 w-5 text-cyan-500" />
                             </div>
                             <h2 id="methods-heading" className="text-xl font-bold tracking-tight">
-                                HTTP Methods ที่รองรับ
+                                {t("supportedHttpMethodsHeader")}
                             </h2>
                         </div>
                         <div className="space-y-3">
@@ -2388,24 +2401,24 @@ export default function ApiTesterPage() {
                     {/* Section 3: วิธีใช้งาน */}
                     <section aria-labelledby="howto-heading">
                         <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
-                            วิธีใช้งาน — 3 ขั้นตอน
+                            {t("howToUseHeader")}
                         </h2>
                         <div className="grid gap-4 sm:grid-cols-3">
                             {[
                                 {
                                     step: "1",
-                                    title: "Import หรือกรอก URL",
-                                    desc: "วางโค้ด cURL/fetch/Axios ในช่อง Import แล้วกด Extract หรือกรอก URL และเลือก HTTP method โดยตรง ใส่ Headers และ Body ตามต้องการ",
+                                    title: t("step1Title"),
+                                    desc: t("step1Desc"),
                                 },
                                 {
                                     step: "2",
-                                    title: "กด Send Request",
-                                    desc: "กดปุ่ม Send Request เพื่อยิง API ระบบจะส่งผ่าน Proxy อัตโนมัติเพื่อแก้ปัญหา CORS และแสดงผลลัพธ์แบบ real-time",
+                                    title: t("step2Title"),
+                                    desc: t("step2Desc"),
                                 },
                                 {
                                     step: "3",
-                                    title: "ตรวจสอบ Response",
-                                    desc: "ดู status code, response time, body (JSON formatted) และ headers แยก tab ประวัติการยิงถูกบันทึกอัตโนมัติเพื่อใช้ซ้ำได้",
+                                    title: t("step3Title"),
+                                    desc: t("step3Desc"),
                                 },
                             ].map((item) => (
                                 <Card key={item.step} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
@@ -2428,7 +2441,7 @@ export default function ApiTesterPage() {
                                 <HelpCircle className="h-5 w-5 text-cyan-500" />
                             </div>
                             <h2 id="faq-heading" className="text-xl font-bold tracking-tight">
-                                คำถามที่พบบ่อย (FAQ)
+                                {t("faqHeader")}
                             </h2>
                         </div>
                         <div className="space-y-4">
@@ -2450,11 +2463,11 @@ export default function ApiTesterPage() {
                             <div className="flex items-center gap-3">
                                 <Shield className="h-5 w-5 text-cyan-500 shrink-0" />
                                 <h2 id="privacy-heading" className="font-bold text-sm uppercase tracking-wider">
-                                    ความเป็นส่วนตัวและความปลอดภัย
+                                    {t("privacySecurityHeader")}
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Proxy ที่ใช้ในการส่ง request ทำงานบน <strong className="text-foreground">Cloudflare Workers</strong> ซึ่งเป็น edge runtime ที่ไม่เก็บ log การเชื่อมต่อหรือ payload ใดๆ ทำหน้าที่แค่ส่งต่อ request และรับ response กลับมาให้เท่านั้น ส่วนประวัติการยิงทั้งหมดถูกบันทึกเฉพาะใน localStorage ของเบราว์เซอร์คุณ และสามารถลบได้ตลอดเวลาผ่านปุ่ม &quot;ล้างทั้งหมด&quot;
+                                {t("privacySecurityDesc")}
                             </p>
                             <div className="flex flex-wrap gap-2 pt-1">
                                 <Badge variant="outline" className="text-[11px]">No Log</Badge>
@@ -2480,7 +2493,7 @@ export default function ApiTesterPage() {
                         <Card className="w-full max-w-md border-border/50 bg-card/95 shadow-2xl">
                             <CardHeader className="pb-3 flex flex-row items-center justify-between">
                                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                                    <Folder className="h-4 w-4 text-cyan-500" /> บันทึก Request ลง Collection
+                                    <Folder className="h-4 w-4 text-cyan-500" /> {t("saveRequestToCollectionHeader")}
                                 </CardTitle>
                                 <button 
                                     onClick={() => setShowSaveModal(false)}
@@ -2491,39 +2504,39 @@ export default function ApiTesterPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase">ชื่อ Request</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase">{t("requestNameLabel")}</label>
                                     <Input
                                         value={saveRequestName}
                                         onChange={(e) => setSaveRequestName(e.target.value)}
-                                        placeholder="เช่น ดึงข้อมูลผู้ใช้"
+                                        placeholder={t("requestNamePlaceholder")}
                                     />
                                 </div>
                                 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase">เลือก Collection</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase">{t("selectCollectionLabel")}</label>
                                     <select
                                         value={selectedCollectionId}
                                         onChange={(e) => setSelectedCollectionId(e.target.value)}
                                         className="w-full h-10 rounded-lg border border-border/50 bg-background px-3 text-sm focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
                                     >
-                                        <option value="">-- เลือก Collection หรือสร้างใหม่ --</option>
+                                        <option value="">{t("selectCollectionPlaceholder")}</option>
                                         {collections.map((col) => (
                                             <option key={col.id} value={col.id}>{col.name}</option>
                                         ))}
-                                        <option value="new">+ สร้าง Collection ใหม่</option>
+                                        <option value="new">{t("createNewCollectionOption")}</option>
                                     </select>
                                 </div>
 
                                 <div className="flex gap-2 justify-end pt-2">
                                     <Button variant="ghost" onClick={() => setShowSaveModal(false)}>
-                                        ยกเลิก
+                                        {t("cancel")}
                                     </Button>
                                     <Button 
                                         onClick={handleSaveRequestToCollection}
                                         disabled={!saveRequestName.trim()}
                                         className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold"
                                     >
-                                        บันทึก
+                                        {t("save")}
                                     </Button>
                                 </div>
                             </CardContent>

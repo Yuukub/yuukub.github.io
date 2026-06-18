@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, Hash, CheckCircle2, ShieldAlert, ArrowLeft, Terminal } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { AdUnit } from "@/components/ad-unit";
+import { useTranslations, useLocale } from "next-intl";
 
 // SIMPLE MD5 Implementation
 function md5(string: string) {
@@ -38,6 +39,8 @@ export default function HashGenerator() {
         sha256: ""
     });
     const [copied, setCopied] = useState<string | null>(null);
+    const t = useTranslations("HashTool");
+    const locale = useLocale();
 
     const generateHashes = async (text: string) => {
         if (!text) {
@@ -75,16 +78,16 @@ export default function HashGenerator() {
                 {/* Header Section */}
                 <div className="mb-10">
                     <Link href="/tools/" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
-                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                        <ArrowLeft className="h-4 w-4 mr-1" /> {t('backToTools')}
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
                             <Hash className="h-6 w-6 text-violet-500" />
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight">Hash Generator</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        สร้างรหัส Hash (MD5, SHA-256) ได้รวดเร็วและปลอดภัยภายในเครื่องของคุณ
+                        {t('desc')}
                     </p>
                 </div>
 
@@ -94,13 +97,13 @@ export default function HashGenerator() {
                         <div className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                    <Terminal className="h-4 w-4" /> Input Text
+                                    <Terminal className="h-4 w-4" /> {t('inputText')}
                                 </label>
                                 <Badge variant="secondary" className="text-[10px]">LOCAL PROCESSING</Badge>
                             </div>
                             <textarea
                                 className="w-full h-32 p-4 rounded-xl bg-background border border-border/50 focus:border-violet-500/50 outline-none transition-all resize-none font-mono text-sm leading-relaxed"
-                                placeholder="พิมพ์ข้อความที่ต้องการทำ Hash ที่นี่..."
+                                placeholder={t('placeholder')}
                                 value={input}
                                 onChange={(e) => {
                                     const val = e.target.value;
@@ -131,13 +134,13 @@ export default function HashGenerator() {
                                         disabled={!hashes.md5}
                                     >
                                         {copied === 'md5' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                                        {copied === 'md5' ? 'Copied' : 'Copy'}
+                                        {copied === 'md5' ? t('copied') : t('copy')}
                                     </Button>
                                 </div>
 
                                 <div className="relative">
                                     <div className="bg-muted/50 p-4 rounded-xl font-mono text-sm break-all min-h-[52px] border border-border/30 group-hover:bg-background transition-colors">
-                                        {hashes.md5 || <span className="text-muted-foreground/40 italic">Result will appear here...</span>}
+                                        {hashes.md5 || <span className="text-muted-foreground/40 italic">{t('resultPlaceholder')}</span>}
                                     </div>
                                 </div>
 
@@ -147,11 +150,13 @@ export default function HashGenerator() {
                                         <ShieldAlert className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                                         <div className="text-[13px] leading-relaxed">
                                             <p className="font-bold text-emerald-700 mb-1 flex items-center gap-1">
-                                                WordPress Password Reset Tool
+                                                {t('wpTitle')}
                                             </p>
                                             <p className="text-muted-foreground">
-                                                คุณสามารถนำค่า MD5 นี้ไปใส่ในช่อง <code className="bg-emerald-500/10 px-1 rounded text-emerald-700 font-mono">user_pass</code> ในฐานข้อมูล (phpMyAdmin) เพื่อรีเซ็ตรหัสผ่านได้ทันที
-                                                <span className="block mt-1 opacity-80 underline decoration-dotted">WordPress (6.9+) จะทำการอัปเกรดความปลอดภัยให้เองเมื่อคุณล็อกอินครั้งหน้า</span>
+                                                {t.rich('wpDesc', {
+                                                    code: (chunks) => <code className="bg-emerald-500/10 px-1 rounded text-emerald-700 font-mono">{chunks}</code>
+                                                })}
+                                                <span className="block mt-1 opacity-80 underline decoration-dotted">{t('wpUpgrade')}</span>
                                             </p>
                                         </div>
                                     </div>
@@ -177,17 +182,17 @@ export default function HashGenerator() {
                                         disabled={!hashes.sha256}
                                     >
                                         {copied === 'sha256' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                                        {copied === 'sha256' ? 'Copied' : 'Copy'}
+                                        {copied === 'sha256' ? t('copied') : t('copy')}
                                     </Button>
                                 </div>
 
                                 <div className="relative">
                                     <div className="bg-muted/50 p-4 rounded-xl font-mono text-sm break-all min-h-[52px] border border-border/30 group-hover:bg-background transition-colors">
-                                        {hashes.sha256 || <span className="text-muted-foreground/40 italic">Result will appear here...</span>}
+                                        {hashes.sha256 || <span className="text-muted-foreground/40 italic">{t('resultPlaceholder')}</span>}
                                     </div>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground px-1">
-                                    * SHA-256 เป็นมาตรฐานความปลอดภัยขั้นสูงที่ไม่สามารถย้อนกลับได้ (One-way hash)
+                                    {t('shaWarning')}
                                 </p>
                             </div>
                         </Card>

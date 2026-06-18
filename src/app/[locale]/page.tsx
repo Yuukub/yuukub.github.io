@@ -13,7 +13,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t('title'),
     description: t('description'),
-    alternates: { canonical: "https://yuukub.com/" },
+    alternates: {
+      canonical: `https://yuukub.com/${locale}/`,
+      languages: {
+        th: "https://yuukub.com/th/",
+        en: "https://yuukub.com/en/",
+        "x-default": "https://yuukub.com/th/",
+      },
+    },
   };
 }
 import { AdUnit } from "@/components/ad-unit";
@@ -85,6 +92,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const tHero = await getTranslations("Hero");
   const tAbout = await getTranslations("About");
   const tProjects = await getTranslations("Projects");
+  const tHomeExtra = await getTranslations("HomeExtra");
 
   return (
     <div className="min-h-screen selection:bg-primary/20">
@@ -223,7 +231,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-                            title="เยี่ยมชมเว็บไซต์"
+                            title={tProjects('visitSite')}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </a>
@@ -234,7 +242,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-                            title="ดูโค้ดบน GitHub"
+                            title={tProjects('viewCode')}
                           >
                             <Github className="h-4 w-4" />
                           </a>
@@ -246,7 +254,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
 
               <div className="p-4 bg-muted/10 border-t border-border/40 text-[10px] text-center text-muted-foreground italic">
-                เลื่อนเพื่อดูเพิ่มเติม • อัปเดตล่าสุด 2026
+                {tHomeExtra('scrollUpdate')}
               </div>
             </Card>
 
@@ -265,12 +273,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <BotMessageSquare className="h-4 w-4 text-primary" /> AI-Native Development
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  ขับเคลื่อนด้วยแนวคิด **Vibe Coding** ที่ใช้ขุมพลังของ AI ในการยกระดับมาตรฐานโค้ดและการเพิ่มประสิทธิภาพที่ก้าวกระโดด
+                  {tHomeExtra('vibeCoding')}
                 </p>
               </div>
             </Card>
-
-
 
             {/* Stats / Interest - Redesigned as Personal Insight */}
             <Link href="https://github.com/yuukub" target="_blank" rel="noopener noreferrer" className="md:col-span-4 md:row-span-1">
@@ -282,7 +288,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] uppercase tracking-widest text-primary font-extrabold">Personal Pursuit</span>
                     <p className="text-sm font-medium leading-normal text-foreground/90">
-                      สำรวจกลไกตลาดหุ้นปันผล US และการผสาน AI สู่ระบบนิเวศแห่งอนาคต
+                      {tHomeExtra('personalPursuit')}
                     </p>
                   </div>
                 </div>
@@ -293,15 +299,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* Blog Call to Action */}
             <Card className="md:col-span-4 md:row-span-2 p-8 flex flex-col justify-between border-primary/20 bg-muted/30 animate-in fade-in slide-in-from-right-3 duration-600 delay-350 hover-lift transform-gpu">
               <div className="space-y-4">
-                <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[10px]">บทความล่าสุด</Badge>
-                <h3 className="text-xl font-bold">แบ่งปันความรู้ด้านเทคนิค</h3>
+                <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[10px]">{tHomeExtra('latestArticles')}</Badge>
+                <h3 className="text-xl font-bold">{tHomeExtra('blogTitle')}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  เจาะลึกเรื่องความปลอดภัย WordPress, Technical SEO และการพัฒนา Full-stack สมัยใหม่
+                  {tHomeExtra('blogDesc')}
                 </p>
               </div>
               <Link href="/blog/">
                 <Button variant="link" className="p-0 text-primary gap-2 font-bold group">
-                  อ่านบทความ <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  {tHomeExtra('readArticles')} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
             </Card>
@@ -314,19 +320,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           className="mb-32 py-12"
         />
 
-
-
         {/* Specialized Services Index */}
         <section className="mb-32">
           <div className="flex flex-col md:flex-row items-end justify-between mb-8 gap-4 px-2">
             <div>
               <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[10px] mb-3">Professional Solutions</Badge>
-              <h3 className="text-3xl font-bold tracking-tight">บริการและความเชี่ยวชาญเฉพาะทาง</h3>
-              <p className="text-muted-foreground mt-2 max-w-xl">ส่งมอบโซลูชันเชิงเทคนิคระดับสูงที่เน้นความปลอดภัย ความเสถียร และการเติบโตของธุรกิจ</p>
+              <h3 className="text-3xl font-bold tracking-tight">{tHomeExtra('servicesTitle')}</h3>
+              <p className="text-muted-foreground mt-2 max-w-xl">{tHomeExtra('servicesDesc')}</p>
             </div>
             <Link href="https://fastwork.co/user/yuukun992" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="rounded-full gap-2 group shadow-sm">
-                ดูโปรไฟล์และรีวิวลูกค้า <ExternalLink className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                {tHomeExtra('viewReviews')} <ExternalLink className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>
@@ -339,7 +343,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               <h4 className="text-xl font-bold mb-3">WordPress Security & Recovery</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                กู้คืนเว็บไซต์โดนแฮก, ล้างมัลแวร์เชิงลึก และวางระบบ Defensive Architecture เพื่อป้องกันการโจมตีซ้ำในระยะยาว
+                {tHomeExtra('services.security.desc')}
               </p>
               <div className="mt-auto space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -348,7 +352,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </div>
                 <Link href="https://fastwork.co/user/yuukun992/it-device-repair-52044401?source=seller-center_my-service_share-link" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="w-full rounded-xl border-cyan-500/30 text-cyan-700 hover:bg-cyan-500 hover:text-white transition-all gap-2 group/btn">
-                    กู้คืนเว็บ WordPress ติดไวรัส <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                    {tHomeExtra('services.security.btn')} <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
               </div>
@@ -361,7 +365,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               <h4 className="text-xl font-bold mb-3">Website Fixes & Customization</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                แก้ไขบั๊ก เพิ่มเติมระบบ ปรับแต่งความเร็ว และอัปเกรดฟังก์ชันการทำงานใหม่ๆ ให้กับเว็บไซต์เดิมของคุณทั้ง WordPress และ Custom Web
+                {tHomeExtra('services.dev.desc')}
               </p>
               <div className="mt-auto space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -371,7 +375,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </div>
                 <Link href="https://fastwork.co/user/yuukun992" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="w-full rounded-xl border-indigo-500/30 text-indigo-700 hover:bg-indigo-500 hover:text-white transition-all gap-2 group/btn">
-                    จ้างงานแก้ไขและพัฒนาเว็บ <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                    {tHomeExtra('services.dev.btn')} <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
               </div>
@@ -384,7 +388,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               <h4 className="text-xl font-bold mb-3">Automation & AI Workflow</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                ออกแบบระบบจัดการข้อมูลอัตโนมัติ (n8n/AI) และระบบแจ้งเตือนผ่าน API เพื่อลดเวลาและเพิ่มประสิทธิภาพการทำงาน
+                {tHomeExtra('services.automation.desc')}
               </p>
               <div className="mt-auto space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -393,7 +397,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </div>
                 <Link href="https://fastwork.co/user/yuukun992" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="w-full rounded-xl border-amber-500/30 text-amber-700 hover:bg-amber-500 hover:text-white transition-all gap-2 group/btn">
-                    จ้างงานระบบอัตโนมัติ/AI <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                    {tHomeExtra('services.automation.btn')} <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
               </div>
@@ -406,7 +410,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               <h4 className="text-xl font-bold mb-3">WordPress Migration</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                ย้ายเว็บไซต์ WordPress จาก Hosting เดิมมาที่ใหม่ พร้อมตรวจสอบความเรียบร้อยและประสิทธิภาพหลังย้าย
+                {tHomeExtra('services.migration.desc')}
               </p>
               <div className="mt-auto space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -415,7 +419,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </div>
                 <Link href="https://fastwork.co/user/yuukun992/wordpress-52957825?source=seller-center_my-service_share-link" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="w-full rounded-xl border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white transition-all gap-2 group/btn">
-                    ย้ายโฮสติ้ง WordPress <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                    {tHomeExtra('services.migration.btn')} <ExternalLink className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
               </div>
@@ -428,7 +432,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <Badge variant="outline" className="rounded-full border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 font-semibold text-xs tracking-wider uppercase">
-              Project Spotlight — Upcoming Android App
+              {tHomeExtra('yomu.badge')}
             </Badge>
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-primary to-indigo-600">
               Yomu Player
@@ -437,7 +441,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               The All-in-One VN & RPG Player with Live Translation
             </h3>
             <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              แอปพลิเคชัน Android Engine Container ประสิทธิภาพสูงสำหรับการรันเกม PC Visual Novel และ RPG (เช่น Ren&apos;Py, Godot, RPG Maker) บนมือถือโดยเฉพาะ พร้อมระบบแปลภาษาแบบเรียลไทม์ (Live Translation) ที่ปรับแต่งเป็นพิเศษสำหรับแปล JP &rarr; TH และ EN &rarr; TH มอบประสบการณ์เล่นเกมแปลไทยที่รวดเร็ว ลื่นไหล และปลอดภัยในระบบ Sandbox
+              {tHomeExtra('yomu.desc')}
             </p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Button size="lg" disabled className="rounded-full h-14 px-10 gap-2 font-bold bg-muted text-muted-foreground border border-border/50 cursor-not-allowed">

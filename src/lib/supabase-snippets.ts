@@ -49,9 +49,9 @@ export async function saveSnippet(
     ipAddress: string
 ): Promise<{ id: string } | { error: string }> {
     // Validate ขนาดโค้ดก่อนส่ง (Client-side guard กันโค้ดที่ใหญ่เกิน)
-    if (payload.html_code.length > 100_000) return { error: "HTML code is too large (max 100KB)" };
-    if (payload.css_code.length > 50_000) return { error: "CSS code is too large (max 50KB)" };
-    if (payload.js_code.length > 50_000) return { error: "JS code is too large (max 50KB)" };
+    if (payload.html_code.length > 100_000) return { error: "HTML_TOO_LARGE" };
+    if (payload.css_code.length > 50_000) return { error: "CSS_TOO_LARGE" };
+    if (payload.js_code.length > 50_000) return { error: "JS_TOO_LARGE" };
 
     const { data, error } = await getSupabase()
         .from("shared_snippets")
@@ -67,7 +67,7 @@ export async function saveSnippet(
     if (error) {
         // ดักข้อความ error จาก Trigger Rate Limit ที่เราตั้งไว้ใน DB
         if (error.message.includes("Rate limit exceeded")) {
-            return { error: "คุณแชร์โค้ดบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่" };
+            return { error: "RATE_LIMIT_EXCEEDED" };
         }
         return { error: error.message };
     }
@@ -80,7 +80,7 @@ export async function loadSnippet(id: string): Promise<SnippetResult | { error: 
     // Validate UUID format ก่อนส่ง ป้องกัน injection / garbage ID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(id)) {
-        return { error: "Invalid snippet ID format" };
+        return { error: "INVALID_ID_FORMAT" };
     }
 
     const { data, error } = await getSupabase()
@@ -91,7 +91,7 @@ export async function loadSnippet(id: string): Promise<SnippetResult | { error: 
         .single();
 
     if (error || !data) {
-        return { error: "ลิงก์นี้หมดอายุหรือไม่พบข้อมูล" };
+        return { error: "SNIPPET_NOT_FOUND" };
     }
 
     return data as SnippetResult;

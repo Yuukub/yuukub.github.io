@@ -1,13 +1,22 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "Secure Password Generator สร้างรหัสผ่านปลอดภัย",
-    description: "สร้างรหัสผ่านที่แข็งแรงและคาดเดายากภายในเครื่องของคุณเอง ไม่มีการส่งข้อมูลผ่านอินเทอร์เน็ต มั่นใจในความปลอดภัยระดับสูงสุด",
-    keywords: ["Secure Password Generator", "เครื่องมือสร้างรหัสผ่าน", "Random password maker", "ความปลอดภัยของรหัสผ่าน"],
-    alternates: {
-        canonical: "https://yuukub.com/tools/password-generator/",
-    },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'PasswordTool' });
+
+    return {
+        title: t('metaTitle'),
+        description: t('metaDesc'),
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/password-generator/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/password-generator/",
+                en: "https://yuukub.com/en/tools/password-generator/",
+                "x-default": "https://yuukub.com/th/tools/password-generator/",
+            }
+        },
+    };
+}
 
 export default function PasswordGeneratorLayout({
     children,

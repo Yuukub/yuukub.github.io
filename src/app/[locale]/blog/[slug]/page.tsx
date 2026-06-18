@@ -7,24 +7,35 @@ import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Calendar, ChevronLeft, Tag as TagIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { th } from "date-fns/locale";
+import { th, enUS } from "date-fns/locale";
 import { Navbar } from "@/components/navbar";
 import { AdUnit } from "@/components/ad-unit";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export async function generateStaticParams() {
     return await getAllPostSlugs();
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-    const { slug } = await params;
-    const post = await getPostData(slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }): Promise<Metadata> {
+    const { slug, locale } = await params;
+    const post = await getPostData(slug, locale);
+    const descText = locale === "en"
+        ? `Read ${post.title} by Saranyuu M.`
+        : `อ่านบทความ ${post.title} โดย Saranyuu M.`;
     return {
         title: post.title,
-        description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
-        alternates: { canonical: `https://yuukub.com/blog/${slug}/` },
+        description: post.description || descText,
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/blog/${slug}/`,
+            languages: {
+                th: `https://yuukub.com/th/blog/${slug}/`,
+                en: `https://yuukub.com/en/blog/${slug}/`,
+                "x-default": `https://yuukub.com/th/blog/${slug}/`,
+            }
+        },
         openGraph: {
             title: post.title,
-            description: post.description || `อ่านบทความ ${post.title} โดย Saranyuu M.`,
+            description: post.description || descText,
             type: "article",
             publishedTime: post.date,
             authors: ["Saranyuu Meekumlang"],
@@ -33,12 +44,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
-import { setRequestLocale } from "next-intl/server";
-
 export default async function Post({ params }: { params: Promise<{ slug: string; locale: string }> }) {
     const { slug, locale } = await params;
     setRequestLocale(locale);
-    const postData = await getPostData(slug);
+    const t = await getTranslations("BlogSlugPage");
+    const postData = await getPostData(slug, locale);
 
     const articleJsonLd = {
         "@context": "https://schema.org",
@@ -77,7 +87,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string;
                 <Link href="/blog/">
                     <Button variant="ghost" size="sm" className="gap-1 mb-8 text-muted-foreground hover:text-primary">
                         <ChevronLeft className="h-4 w-4" />
-                        กลับไปที่คลังความรู้
+                        {t('backToBlog')}
                     </Button>
                 </Link>
 
@@ -86,7 +96,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string;
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="h-4 w-4" />
-                                {format(new Date(postData.date), "dd MMMM yyyy", { locale: th })}
+                                {format(new Date(postData.date), "dd MMMM yyyy", { locale: locale === "th" ? th : enUS })}
                             </div>
                             <Separator orientation="vertical" className="h-4 hidden sm:block" />
                             <div className="flex items-center gap-1.5">

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, CheckCircle2, Lock, Shield, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { AdUnit } from "@/components/ad-unit";
+import { useTranslations } from "next-intl";
 
 export default function PasswordGenerator() {
     const [password, setPassword] = useState("");
@@ -20,6 +21,7 @@ export default function PasswordGenerator() {
     });
     const [copied, setCopied] = useState(false);
     const [showPassword, setShowPassword] = useState(true);
+    const t = useTranslations("PasswordTool");
 
     const generatePassword = useCallback((len: number, opts: typeof options) => {
         const charset = {
@@ -67,11 +69,11 @@ export default function PasswordGenerator() {
         entropy = Math.floor(password.length * Math.log2(poolSize));
     }
 
-    let strength = { label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" };
-    if (entropy < 40) strength = { label: "Weak", score: 1, color: "text-red-500", bg: "bg-red-500" };
-    else if (entropy < 60) strength = { label: "Medium", score: 2, color: "text-orange-500", bg: "bg-orange-500" };
-    else if (entropy < 80) strength = { label: "Strong", score: 3, color: "text-emerald-500", bg: "bg-emerald-500" };
-    else strength = { label: "Very Strong", score: 4, color: "text-blue-500", bg: "bg-blue-500" };
+    let strength = { label: t('strengthMedium'), score: 2, color: "text-orange-500", bg: "bg-orange-500" };
+    if (entropy < 40) strength = { label: t('strengthWeak'), score: 1, color: "text-red-500", bg: "bg-red-500" };
+    else if (entropy < 60) strength = { label: t('strengthMedium'), score: 2, color: "text-orange-500", bg: "bg-orange-500" };
+    else if (entropy < 80) strength = { label: t('strengthStrong'), score: 3, color: "text-emerald-500", bg: "bg-emerald-500" };
+    else strength = { label: t('strengthVeryStrong'), score: 4, color: "text-blue-500", bg: "bg-blue-500" };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(password);
@@ -89,16 +91,16 @@ export default function PasswordGenerator() {
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/tools/" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
-                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                        <ArrowLeft className="h-4 w-4 mr-1" /> {t('backToTools')}
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                             <Lock className="h-6 w-6 text-emerald-500" />
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight">Secure Password Generator</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        สร้างรหัสผ่านที่ปลอดภัยและคาดเดายากได้ทันทีบนเครื่องของคุณ (Privacy-First)
+                        {t('desc')}
                     </p>
                 </div>
 
@@ -113,7 +115,7 @@ export default function PasswordGenerator() {
                                         readOnly
                                         value={password}
                                         className="w-full text-xl sm:text-2xl font-mono p-5 pr-24 rounded-xl bg-background border border-border/50 focus:border-primary outline-none transition-all tracking-wider"
-                                        placeholder="Generating..."
+                                        placeholder={t('generating')}
                                     />
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                                         <Button
@@ -139,11 +141,11 @@ export default function PasswordGenerator() {
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium text-muted-foreground">ความแข็งแรง:</span>
+                                        <span className="text-sm font-medium text-muted-foreground">{t('strength')}</span>
                                         <span className={`text-sm font-bold ${strength.color}`}>{strength.label}</span>
                                     </div>
                                     <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-bold">
-                                        Security Score: {strength.score}/4
+                                        {t('scoreLabel', { score: strength.score })}
                                     </Badge>
                                 </div>
                                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden flex gap-1">
@@ -162,21 +164,21 @@ export default function PasswordGenerator() {
                                 disabled={!password}
                             >
                                 {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                                {copied ? 'คัดลอกแล้ว!' : 'คัดลอกรหัสผ่าน'}
+                                {copied ? t('copied') : t('copyBtn')}
                             </Button>
                         </div>
                     </Card>
 
                     <Card className="p-6 border-border/50 bg-card">
                         <h3 className="text-sm font-bold mb-6 flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
-                            ปรับแต่งรหัสผ่าน (Options)
+                            {t('optionsTitle')}
                         </h3>
 
                         <div className="space-y-8">
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <label className="text-sm font-medium">
-                                        ความยาว: <span className="text-primary font-bold text-lg ml-1">{length}</span> ตัวอักษร
+                                        {t('lengthLabel', { length })}
                                     </label>
                                 </div>
                                 <input
@@ -200,10 +202,10 @@ export default function PasswordGenerator() {
                                         className={`flex items-center justify-between p-3.5 rounded-xl border border-border/50 hover:bg-muted/50 cursor-pointer transition-all ${options[opt] ? 'bg-primary/[0.03] border-primary/20' : ''}`}
                                     >
                                         <span className="text-sm font-medium capitalize">
-                                            {opt === 'uppercase' && 'ตัวพิมพ์ใหญ่ (A-Z)'}
-                                            {opt === 'lowercase' && 'ตัวพิมพ์เล็ก (a-z)'}
-                                            {opt === 'numbers' && 'ตัวเลข (0-9)'}
-                                            {opt === 'symbols' && 'สัญลักษณ์ (!@#$)'}
+                                            {opt === 'uppercase' && t('uppercase')}
+                                            {opt === 'lowercase' && t('lowercase')}
+                                            {opt === 'numbers' && t('numbers')}
+                                            {opt === 'symbols' && t('symbols')}
                                         </span>
                                         <input
                                             type="checkbox"
@@ -224,7 +226,7 @@ export default function PasswordGenerator() {
                     <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex gap-3 items-center">
                         <Shield className="h-5 w-5 text-emerald-500 shrink-0" />
                         <p className="text-[13px] text-muted-foreground leading-relaxed">
-                            ปลอดภัยที่สุด: รหัสถูกสร้างขึ้นแบบสุ่มด้วย <code className="bg-emerald-500/10 px-1 rounded text-emerald-600 font-mono">crypto.getRandomValues()</code> ภายในเครื่องของคุณเท่านั้น ไม่มีการส่งข้อมูลไปยังเซิร์ฟเวอร์
+                            {t('securityNotice')}
                         </p>
                     </div>
                 </div>

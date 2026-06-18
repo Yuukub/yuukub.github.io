@@ -22,7 +22,7 @@ export interface PostData {
     readingTime: string;
 }
 
-export async function getSortedPostsData() {
+export async function getSortedPostsData(locale?: string) {
     // Get file names under /posts
     const fileNames = fs.readdirSync(postsDirectory);
     const allPostsData = fileNames
@@ -41,7 +41,8 @@ export async function getSortedPostsData() {
             // Calculate reading time
             const wordsPerMinute = 200;
             const noOfWords = matterResult.content.split(/\s+/g).length;
-            const readingTime = `${Math.ceil(noOfWords / wordsPerMinute)} นาที`;
+            const min = Math.ceil(noOfWords / wordsPerMinute);
+            const readingTime = locale === "en" ? `${min} min read` : `${min} นาที`;
 
             // Combine the data with the slug
             return {
@@ -77,7 +78,7 @@ export async function getAllPostSlugs() {
         });
 }
 
-export async function getPostData(slug: string): Promise<PostData> {
+export async function getPostData(slug: string, locale?: string): Promise<PostData> {
     let fullPath = path.join(postsDirectory, `${slug}.md`);
 
     // If .md doesn't exist, try .mdoc
@@ -122,7 +123,7 @@ export async function getPostData(slug: string): Promise<PostData> {
     const wordsPerMinute = 200;
     const noOfWords = matterResult.content.split(/\s+/g).length;
     const minutes = Math.ceil(noOfWords / wordsPerMinute);
-    const readingTime = `${minutes} นาที`;
+    const readingTime = locale === "en" ? `${minutes} min read` : `${minutes} นาที`;
 
     // Combine the data with the slug and contentHtml
     return {

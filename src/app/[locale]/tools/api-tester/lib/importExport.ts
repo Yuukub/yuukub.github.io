@@ -273,6 +273,6 @@ export function importFile(data: any, now: number): ImportReport {
                 skipped: [],
             };
         default:
-            throw new Error("รูปแบบไฟล์ไม่ถูกต้อง คาดหวัง Postman Collection (v2.1) หรือ Postman Environment");
+            throw new Error("INVALID_FORMAT");
     }
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
 import Script from "next/script";
+import { useTranslations, useLocale } from "next-intl";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -78,40 +79,16 @@ const CLOUDFLARE_BG_REMOVE_API = (
 ).replace(/\/$/, "");
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
-const FAQ_ITEMS = [
-    {
-        question: "ลบพื้นหลังรูปด้วยเครื่องมือนี้ปลอดภัยไหม?",
-        answer: "ปลอดภัยแน่นอนครับ เพราะระบบเริ่มต้นทำงานแบบ local-first รูปภาพของคุณจะได้รับการประมวลผลภายในเบราว์เซอร์ของอุปกรณ์คุณเองโดยไม่ผ่านเซิร์ฟเวอร์ใดๆ (กรณีใช้ WebGPU AI หรือ Canvas Heuristics) ยกเว้นเมื่อคุณเลือกโหมด Cloudflare AI Fallback ระบบจะส่งรูปภาพไปประมวลผลแบบเข้ารหัสที่เซิร์ฟเวอร์ปลายทางของ Cloudflare เพื่อช่วยตัดพื้นหลัง และจะไม่มีการบันทึกภาพถ่ายนั้นลงเซิร์ฟเวอร์เป็นการถาวร",
-    },
-    {
-        question: "ทำไมการประมวลผลครั้งแรกถึงใช้เวลานาน?",
-        answer: "เมื่อเริ่มต้นใช้งานโหมด WebGPU AI เป็นครั้งแรก ระบบจำเป็นต้องดาวน์โหลดไฟล์โมเดลประมวลผลภาษาภาพ (BiRefNet-lite) จากทาง Hugging Face ขนาดประมาณ 114MB สำหรับเครื่องที่รับ float16 หรือประมาณ 224MB สำหรับ float32 ซึ่งจะดาวน์โหลดเพียงแค่ครั้งเดียวเท่านั้น หลังจากนั้น ตัวโมเดลจะถูกบันทึกเก็บไว้ในระบบเบราว์เซอร์แคชของเครื่อง ทำให้การใช้งานครั้งต่อไปรันต่อได้ทันทีโดยไม่ต้องรอโหลดซ้ำ",
-    },
-    {
-        question: "หากอุปกรณ์หรือเว็บเบราว์เซอร์ไม่รองรับ WebGPU จะทำอย่างไร?",
-        answer: "ไม่มีปัญหาครับ ระบบถูกออกแบบมาให้มีเอนจินสำรองพร้อมใช้งานทันที โดยจะตรวจจับให้อัตโนมัติและสลับไปใช้ Canvas Heuristics เพื่อลบพื้นหลังแบบสีพื้นเรียบในพริบตา หรือผู้ใช้สามารถเลือกใช้ Cloudflare AI Fallback ในการลบภาพซับซ้อน ซึ่งระบบนี้ต้องการการยืนยัน Turnstile ก่อนทำงานเพื่อป้องกันการโจมตีจากบอทภายนอก",
-    },
-    {
-        question: "ไฟล์รูปภาพผลลัพธ์ที่ได้มีลักษณะเป็นอย่างไร?",
-        answer: "รูปภาพที่ลบพื้นหลังสำเร็จสามารถเลือกดาวน์โหลดได้ทั้งแบบไฟล์ PNG ที่โปร่งใสและรักษาความละเอียดดั้งเดิมของกล้องไว้แบบ 100% เหมาะสำหรับนำไปตัดต่อต่อ หรือเลือกดาวน์โหลดไฟล์ WebP โปร่งใสที่มีการบีบอัดให้ขนาดไฟล์เล็กลงมากโดยยังคงรายละเอียดที่คมชัด เหมาะสำหรับนำไปโพสต์ขึ้นหน้าเว็บหรือโซเชียลมีเดีย",
-    },
-    {
-        question: "โควต้าของ Cloudflare AI Fallback มีการจัดการอย่างไร?",
-        answer: "เพื่อประหยัดทรัพยากรการส่งรูป ระบบจะเรียกใช้ API ของ Cloudflare เพียง 1 ครั้งต่อรูปภาพนั้นๆ เพื่อรับผลลัพธ์ PNG กลับมา จากนั้นการแปลงเป็นไฟล์ WebP จะเกิดขึ้นบนเบราว์เซอร์ของตัวเครื่องโดยตรง และปุ่มเรียกใช้ Cloudflare สำหรับรูปเดิมจะถูกปิดใช้งานทันทีหลังทำสำเร็จ เพื่อหลีกเลี่ยงการยิงคำสั่งซ้ำซ้อนโดยไม่จำเป็น",
-    },
-    {
-        question: "ขนาดไฟล์และมิติของรูปภาพที่เหมาะสมกับการใช้งานคือเท่าไหร่?",
-        answer: "หน้าเว็บของเรารองรับรูปภาพขนาดใหญ่สุดได้ถึง 32 Megapixel อย่างไรก็ตาม เพื่อประสิทธิภาพที่ดีที่สุดและป้องกันการขาดแคลนหน่วยความจำ (Out of Memory) ในเบราว์เซอร์ขณะรัน AI บนการ์ดจอ ขอแนะนำให้เลือกใช้รูปที่มีขนาดไฟล์ทั่วไปไม่เกิน 15-20MB",
-    },
-    {
-        question: "สามารถใช้งานระบบตัดพื้นหลังตอนที่ไม่มีอินเทอร์เน็ตได้หรือไม่?",
-        answer: "ได้เลยครับ! หากอุปกรณ์ของคุณเคยผ่านขั้นตอนการโหลดโมเดล AI (WebGPU) สำเร็จมาก่อนหน้านั้นแล้ว ตัวโมเดลจะถูกดึงไปเก็บใน Cache Storage ของตัวเครื่อง คุณจึงสามารถลากรูปภาพมาลบพื้นหลังแบบออฟไลน์ได้ 100% โดยไม่จำเป็นต้องเชื่อมต่อเครือข่ายอินเทอร์เน็ตใดๆ",
-    },
-    {
-        question: "กรณีที่ต้องการลบโมเดล AI ออกจากอุปกรณ์ ต้องทำอย่างไร?",
-        answer: "หากคุณกังวลเรื่องพื้นที่จัดเก็บข้อมูลในเครื่องและต้องการนำโมเดลออก สามารถทำได้ง่ายๆ โดยการล้างแคชของเบราว์เซอร์ (Clear Browser Cache) สำหรับโดเมน yuukub.com หรือเข้าไปที่หน้าต่างเครื่องมือผู้พัฒนาเว็บ (Developer Tools) ไปที่แท็บ Application -> Storage แล้วกดปุ่ม Clear site data ได้ทันที",
-    },
-];
+const FAQ_KEYS = [
+    { questionKey: "faq1Q", answerKey: "faq1A" },
+    { questionKey: "faq2Q", answerKey: "faq2A" },
+    { questionKey: "faq3Q", answerKey: "faq3A" },
+    { questionKey: "faq4Q", answerKey: "faq4A" },
+    { questionKey: "faq5Q", answerKey: "faq5A" },
+    { questionKey: "faq6Q", answerKey: "faq6A" },
+    { questionKey: "faq7Q", answerKey: "faq7A" },
+    { questionKey: "faq8Q", answerKey: "faq8A" },
+] as const;
 
 function formatBytes(bytes: number): string {
     if (bytes === 0) return "0 B";
@@ -141,33 +118,94 @@ async function readImageInfo(file: File): Promise<{ width: number; height: numbe
     return info;
 }
 
-async function convertBlobToWebp(blob: Blob): Promise<Blob> {
-    const bitmap = await createImageBitmap(blob);
-    const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-        bitmap.close();
-        throw new Error("เบราว์เซอร์ไม่รองรับ Canvas สำหรับสร้าง WebP");
+const translateMessage = (msg: string, t: any): string => {
+    if (!msg) return "";
+
+    // Exact matches
+    if (msg === "กำลังเริ่ม WebGPU fp16 engine...") return t("workerStartingFp16");
+    if (msg === "GPU ไม่รองรับ fp16 กำลังลอง WebGPU fp32...") return t("workerNoFp16TryingFp32");
+    if (msg === "กำลังเริ่ม WebGPU fp32 engine...") return t("workerStartingFp32");
+    if (msg === "กำลังตกแต่งขอบ mask...") return t("workerRefiningMask");
+    if (msg === "กำลังวิเคราะห์สีพื้นหลังจากขอบภาพ...") return t("workerAnalyzingBgColor");
+    if (msg === "กำลังลบพื้นหลังด้วย Canvas...") return t("workerRemovingCanvas");
+    if (msg === "กำลังสร้าง PNG และ WebP โปร่งใส...") return t("workerGeneratingTransparent");
+    if (msg === "กำลังอ่านรูปภาพ...") return t("workerReadingImage");
+    if (msg === "กำลังแยกวัตถุออกจากพื้นหลัง...") return t("workerExtractingObject");
+    if (msg === "เบราว์เซอร์นี้ใช้ WebGPU ไม่สำเร็จ จึงสลับเป็นโหมด Canvas สำหรับภาพโลโก้/กราฟิก") return t("workerWebgpuFailedCanvasLogo");
+    if (msg === "WebGPU ประมวลผลรูปนี้ไม่สำเร็จ จึงสลับเป็นโหมด Canvas สำหรับภาพโลโก้/กราฟิก") return t("workerWebgpuFailedCanvasFallback");
+    if (msg === "โมเดลพร้อมทำงาน") return t("workerModelReady");
+    if (msg === "เตรียมโหลดโมเดล AI") return t("workerPreparingModel");
+    if (msg === "กำลังดาวน์โหลดโมเดล AI") return t("workerDownloadingModel");
+    if (msg === "กำลังเตรียมโมเดล AI") return t("workerPreparingGeneric");
+    if (msg === "อัปโหลดรูปเพื่อเริ่มลบพื้นหลัง") return t("initialMessage");
+    if (msg === "ลบพื้นหลังสำเร็จ พร้อมดาวน์โหลด PNG หรือ WebP") return t("successMessage");
+    if (msg === "เกิดข้อผิดพลาดระหว่างลบพื้นหลัง") return t("errorProcessing");
+    if (msg === "ไม่สามารถลบพื้นหลังรูปนี้ได้") return t("cannotRemove");
+    if (msg === "เกิดข้อผิดพลาดใน worker") return t("workerError");
+    if (msg === "พร้อมลบพื้นหลัง รูปจะถูกประมวลผลในเครื่องของคุณ") return t("readyMessage");
+    if (msg === "รูปนี้ใช้ Cloudflare fallback แล้ว ดาวน์โหลดผลลัพธ์เดิมได้ หรือเปลี่ยนรูป/ล้างรูปเพื่อประมวลผลใหม่") return t("cloudflareAlreadyUsed");
+    if (msg === "Cloudflare fallback ยังไม่พร้อม") return t("cloudflareNotReady");
+    if (msg === "ต้องยืนยัน Turnstile ก่อนใช้ Cloudflare fallback") return t("cloudflareRequireTurnstile");
+    if (msg === "กำลังส่งรูปไป Cloudflare AI fallback...") return t("cloudflareSending");
+    if (msg === "Cloudflare แยกพื้นหลังสำเร็จ กำลังสร้าง WebP...") return t("cloudflareSuccessConvertingWebp");
+    if (msg === "Cloudflare AI fallback ลบพื้นหลังสำเร็จ พร้อมดาวน์โหลด PNG หรือ WebP") return t("cloudflareSuccess");
+    if (msg === "Cloudflare fallback ไม่สำเร็จ") return t("cloudflareFailedMessage");
+    if (msg === "โหมดนี้จะอัปโหลดรูปไป Cloudflare เพื่อใช้ AI fallback") return t("cloudflareUploadNotice");
+    if (msg === "Turnstile หมดอายุ กรุณายืนยันอีกครั้งก่อนใช้ Cloudflare fallback") return t("turnstileExpired");
+    if (msg === "Turnstile ยืนยันไม่สำเร็จ กรุณาลองใหม่อีกครั้ง") return t("turnstileFailed");
+
+    // Dynamic checks
+    if (msg.startsWith("กำลังโหลดโมเดล AI ")) {
+        const percent = msg.replace("กำลังโหลดโมเดล AI ", "");
+        return t("workerModelProgressTotal", { progress: percent });
+    }
+    if (msg.startsWith("กำลังโหลด ") && msg.endsWith("%")) {
+        const parts = msg.slice(9, -1).trim().split(" ");
+        const percent = parts.pop() || "";
+        const file = parts.join(" ") || "";
+        return t("workerLoadingProgress", { file, progress: percent });
+    }
+    if (msg.startsWith("เตรียมโหลด ")) {
+        const file = msg.replace("เตรียมโหลด ", "");
+        return t("workerPreparingDownload", { file });
+    }
+    if (msg.startsWith("กำลังดาวน์โหลด ")) {
+        const file = msg.replace("กำลังดาวน์โหลด ", "");
+        return t("workerDownloadingProgress", { file });
+    }
+    if (msg.endsWith(" จึงใช้โหมด Canvas สำหรับภาพโลโก้/กราฟิกแทน")) {
+        const reason = msg.replace(" จึงใช้โหมด Canvas สำหรับภาพโลโก้/กราฟิกแทน", "");
+        let translatedReason = reason;
+        if (reason === "เบราว์เซอร์นี้ยังไม่เปิดใช้ WebGPU") {
+            translatedReason = t("reasonNoWebgpu");
+        } else if (reason === "เบราว์เซอร์หา GPU adapter ไม่เจอ อาจถูกปิด hardware acceleration หรือ driver ถูก blocklist") {
+            translatedReason = t("reasonNoAdapter");
+        } else if (reason === "เบราว์เซอร์ขอสิทธิ์ใช้ WebGPU adapter ไม่สำเร็จ") {
+            translatedReason = t("reasonPermissionFailed");
+        }
+        return t("workerCanvasFallbackSubstitute", { reason: translatedReason });
     }
 
-    ctx.drawImage(bitmap, 0, 0);
-    bitmap.close();
+    return msg;
+};
 
-    return new Promise((resolve, reject) => {
-        canvas.toBlob(
-            (webpBlob) => {
-                if (webpBlob) resolve(webpBlob);
-                else reject(new Error("ไม่สามารถสร้างไฟล์ WebP ได้"));
-            },
-            "image/webp",
-            0.92,
-        );
-    });
-}
+const translateError = (errStr: string, t: any): string => {
+    if (!errStr) return "";
+    if (errStr.includes("รูปนี้มีความละเอียดสูงเกิน 32MP กรุณาย่อขนาดรูปก่อนใช้งาน")) return t("errorTooLarge");
+    if (errStr.includes("รองรับเฉพาะ JPG, PNG และ WebP เท่านั้น")) return t("errorInvalidType");
+    if (errStr.includes("ไม่สามารถอ่านรูปนี้ได้ กรุณาลองไฟล์อื่น")) return t("errorReadFailed");
+    if (errStr.includes("Canvas fallback จับวัตถุไม่ได้ กรุณาใช้ภาพที่พื้นหลังต่างจากวัตถุชัดขึ้น หรือเปิด WebGPU เพื่อใช้ AI")) return t("errorCanvasFailedSubject");
+    if (errStr.includes("AI จับวัตถุในภาพนี้ไม่ได้ กรุณาลองรูปที่วัตถุตัดกับพื้นหลังชัดขึ้น")) return t("errorAiFailedSubject");
+    if (errStr.includes("ยังไม่ได้ฝัง Turnstile site key ในหน้าเว็บ กรุณารอ GitHub Pages deploy รอบล่าสุดก่อนใช้ Cloudflare fallback")) return t("cloudflareMissingKey");
+    if (errStr.includes("กรุณายืนยันว่าเป็นผู้ใช้จริงก่อนใช้ Cloudflare AI fallback เพื่อป้องกันการใช้โควต้าจากภายนอก")) return t("cloudflareVerifyPrompt");
+    if (errStr.includes("Cloudflare fallback ลบพื้นหลังไม่สำเร็จ")) return t("cloudflareFailedError");
+    return errStr;
+};
 
 export default function BackgroundRemoverPage() {
+    const t = useTranslations("BackgroundRemover");
+    const locale = useLocale();
+
     const [image, setImage] = useState<ImageInfo | null>(null);
     const [resultUrl, setResultUrl] = useState<string | null>(null);
     const [pngBlob, setPngBlob] = useState<Blob | null>(null);
@@ -249,6 +287,32 @@ export default function BackgroundRemoverPage() {
             window.turnstile.reset(turnstileWidgetRef.current);
         }
     }, []);
+
+    const convertBlobToWebp = useCallback(async (blob: Blob): Promise<Blob> => {
+        const bitmap = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            bitmap.close();
+            throw new Error(t("errorCanvasWebp"));
+        }
+
+        ctx.drawImage(bitmap, 0, 0);
+        bitmap.close();
+
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(
+                (webpBlob) => {
+                    if (webpBlob) resolve(webpBlob);
+                    else reject(new Error(t("errorWebpCreationFailed")));
+                },
+                "image/webp",
+                0.92,
+            );
+        });
+    }, [t]);
 
     const ensureWorker = useCallback(() => {
         if (workerRef.current) return workerRef.current;
@@ -490,7 +554,7 @@ export default function BackgroundRemoverPage() {
             setError(err instanceof Error ? err.message : "Cloudflare fallback ลบพื้นหลังไม่สำเร็จ");
             resetTurnstile();
         }
-    }, [cloudflareResultFileKey, image, resetTurnstile, revokeResult, status, turnstileToken]);
+    }, [cloudflareResultFileKey, image, resetTurnstile, revokeResult, status, turnstileToken, convertBlobToWebp]);
 
     const downloadResult = useCallback((format: "png" | "webp") => {
         const blob = format === "png" ? pngBlob : webpBlob;
@@ -523,10 +587,10 @@ export default function BackgroundRemoverPage() {
     const engineLabel = engine === "webgpu"
         ? "WebGPU"
         : engine === "canvas"
-            ? "Canvas fallback"
+            ? t("canvasFallback")
             : engine === "cloudflare"
-                ? "Cloudflare AI"
-                : "Auto engine";
+                ? t("cloudflareAi")
+                : t("autoEngine");
 
     const structuredData = {
         "@context": "https://schema.org",
@@ -537,17 +601,17 @@ export default function BackgroundRemoverPage() {
                 url: "https://yuukub.com/tools/background-remover/",
                 applicationCategory: "MultimediaApplication",
                 operatingSystem: "Any",
-                inLanguage: "th-TH",
+                inLanguage: locale === "th" ? "th-TH" : "en-US",
                 offers: {
                     "@type": "Offer",
                     price: "0",
                     priceCurrency: "USD",
                 },
                 featureList: [
-                    "ลบพื้นหลังรูป JPG, PNG และ WebP",
-                    "ส่งออก PNG และ WebP โปร่งใสเต็มความละเอียด",
-                    "ประมวลผลแบบ local-first ด้วย WebGPU และ Canvas fallback",
-                    "Cloudflare AI fallback พร้อม Turnstile เมื่อจำเป็น",
+                    t("feature1"),
+                    t("feature2"),
+                    t("feature3"),
+                    t("feature4"),
                 ],
             },
             {
@@ -569,12 +633,12 @@ export default function BackgroundRemoverPage() {
             },
             {
                 "@type": "FAQPage",
-                mainEntity: FAQ_ITEMS.map((item) => ({
+                mainEntity: FAQ_KEYS.map((item) => ({
                     "@type": "Question",
-                    name: item.question,
+                    name: t(item.questionKey),
                     acceptedAnswer: {
                         "@type": "Answer",
-                        text: item.answer,
+                        text: t(item.answerKey),
                     },
                 })),
             },
@@ -601,11 +665,11 @@ export default function BackgroundRemoverPage() {
                 <div className="mb-8 flex items-center justify-between gap-4">
                     <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-foreground">
                         <Link href="/tools/">
-                            <ArrowLeft className="h-4 w-4" /> กลับไป Tools
+                            <ArrowLeft className="h-4 w-4" /> {t("backToTools")}
                         </Link>
                     </Button>
                     <Badge variant="outline" className="gap-1.5 border-cyan-500/30 text-cyan-600">
-                        <Sparkles className="h-3.5 w-3.5" /> AI ในเบราว์เซอร์
+                        <Sparkles className="h-3.5 w-3.5" /> {t("inBrowserAi")}
                     </Badge>
                 </div>
 
@@ -616,10 +680,10 @@ export default function BackgroundRemoverPage() {
                                 <Eraser className="h-3.5 w-3.5" /> Background Remover
                             </Badge>
                             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-                                ลบพื้นหลังรูปเป็น PNG โปร่งใส
+                                {t("headingTitle")}
                             </h1>
                             <p className="text-muted-foreground leading-relaxed">
-                                ใช้ AI แยกวัตถุออกจากพื้นหลังแบบ local-first รองรับ WebGPU เพื่อความเร็วสูง มี Canvas fallback สำหรับภาพพื้นหลังเรียบ และมี Cloudflare AI fallback พร้อม Turnstile เมื่อเครื่องไม่รองรับ
+                                {t("headingDesc")}
                             </p>
                         </div>
 
@@ -655,10 +719,10 @@ export default function BackgroundRemoverPage() {
                                 </div>
                                 <div>
                                     <p className="font-semibold">
-                                        {image ? image.name : "ลากรูปมาวาง หรือคลิกเพื่อเลือกรูป"}
+                                        {image ? image.name : t("dragDropPrompt")}
                                     </p>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        JPG, PNG, WebP สูงสุด 32MP • ผลลัพธ์เป็น PNG โปร่งใส
+                                        {t("dragDropInfo")}
                                     </p>
                                 </div>
                                 {image && (
@@ -678,11 +742,11 @@ export default function BackgroundRemoverPage() {
                             >
                                 {isBusy ? (
                                     <>
-                                        <Loader2 className="h-4 w-4 animate-spin" /> กำลังลบพื้นหลัง
+                                        <Loader2 className="h-4 w-4 animate-spin" /> {t("removingBackground")}
                                     </>
                                 ) : (
                                     <>
-                                        <Eraser className="h-4 w-4" /> ลบพื้นหลัง
+                                        <Eraser className="h-4 w-4" /> {t("removeBackground")}
                                     </>
                                 )}
                             </Button>
@@ -712,7 +776,7 @@ export default function BackgroundRemoverPage() {
                                     disabled={!canRunCloudflare}
                                 >
                                     <Cloud className="h-4 w-4" />
-                                    {hasCloudflareResultForCurrentImage ? "ใช้ Cloudflare แล้ว" : "ใช้ Cloudflare AI fallback"}
+                                    {hasCloudflareResultForCurrentImage ? t("cfUsed") : t("cfUseFallback")}
                                 </Button>
                             )}
                         </div>
@@ -722,9 +786,9 @@ export default function BackgroundRemoverPage() {
                                 <div className="flex items-start gap-2">
                                     <Shield className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
                                     <div className="space-y-1">
-                                        <p className="text-sm font-semibold">Cloudflare fallback Turnstile</p>
+                                        <p className="text-sm font-semibold">{t("cfTurnstileTitle")}</p>
                                         <p className="text-xs text-muted-foreground leading-relaxed">
-                                            ยืนยัน Turnstile ก่อนส่งรูปไป Cloudflare เพื่อกันการเรียก Worker จากภายนอกและช่วยประหยัดโควต้า Images
+                                            {t("cfTurnstileDesc")}
                                         </p>
                                     </div>
                                 </div>
@@ -732,11 +796,13 @@ export default function BackgroundRemoverPage() {
                                     <div ref={turnstileRef} className="min-h-[65px]" />
                                 ) : (
                                     <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
-                                        กำลังรอ deploy ค่า Turnstile site key รอบล่าสุดก่อนเปิด Cloudflare fallback
+                                        {t("cfWaitingDeploy")}
                                     </div>
                                 )}
                                 {turnstileMessage && (
-                                    <p className="text-xs text-amber-700 dark:text-amber-300">{turnstileMessage}</p>
+                                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                                        {translateMessage(turnstileMessage, t)}
+                                    </p>
                                 )}
                             </Card>
                         )}
@@ -745,7 +811,7 @@ export default function BackgroundRemoverPage() {
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-2 min-w-0">
                                     <Zap className="h-4 w-4 text-cyan-500 shrink-0" />
-                                    <p className="text-sm font-semibold truncate">{message}</p>
+                                    <p className="text-sm font-semibold truncate">{translateMessage(message, t)}</p>
                                 </div>
                                 <Badge variant="outline" className="shrink-0">
                                     {engineLabel}
@@ -760,21 +826,21 @@ export default function BackgroundRemoverPage() {
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>{progress}%</span>
                                 <span>
-                                    WebGPU AI ~114-224MB • Canvas fallback
-                                    {hasCloudflareFallback ? " • Cloudflare optional" : ""}
+                                    {t("progressInfoWebGpu")}
+                                    {hasCloudflareFallback ? t("progressInfoCf") : ""}
                                 </span>
                             </div>
                             {fallbackMessage && (
                                 <div className="flex gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
                                     <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                                    <span>{fallbackMessage}</span>
+                                    <span>{translateMessage(fallbackMessage, t)}</span>
                                 </div>
                             )}
                             {error && (
                                 <div className="space-y-3 text-sm text-red-600 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
                                     <div className="flex gap-2">
                                         <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                                        <span>{error}</span>
+                                        <span>{translateError(error, t)}</span>
                                     </div>
                                     {hasCloudflareFallback && image && (
                                         <Button
@@ -785,7 +851,7 @@ export default function BackgroundRemoverPage() {
                                             disabled={isBusy || hasCloudflareResultForCurrentImage}
                                         >
                                             <Cloud className="h-3.5 w-3.5" />
-                                            {hasCloudflareResultForCurrentImage ? "ใช้ Cloudflare แล้ว" : "ลองใช้ Cloudflare AI fallback"}
+                                            {hasCloudflareResultForCurrentImage ? t("cfUsed") : t("tryCfFallback")}
                                         </Button>
                                     )}
                                 </div>
@@ -794,7 +860,7 @@ export default function BackgroundRemoverPage() {
 
                         <div className="flex flex-wrap gap-2">
                             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={clearImage}>
-                                <Trash2 className="h-4 w-4" /> ล้างรูป
+                                <Trash2 className="h-4 w-4" /> {t("clearImage")}
                             </Button>
                             {pngSize !== null && (
                                 <Badge variant="secondary">PNG {formatBytes(pngSize)}</Badge>
@@ -807,16 +873,16 @@ export default function BackgroundRemoverPage() {
 
                     <Card className="p-4 border-border/50 bg-card/80 space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
-                            <PreviewPanel title="Before" imageUrl={image?.previewUrl} emptyLabel="รูปต้นฉบับ" />
-                            <PreviewPanel title="After" imageUrl={resultUrl || undefined} emptyLabel="PNG โปร่งใส" checkerboard />
+                            <PreviewPanel title="Before" imageUrl={image?.previewUrl} emptyLabel={t("originalImage")} />
+                            <PreviewPanel title="After" imageUrl={resultUrl || undefined} emptyLabel={t("transparentPng")} checkerboard />
                         </div>
 
                         <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10 flex gap-3">
                             <Shield className="h-5 w-5 text-cyan-500 shrink-0 mt-0.5" />
                             <div className="space-y-1">
-                                <p className="font-semibold text-sm">Privacy-first processing</p>
+                                <p className="font-semibold text-sm">{t("privacyTitle")}</p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    ค่าเริ่มต้นรูปจะอยู่ในเบราว์เซอร์ของคุณเท่านั้นผ่าน Transformers.js/WebGPU หรือ Canvas fallback ส่วน Cloudflare AI fallback จะอัปโหลดรูปไป Cloudflare เฉพาะเมื่อคุณกดเลือกใช้งานและผ่าน Turnstile
+                                    {t("privacyDesc")}
                                 </p>
                             </div>
                         </div>
@@ -832,9 +898,9 @@ export default function BackgroundRemoverPage() {
 
                 <section className="grid md:grid-cols-3 gap-4">
                     {[
-                        { title: "Local-first AI", desc: "ใช้ BiRefNet lite ผ่าน Transformers.js/WebGPU เป็นหลัก และไม่อัปโหลดรูปในโหมด local" },
-                        { title: "PNG และ WebP", desc: "คืนค่าไฟล์โปร่งใสเต็มความละเอียดเดิม ดาวน์โหลดได้ทั้ง PNG และ WebP โดย WebP แปลงในเบราว์เซอร์" },
-                        { title: "Protected fallback", desc: "Cloudflare AI fallback ต้องผ่าน Turnstile และปิดปุ่มหลังประมวลผลสำเร็จสำหรับรูปเดิมเพื่อลดการใช้โควต้าซ้ำ" },
+                        { title: t("featLocalTitle"), desc: t("featLocalDesc") },
+                        { title: t("featFormatTitle"), desc: t("featFormatDesc") },
+                        { title: t("featFallbackTitle"), desc: t("featFallbackDesc") },
                     ].map((item) => (
                         <Card key={item.title} className="p-5 border-border/50 bg-muted/20">
                             <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4">
@@ -848,30 +914,30 @@ export default function BackgroundRemoverPage() {
 
                 {/* ทำไมต้องลบพื้นหลังแบบ Local-first AI? */}
                 <section className="mt-16 space-y-6">
-                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">ทำไมถึงควรลบพื้นหลังรูปภาพแบบ Local-first?</h2>
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">{t("whyLocalTitle")}</h2>
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">1. ปลอดภัยเรื่องข้อมูลส่วนตัว 100%</h3>
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">{t("whyLocal1Title")}</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                โดยทั่วไป เว็บไซต์ลบพื้นหลังส่วนใหญ่จะต้องอัปโหลดไฟล์รูปภาพของคุณขึ้นไปประมวลผลบนเซิร์ฟเวอร์ แต่ระบบแบบ Local-first ของเราจะประมวลผลผ่าน Transformers.js ร่วมกับ WebGPU ในเว็บเบราว์เซอร์ของตัวเครื่องโดยตรง ทำให้ไฟล์ภาพถ่ายบุคคล ภาพสินค้า หรือเอกสารสำคัญของคุณจะไม่ถูกส่งออกไปที่ใดเลย มั่นใจได้ในเรื่องความเป็นส่วนตัว
+                                {t("whyLocal1Desc")}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">2. ใช้งานได้ฟรี ไม่จำกัดจำนวนรูป</h3>
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">{t("whyLocal2Title")}</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                การรัน AI บนคลาวด์มีค่าเซิร์ฟเวอร์ที่สูงมาก ทำให้บริการลบพื้นหลังมักจะจำกัดจำนวนครั้งที่ใช้ หรือลดความละเอียดภาพลงเหลือแค่ภาพขนาดเล็ก (Low-res) แต่เนื่องจากระบบนี้ใช้กำลังการประมวลผลจากชิป GPU/CPU ในเครื่องคอมพิวเตอร์หรือมือถือของคุณเอง คุณจึงสามารถลบพื้นหลังและดาวน์โหลดรูปโปร่งใสความละเอียดสูงได้แบบไม่จำกัดจำนวนครั้ง
+                                {t("whyLocal2Desc")}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">3. ประหยัดปริมาณอินเทอร์เน็ต</h3>
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">{t("whyLocal3Title")}</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                สำหรับการรันผ่าน WebGPU ครั้งแรก ระบบจะดาวน์โหลดโมเดล AI ขนาดเล็ก (BiRefNet-lite) มาเก็บไว้ในเบราว์เซอร์แคชของเครื่อง หลังจากนั้นเมื่อคุณกดลบพื้นหลังในครั้งถัดไป ระบบจะดึงโมเดลมาใช้ได้ทันทีโดยไม่ต้องต่ออินเทอร์เน็ตหรืออัปโหลดรูปภาพขนาดหลายสิบเมกะไบต์ เหมาะมากสำหรับการทำงานขณะใช้อินเทอร์เน็ตมือถือ
+                                {t("whyLocal3Desc")}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">4. สลับโหมดการประมวลผลได้ยืดหยุ่น</h3>
+                            <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">{t("whyLocal4Title")}</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                หากอุปกรณ์ของคุณไม่มี GPU แยก หรือใช้เบราว์เซอร์รุ่นเก่าที่ไม่รองรับ WebGPU ระบบจะสลับไปใช้ Canvas Fallback สำหรับลบพื้นหลังสีพื้นธรรมดา หรือคุณสามารถกดยืนยันผ่าน Turnstile เพื่อเลือกใช้ Cloudflare Workers AI Fallback ซึ่งช่วยให้เครื่องสเปกต่ำสามารถลบพื้นหลังภาพที่ซับซ้อนได้เช่นกัน
+                                {t("whyLocal4Desc")}
                             </p>
                         </div>
                     </div>
@@ -879,41 +945,41 @@ export default function BackgroundRemoverPage() {
 
                 {/* เปรียบเทียบโหมดการทำงาน */}
                 <section className="mt-16 space-y-6">
-                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">เปรียบเทียบโหมดการทำงานของเครื่องมือ</h2>
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">{t("compareTitle")}</h2>
                     <div className="overflow-x-auto rounded-xl border border-border/50 bg-card/50">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-border/50 bg-muted/40">
-                                    <th className="p-4 text-sm font-semibold">คุณสมบัติ</th>
-                                    <th className="p-4 text-sm font-semibold text-cyan-500">WebGPU AI (แนะนำ)</th>
-                                    <th className="p-4 text-sm font-semibold">Canvas Heuristics</th>
-                                    <th className="p-4 text-sm font-semibold">Cloudflare AI Fallback</th>
+                                    <th className="p-4 text-sm font-semibold">{t("tableFeature")}</th>
+                                    <th className="p-4 text-sm font-semibold text-cyan-500">{t("tableWebgpu")}</th>
+                                    <th className="p-4 text-sm font-semibold">{t("tableCanvas")}</th>
+                                    <th className="p-4 text-sm font-semibold">{t("tableCloudflare")}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/50 text-sm">
                                 <tr>
-                                    <td className="p-4 font-medium">การอัปโหลดรูป</td>
-                                    <td className="p-4 text-muted-foreground">ทำงานในเครื่อง 100% ไม่มีการอัปโหลด</td>
-                                    <td className="p-4 text-muted-foreground">ทำงานในเครื่อง 100% ไม่มีการอัปโหลด</td>
-                                    <td className="p-4 text-muted-foreground">ส่งรูปไปประมวลผลในเมมโมรี่ของ Cloudflare (ไม่มีการบันทึกถาวร)</td>
+                                    <td className="p-4 font-medium">{t("tableRowUpload")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableLocalOnly")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableLocalOnly")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCfUpload")}</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-4 font-medium">ความเหมาะของรูป</td>
-                                    <td className="p-4 text-muted-foreground">ภาพคน สัตว์ สิ่งของ ที่มีขอบหยักซับซ้อน</td>
-                                    <td className="p-4 text-muted-foreground">โลโก้ ไอคอน หรือภาพที่มีสีพื้นหลังตัดกันชัดเจน</td>
-                                    <td className="p-4 text-muted-foreground">ภาพทุกประเภท (เหมาะเมื่อเครื่องไม่รองรับ WebGPU)</td>
+                                    <td className="p-4 font-medium">{t("tableRowSuitability")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableWebgpuSuitability")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCanvasSuitability")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCfSuitability")}</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-4 font-medium">ความเร็วในการทำงาน</td>
-                                    <td className="p-4 text-muted-foreground">เร็วมาก (ขึ้นอยู่กับความแรงของ GPU เครื่อง)</td>
-                                    <td className="p-4 text-muted-foreground">รวดเร็วทันทีภายในไม่กี่มิลลิวินาที</td>
-                                    <td className="p-4 text-muted-foreground">ปานกลาง (ขึ้นอยู่กับความเร็วอินเทอร์เน็ตในการส่งรูป)</td>
+                                    <td className="p-4 font-medium">{t("tableRowSpeed")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableWebgpuSpeed")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCanvasSpeed")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCfSpeed")}</td>
                                 </tr>
                                 <tr>
-                                    <td className="p-4 font-medium">ข้อกำหนดของอุปกรณ์</td>
-                                    <td className="p-4 text-muted-foreground">ต้องการการ์ดจอ และเบราว์เซอร์รองรับ WebGPU</td>
-                                    <td className="p-4 text-muted-foreground">รองรับทุกอุปกรณ์และทุกเบราว์เซอร์</td>
-                                    <td className="p-4 text-muted-foreground">ต้องการการเชื่อมต่ออินเทอร์เน็ตและยืนยัน Turnstile</td>
+                                    <td className="p-4 font-medium">{t("tableRowRequirements")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableWebgpuReq")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCanvasReq")}</td>
+                                    <td className="p-4 text-muted-foreground">{t("tableCfReq")}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -922,27 +988,27 @@ export default function BackgroundRemoverPage() {
 
                 {/* ขั้นตอนการใช้งานและวิธีลบพื้นหลังให้เนียนที่สุด */}
                 <section className="mt-16 space-y-6">
-                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">ขั้นตอนการใช้งานและเคล็ดลับเพื่อผลลัพธ์ที่ดีที่สุด</h2>
+                    <h2 className="text-2xl font-bold border-b border-border/10 pb-3">{t("stepsTitle")}</h2>
                     <div className="grid sm:grid-cols-3 gap-6">
                         <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
                             <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">1</div>
-                            <h3 className="font-semibold text-foreground">เตรียมรูปภาพ</h3>
+                            <h3 className="font-semibold text-foreground">{t("step1Title")}</h3>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                เลือกรูปภาพที่มีแสงสว่างเพียงพอ และจุดที่ต้องการตัดมีความต่างของสีกับพื้นหลังอย่างชัดเจน หากใช้โหมด WebGPU AI ระบบสามารถช่วยแยกเส้นผม ขนสัตว์ หรือขอบวัตถุที่มีความฟุ้งได้ค่อนข้างเป็นธรรมชาติ
+                                {t("step1Desc")}
                             </p>
                         </div>
                         <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
                             <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">2</div>
-                            <h3 className="font-semibold text-foreground">เลือกเอนจินประมวลผล</h3>
+                            <h3 className="font-semibold text-foreground">{t("step2Title")}</h3>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                ระบบจะตรวจสเปกและเลือกเอนจินที่ดีที่สุดให้อัตโนมัติ หากรูปเป็นโลโก้ฉากหลังสีขาวล้วน แนะนำให้กดเลือกโหมด Canvas Heuristics เพื่อความรวดเร็ว แต่หากเป็นรูปถ่ายทั่วไป แนะนำให้ใช้ WebGPU AI หรือ Cloudflare AI
+                                {t("step2Desc")}
                             </p>
                         </div>
                         <div className="space-y-3 p-5 rounded-xl border border-border/50 bg-muted/10 relative overflow-hidden">
                             <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-bl-full flex items-center justify-center font-bold text-3xl text-cyan-500/10">3</div>
-                            <h3 className="font-semibold text-foreground">บันทึกรูปและนำไปใช้</h3>
+                            <h3 className="font-semibold text-foreground">{t("step3Title")}</h3>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                คุณสามารถกดดาวน์โหลดผลลัพธ์ได้ทั้งไฟล์ PNG ความละเอียดต้นฉบับสำหรับการทำงานกราฟิกต่อ หรือเลือกดาวน์โหลดไฟล์ WebP โปร่งใสที่ประมวลผลบีบอัดขนาดไฟล์ลงมา เพื่อช่วยให้โหลดบนเว็บไซต์ได้รวดเร็วยิ่งขึ้น
+                                {t("step3Desc")}
                             </p>
                         </div>
                     </div>
@@ -951,13 +1017,13 @@ export default function BackgroundRemoverPage() {
                 <section className="mt-16 space-y-4">
                     <div className="flex items-center gap-2">
                         <Info className="h-5 w-5 text-cyan-500" />
-                        <h2 className="text-2xl font-bold">คำถามที่พบบ่อย</h2>
+                        <h2 className="text-2xl font-bold">{t("faqTitle")}</h2>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
-                        {FAQ_ITEMS.map((item) => (
-                            <Card key={item.question} className="p-5 border-border/50 bg-card/80">
-                                <h3 className="font-semibold mb-2">{item.question}</h3>
-                                <p className="text-sm text-muted-foreground leading-relaxed">{item.answer}</p>
+                        {FAQ_KEYS.map((item) => (
+                            <Card key={item.questionKey} className="p-5 border-border/50 bg-card/80">
+                                <h3 className="font-semibold mb-2">{t(item.questionKey)}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{t(item.answerKey)}</p>
                             </Card>
                         ))}
                     </div>

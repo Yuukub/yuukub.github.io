@@ -1,19 +1,32 @@
-import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { User, Terminal, ShieldCheck, Heart } from "lucide-react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { setRequestLocale } from "next-intl/server";
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'AboutPage' });
 
-export const metadata: Metadata = {
-    title: "About Us - เกี่ยวกับเรา",
-    description: "เรียนรู้เพิ่มเติมเกี่ยวกับเป้าหมายและพันธกิจของ yuukub.com คลังความรู้และเครื่องมือสำหรับนักพัฒนา",
-    alternates: { canonical: "https://yuukub.com/about/" },
-};
+    return {
+        title: t('title'),
+        description: t('missionDesc'),
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/about/`,
+            languages: {
+                th: "https://yuukub.com/th/about/",
+                en: "https://yuukub.com/en/about/",
+                "x-default": "https://yuukub.com/th/about/",
+            }
+        },
+    };
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     setRequestLocale(locale);
+
+    const t = await getTranslations("AboutPage");
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
@@ -25,36 +38,33 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                         <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-primary/10 mb-6">
                             <Heart className="h-8 w-8 text-primary" />
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">About Us</h1>
-                        <p className="text-muted-foreground">จุดเริ่มต้นและความตั้งใจของ yuukub.com</p>
+                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">{t('title')}</h1>
+                        <p className="text-muted-foreground">{t('tagline')}</p>
                     </header>
 
                     <Separator className="mb-12 opacity-50" />
 
                     <div className="prose prose-zinc dark:prose-invert max-w-none space-y-12">
                         <section className="text-center md:text-left">
-                            <h2 className="text-3xl font-bold text-foreground mb-6">ภารกิจของเรา</h2>
+                            <h2 className="text-3xl font-bold text-foreground mb-6">{t('missionTitle')}</h2>
                             <p className="text-lg leading-relaxed text-muted-foreground">
-                                <strong>yuukub.com</strong> ถูกสร้างขึ้นเพื่อเป็นศูนย์รวมของความรู้และเครื่องมือทางเทคนิคที่ใช้งานได้จริง
-                                เราเชื่อในพลังของการแบ่งปันข้อมูลที่ &quot;เจาะลึก&quot; และเครื่องมือที่ &quot;ปลอดภัย&quot;
+                                {t('missionDesc')}
                             </p>
                         </section>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="p-6 rounded-2xl border border-border bg-card/30">
                                 <Terminal className="h-10 w-10 text-primary mb-4" />
-                                <h3 className="text-xl font-bold mb-2">Developer Tools</h3>
+                                <h3 className="text-xl font-bold mb-2">{t('toolsTitle')}</h3>
                                 <p className="text-muted-foreground text-sm">
-                                    เราพัฒนาเครื่องมือที่ช่วยลดขั้นตอนการทำงานที่ซับซ้อน เช่น การแปลงไฟล์ภาพระดับโปร
-                                    หรือการสแกนความปลอดภัย โดยเน้นความเร็วและ Privacy-First เป็นอันดับหนึ่ง
+                                    {t('toolsDesc')}
                                 </p>
                             </div>
                             <div className="p-6 rounded-2xl border border-border bg-card/30">
                                 <ShieldCheck className="h-10 w-10 text-primary mb-4" />
-                                <h3 className="text-xl font-bold mb-2">Security Insights</h3>
+                                <h3 className="text-xl font-bold mb-2">{t('securityTitle')}</h3>
                                 <p className="text-muted-foreground text-sm">
-                                    ถอดบทเรียนจากประสบการณ์จริงในสายงานด้าน Cybersecurity เพื่อให้ผู้อ่านเท่าทันภัยคุกคามในโลกดิจิทัล
-                                    ตั้งแต่การดูแล WordPress ไปจนถึงการเขียนโค้ดที่ปลอดภัย (Secure Coding)
+                                    {t('securityDesc')}
                                 </p>
                             </div>
                         </div>
@@ -68,17 +78,16 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold mb-4">Developer Behind the Site</h2>
+                                <h2 className="text-2xl font-bold mb-4">{t('developerTitle')}</h2>
                                 <p className="text-muted-foreground">
-                                    ผมเป็นนักพัฒนาที่หลงใหลในเรื่อง Security และ Performance Optimization
-                                    เว็บนี้เป็นพื้นที่ที่ผมใช้จัดเก็บและเผยแพร่ผลงานที่ผมคิดว่าจะมีประโยชน์ต่อสังคม Developer ชาวไทย
+                                    {t('developerDesc')}
                                 </p>
                             </div>
                         </section>
                     </div>
 
                     <footer className="text-center font-bold text-primary italic">
-                        &quot;Empowering Developers with Secure and Efficient Tools&quot;
+                        {t('footerQuote')}
                     </footer>
                 </article>
             </main>

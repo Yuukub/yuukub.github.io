@@ -25,69 +25,7 @@ import {
 } from "lucide-react";
 import { AdUnit } from "@/components/ad-unit";
 import { Link } from "@/i18n/routing";
-
-/* ─── SEO Data ─────────────────────────────────────────────── */
-
-const FAQ_ITEMS = [
-    {
-        question: "แปลงรูปภาพด้วยเครื่องมือนี้ปลอดภัยไหม?",
-        answer: "ปลอดภัย 100% เพราะไฟล์ทั้งหมดถูกประมวลผลด้วย WebAssembly ภายในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ใดๆ ทั้งสิ้น รูปภาพส่วนตัวหรือเอกสารลับของคุณจึงไม่มีทางรั่วไหลออกไปได้เลย",
-    },
-    {
-        question: "รองรับไฟล์ขนาดใหญ่แค่ไหน?",
-        answer: "ขึ้นอยู่กับ RAM ของอุปกรณ์คุณ โดยทั่วไปรองรับไฟล์ได้ถึงหลายสิบ MB ต่อไฟล์ และสามารถแปลงหลายไฟล์พร้อมกันในคิวเดียวได้โดยไม่จำกัดจำนวน แนะนำให้แปลงทีละ 10–20 ไฟล์เพื่อประสิทธิภาพสูงสุด",
-    },
-    {
-        question: "ทำไม WebP ถึงดีกว่า JPEG สำหรับเว็บไซต์?",
-        answer: "WebP ให้คุณภาพใกล้เคียงกันแต่ขนาดไฟล์เล็กกว่า JPEG ถึง 25–34% เฉลี่ย ทำให้เว็บโหลดเร็วขึ้น ลด Bandwidth และช่วย Core Web Vitals (LCP) ซึ่งส่งผลดีต่อ SEO โดยตรง รองรับโดยเบราว์เซอร์สมัยใหม่ทุกตัว",
-    },
-    {
-        question: "AVIF กับ WebP ต่างกันอย่างไร?",
-        answer: "AVIF เป็น format ใหม่กว่าที่บีบอัดได้ดีกว่า WebP อีก 20–50% แต่ใช้เวลาในการ encode นานกว่า เหมาะสำหรับเว็บไซต์ที่ต้องการประสิทธิภาพสูงสุด WebP ยังเป็นตัวเลือกที่ดีกว่าถ้าต้องการความเร็วในการแปลงและ browser support ที่กว้างกว่า",
-    },
-    {
-        question: "สามารถแปลงไฟล์ format เดิมซ้ำเพื่อ compress ใหม่ได้ไหม?",
-        answer: "ได้ครับ เครื่องมือนี้รองรับการแปลง PNG → PNG หรือ WebP → WebP เพื่อบีบอัดไฟล์ใหม่ด้วยค่า Quality ที่คุณตั้งเอง ซึ่งมีประโยชน์มากเมื่อต้องการลดขนาดไฟล์โดยไม่เปลี่ยน format",
-    },
-];
-
-const FORMAT_COMPARISON = [
-    { format: "JPEG", size: "เล็ก", transparency: "ไม่รองรับ", quality: "ดี (lossy)", support: "ทุก browser", color: "blue" },
-    { format: "PNG", size: "ใหญ่", transparency: "รองรับ", quality: "สูงสุด (lossless)", support: "ทุก browser", color: "purple" },
-    { format: "WebP", size: "เล็กมาก", transparency: "รองรับ", quality: "ดีมาก", support: "Modern browsers", color: "orange" },
-    { format: "AVIF", size: "เล็กที่สุด", transparency: "รองรับ", quality: "ดีมาก", support: "Chrome/Firefox/Safari", color: "emerald" },
-];
-
-const USE_CASES = [
-    {
-        format: "WebP",
-        color: "orange",
-        borderColor: "border-l-orange-500",
-        title: "เว็บไซต์ทั่วไป",
-        desc: "เหมาะสำหรับรูปภาพบนเว็บไซต์ทุกประเภท ให้ขนาดไฟล์เล็กกว่า JPEG ถึง 30% โดยที่คุณภาพแทบไม่ต่างกัน ช่วยให้เว็บโหลดเร็วขึ้นและ SEO ดีขึ้น รองรับโดยเบราว์เซอร์สมัยใหม่ทุกตัว",
-    },
-    {
-        format: "AVIF",
-        color: "emerald",
-        borderColor: "border-l-emerald-500",
-        title: "เว็บประสิทธิภาพสูง",
-        desc: "เหมาะสำหรับเว็บที่ต้องการ Core Web Vitals ระดับสูง เช่น e-commerce หรือ landing page ที่ทุก millisecond สำคัญ บีบอัดได้ดีที่สุดในกลุ่ม แต่ encode ช้ากว่า WebP",
-    },
-    {
-        format: "PNG",
-        color: "purple",
-        borderColor: "border-l-purple-500",
-        title: "งานกราฟิกและโลโก้",
-        desc: "เหมาะสำหรับภาพที่ต้องการพื้นหลังโปร่งใส (transparency) เช่น โลโก้ ไอคอน และ UI elements ให้คุณภาพ lossless สูงสุด แต่ขนาดไฟล์จะใหญ่กว่า format อื่น",
-    },
-    {
-        format: "JPEG",
-        color: "blue",
-        borderColor: "border-l-blue-500",
-        title: "ภาพถ่ายและ CMS เก่า",
-        desc: "เหมาะสำหรับภาพถ่ายที่ต้องส่งให้ระบบ CMS เก่าหรือแพลตฟอร์มที่รองรับแค่ JPG รองรับโดยทุก device และ browser ทำให้เป็นตัวเลือกที่ปลอดภัยที่สุดในด้าน compatibility",
-    },
-];
+import { useTranslations } from "next-intl";
 
 /* ─── Types ────────────────────────────────────────────────── */
 
@@ -140,6 +78,92 @@ function uid(): string {
 /* ─── Component ────────────────────────────────────────────── */
 
 export default function ImageConverterPage() {
+    const t = useTranslations("ImageConverter");
+
+    const getLocalizedProgress = (progress: string) => {
+        if (progress === "เตรียมพร้อม...") return t("progress.preparing");
+        if (progress.startsWith("กำลังถอดรหัส ")) {
+            const format = progress.replace("กำลังถอดรหัส ", "").replace("...", "");
+            return t("progress.decoding", { format });
+        }
+        if (progress.startsWith("กำลังเข้ารหัส ")) {
+            const format = progress.replace("กำลังเข้ารหัส ", "").replace("...", "");
+            return t("progress.encoding", { format });
+        }
+        return progress;
+    };
+
+    const getLocalizedError = (error: string): string => {
+        if (error === "เกิดข้อผิดพลาดระหว่างการแปลงไฟล์") return t("error.conversionFailed");
+        if (error === "เกิดข้อผิดพลาดในการโหลดโมดูล") return t("error.loadModule");
+        if (error.startsWith("Worker error: ")) {
+            const subError = error.replace("Worker error: ", "");
+            return t("error.workerError", { message: getLocalizedError(subError) });
+        }
+        return error;
+    };
+
+    const faqItems = [
+        {
+            question: t("faq.q1"),
+            answer: t("faq.a1"),
+        },
+        {
+            question: t("faq.q2"),
+            answer: t("faq.a2"),
+        },
+        {
+            question: t("faq.q3"),
+            answer: t("faq.a3"),
+        },
+        {
+            question: t("faq.q4"),
+            answer: t("faq.a4"),
+        },
+        {
+            question: t("faq.q5"),
+            answer: t("faq.a5"),
+        },
+    ];
+
+    const formatComparison = [
+        { format: "JPEG", size: t("compare.size.small"), transparency: t("compare.transparency.no"), isTransparent: false, quality: t("compare.quality.good"), support: t("compare.support.all"), color: "blue" },
+        { format: "PNG", size: t("compare.size.large"), transparency: t("compare.transparency.yes"), isTransparent: true, quality: t("compare.quality.max"), support: t("compare.support.all"), color: "purple" },
+        { format: "WebP", size: t("compare.size.verySmall"), transparency: t("compare.transparency.yes"), isTransparent: true, quality: t("compare.quality.veryGood"), support: t("compare.support.modern"), color: "orange" },
+        { format: "AVIF", size: t("compare.size.smallest"), transparency: t("compare.transparency.yes"), isTransparent: true, quality: t("compare.quality.veryGood"), support: t("compare.support.avif"), color: "emerald" },
+    ];
+
+    const useCases = [
+        {
+            format: "WebP",
+            color: "orange",
+            borderColor: "border-l-orange-500",
+            title: t("useCases.webp.title"),
+            desc: t("useCases.webp.desc"),
+        },
+        {
+            format: "AVIF",
+            color: "emerald",
+            borderColor: "border-l-emerald-500",
+            title: t("useCases.avif.title"),
+            desc: t("useCases.avif.desc"),
+        },
+        {
+            format: "PNG",
+            color: "purple",
+            borderColor: "border-l-purple-500",
+            title: t("useCases.png.title"),
+            desc: t("useCases.png.desc"),
+        },
+        {
+            format: "JPEG",
+            color: "blue",
+            borderColor: "border-l-blue-500",
+            title: t("useCases.jpeg.title"),
+            desc: t("useCases.jpeg.desc"),
+        },
+    ];
+
     const [queue, setQueue] = useState<QueueItem[]>([]);
     const [outputFormat, setOutputFormat] = useState<ImageFormat>("webp");
     const [quality, setQuality] = useState(75);
@@ -415,7 +439,7 @@ export default function ImageConverterPage() {
     const faqJsonLd = {
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        "mainEntity": FAQ_ITEMS.map((item) => ({
+        "mainEntity": faqItems.map((item) => ({
             "@type": "Question",
             "name": item.question,
             "acceptedAnswer": {
@@ -443,7 +467,7 @@ export default function ImageConverterPage() {
                         href="/tools/"
                         className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit"
                     >
-                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                        <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToTools")}
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
@@ -454,8 +478,7 @@ export default function ImageConverterPage() {
                         </h1>
                     </div>
                     <p className="text-muted-foreground">
-                        แปลงรูป JPG, PNG, WebP, AVIF ไปมาได้อย่างอิสระ
-                        รองรับหลายไฟล์ ประมวลผลในเครื่องคุณ 100%
+                        {t("subTitle")}
                     </p>
                 </div>
 
@@ -487,11 +510,10 @@ export default function ImageConverterPage() {
                             </div>
                             <div>
                                 <p className="font-semibold text-lg">
-                                    ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก
+                                    {t("dropzone.title")}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    รองรับ JPG, PNG, WebP, AVIF •
-                                    เลือกได้หลายไฟล์พร้อมกัน
+                                    {t("dropzone.desc")}
                                 </p>
                             </div>
                         </div>
@@ -514,15 +536,15 @@ export default function ImageConverterPage() {
                     {queue.length > 0 && (
                         <Card className="p-6 border-border/50 bg-card animate-in fade-in slide-in-from-top-2 duration-300">
                             <h3 className="text-sm font-bold mb-6 flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
-                                ตั้งค่าการแปลง (Settings)
+                                {t("settings.title")}
                             </h3>
                             <div className="space-y-6">
                                 {/* Output Format */}
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-sm font-medium">Output Format</label>
+                                        <label className="text-sm font-medium">{t("settings.outputFormat")}</label>
                                         <Badge variant="outline" className="text-muted-foreground border-border/50 text-[10px] py-0 h-5">
-                                            Standard Speed
+                                            {t("settings.standardSpeed")}
                                         </Badge>
                                     </div>
                                     <div className="grid grid-cols-4 gap-2">
@@ -551,14 +573,13 @@ export default function ImageConverterPage() {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <label className="text-sm font-medium">
-                                                    คุณภาพ (Quality):{" "}
+                                                    {t("settings.qualityLabel")}{" "}
                                                     <span className="text-orange-500 font-bold text-lg ml-1">
                                                         {quality}
                                                     </span>
                                                 </label>
                                                 <span className="text-xs text-muted-foreground">
-                                                    0 = เล็กที่สุด • 100 =
-                                                    คุณภาพสูงสุด
+                                                    {t("settings.qualityDesc")}
                                                 </span>
                                             </div>
                                             <input
@@ -583,13 +604,13 @@ export default function ImageConverterPage() {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <label className="text-sm font-medium">
-                                                    Effort:{" "}
+                                                    {t("settings.effortLabel")}{" "}
                                                     <span className="text-orange-500 font-bold text-lg ml-1">
                                                         {effort}
                                                     </span>
                                                 </label>
                                                 <span className="text-xs text-muted-foreground font-medium">
-                                                    1 = เร็วที่สุด • 9 = ขนาดเล็กที่สุด
+                                                    {t("settings.effortDesc")}
                                                 </span>
                                             </div>
                                             <input
@@ -617,7 +638,7 @@ export default function ImageConverterPage() {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                     <FileImage className="h-4 w-4" />
-                                    รายการไฟล์ ({queue.length})
+                                    {t("queue.title", { count: queue.length })}
                                 </h3>
                                 <Button
                                     variant="ghost"
@@ -627,7 +648,7 @@ export default function ImageConverterPage() {
                                     className="text-xs text-muted-foreground hover:text-red-500"
                                 >
                                     <Trash2 className="h-3 w-3 mr-1" />
-                                    ล้างทั้งหมด
+                                    {t("queue.clearAll")}
                                 </Button>
                             </div>
 
@@ -693,7 +714,7 @@ export default function ImageConverterPage() {
                                                         item.progress && (
                                                             <span className="text-xs text-orange-500 font-medium">
                                                                 •{" "}
-                                                                {item.progress}
+                                                                {getLocalizedProgress(item.progress)}
                                                             </span>
                                                         )}
                                                     {item.status === "done" &&
@@ -736,7 +757,7 @@ export default function ImageConverterPage() {
                                                             <span className="text-xs text-red-500">
                                                                 •{" "}
                                                                 {
-                                                                    item.errorMessage
+                                                                    getLocalizedError(item.errorMessage)
                                                                 }
                                                             </span>
                                                         )}
@@ -789,12 +810,12 @@ export default function ImageConverterPage() {
                                 {isConverting ? (
                                     <>
                                         <Loader2 className="h-5 w-5 animate-spin" />
-                                        กำลังแปลง {convertedCount}/{queue.length}...
+                                        {t("buttons.converting", { current: convertedCount, total: queue.length })}
                                     </>
                                 ) : (
                                     <>
                                         <ImageIcon className="h-5 w-5" />
-                                        แปลงทั้งหมด ({queue.length} ไฟล์)
+                                        {t("buttons.convertAll", { count: queue.length })}
                                     </>
                                 )}
                             </Button>
@@ -806,7 +827,7 @@ export default function ImageConverterPage() {
                                     onClick={downloadAll}
                                 >
                                     <PackageOpen className="h-5 w-5" />
-                                    Download All (ZIP)
+                                    {t("buttons.downloadAll")}
                                 </Button>
                             )}
                         </div>
@@ -829,8 +850,7 @@ export default function ImageConverterPage() {
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground text-center">
-                                แปลงแล้ว {convertedCount} จาก {queue.length}{" "}
-                                ไฟล์
+                                {t("progress.completed", { current: convertedCount, total: queue.length })}
                             </p>
                         </div>
                     )}
@@ -839,11 +859,13 @@ export default function ImageConverterPage() {
                     <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-xl flex gap-3 items-center">
                         <Shield className="h-5 w-5 text-orange-500 shrink-0" />
                         <p className="text-[13px] text-muted-foreground leading-relaxed">
-                            ปลอดภัย 100%: ไฟล์ทุกไฟล์ถูกประมวลผลภายในเครื่องของคุณเท่านั้นด้วย{" "}
-                            <code className="bg-orange-500/10 px-1 rounded text-orange-600 dark:text-orange-400 font-mono">
-                                WebAssembly
-                            </code>{" "}
-                            — ไม่มีการอัปโหลดไปยังเซิร์ฟเวอร์ใดๆ
+                            {t.rich("privacy.notice", {
+                                code: (chunks) => (
+                                    <code className="bg-orange-500/10 px-1 rounded text-orange-600 dark:text-orange-400 font-mono">
+                                        {chunks}
+                                    </code>
+                                )
+                            })}
                         </p>
                     </div>
                 </div>
@@ -865,18 +887,20 @@ export default function ImageConverterPage() {
                                 <Info className="h-5 w-5 text-orange-500" />
                             </div>
                             <h2 id="intro-heading" className="text-xl font-bold tracking-tight">
-                                ทำไมการแปลงรูปภาพถึงสำคัญ?
+                                {t("seo.whyImportant.title")}
                             </h2>
                         </div>
                         <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                             <p>
-                                ในยุคที่ความเร็วของเว็บไซต์ส่งผลโดยตรงต่อประสบการณ์ผู้ใช้และอันดับ SEO การเลือก format รูปภาพที่เหมาะสมจึงเป็นสิ่งที่นักพัฒนาและเจ้าของเว็บไซต์ไม่ควรมองข้าม รูปภาพมักเป็นไฟล์ที่ใหญ่ที่สุดในหน้าเว็บ และการเลือก format ผิดอาจทำให้เว็บโหลดช้าลงอย่างมีนัยสำคัญ
+                                {t("seo.whyImportant.p1")}
                             </p>
                             <p>
-                                Format สมัยใหม่อย่าง <strong className="text-foreground">WebP</strong> และ <strong className="text-foreground">AVIF</strong> ถูกออกแบบมาเพื่อแก้ปัญหานี้โดยตรง โดยสามารถลดขนาดไฟล์ได้ถึง 25–50% เมื่อเทียบกับ JPEG หรือ PNG แบบดั้งเดิม โดยที่คุณภาพภาพไม่ได้ลดลงอย่างเห็นได้ชัด ส่งผลให้ค่า Largest Contentful Paint (LCP) ดีขึ้น ซึ่งเป็นหนึ่งใน Core Web Vitals ที่ Google ใช้ในการจัดอันดับเว็บ
+                                {t.rich("seo.whyImportant.p2", {
+                                    strong: (chunks) => <strong className="text-foreground">{chunks}</strong>
+                                })}
                             </p>
                             <p>
-                                นอกจากนี้ บางครั้งเราก็จำเป็นต้องแปลง format เพื่อความเข้ากันได้ของระบบ เช่น CMS หรือแพลตฟอร์มบางตัวรองรับเฉพาะ JPEG หรือ PNG เท่านั้น หรือเมื่อต้องการภาพที่มีพื้นหลังโปร่งใส (transparency) ก็จำเป็นต้องใช้ PNG, WebP หรือ AVIF แทน JPEG ที่ไม่รองรับฟีเจอร์นี้
+                                {t("seo.whyImportant.p3")}
                             </p>
                         </div>
                     </section>
@@ -888,14 +912,20 @@ export default function ImageConverterPage() {
                                 <Layers className="h-5 w-5 text-blue-500" />
                             </div>
                             <h2 id="compare-heading" className="text-xl font-bold tracking-tight">
-                                เปรียบเทียบ: JPEG vs PNG vs WebP vs AVIF
+                                {t("seo.compare.title")}
                             </h2>
                         </div>
                         <div className="overflow-x-auto rounded-xl border border-border/50">
                             <table className="w-full text-sm">
                                 <thead className="bg-muted/50">
                                     <tr>
-                                        {["Format", "ขนาดไฟล์", "Transparency", "คุณภาพ", "Browser Support"].map((h) => (
+                                        {[
+                                            t("seo.compare.headers.format"),
+                                            t("seo.compare.headers.size"),
+                                            t("seo.compare.headers.transparency"),
+                                            t("seo.compare.headers.quality"),
+                                            t("seo.compare.headers.support")
+                                        ].map((h) => (
                                             <th key={h} className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                                                 {h}
                                             </th>
@@ -903,14 +933,14 @@ export default function ImageConverterPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
-                                    {FORMAT_COMPARISON.map((row) => (
+                                    {formatComparison.map((row) => (
                                         <tr key={row.format} className="hover:bg-muted/20 transition-colors">
                                             <td className="px-4 py-3 font-bold">
                                                 <Badge variant="outline" className="text-[11px]">{row.format}</Badge>
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">{row.size}</td>
                                             <td className="px-4 py-3">
-                                                <span className={`text-xs font-medium ${row.transparency === "รองรับ" ? "text-emerald-600" : "text-red-500"}`}>
+                                                <span className={`text-xs font-medium ${row.isTransparent ? "text-emerald-600" : "text-red-500"}`}>
                                                     {row.transparency}
                                                 </span>
                                             </td>
@@ -922,34 +952,34 @@ export default function ImageConverterPage() {
                             </table>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed mt-4">
-                            ตารางด้านบนช่วยให้เห็นภาพรวมของแต่ละ format ในการเลือกใช้จริง ควรพิจารณาทั้งขนาดไฟล์ ความต้องการ transparency และ browser ของกลุ่มเป้าหมายประกอบกัน โดยทั่วไป WebP เป็นตัวเลือกที่สมดุลที่สุดสำหรับเว็บไซต์ในปัจจุบัน
+                            {t("seo.compare.footer")}
                         </p>
                     </section>
 
                     {/* Section 3: วิธีใช้งาน */}
                     <section aria-labelledby="howto-heading">
                         <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
-                            วิธีใช้งาน Image Converter — 3 ขั้นตอน
+                            {t("seo.howto.title")}
                         </h2>
                         <div className="grid gap-4 sm:grid-cols-3">
                             {[
                                 {
                                     step: "1",
                                     icon: <Upload className="h-4 w-4 text-orange-500" />,
-                                    title: "เลือกไฟล์",
-                                    desc: "ลากไฟล์รูปภาพมาวางในกล่อง หรือคลิกเพื่อเปิด file picker เลือกได้หลายไฟล์พร้อมกัน รองรับ JPG, PNG, WebP และ AVIF",
+                                    title: t("seo.howto.step1.title"),
+                                    desc: t("seo.howto.step1.desc"),
                                 },
                                 {
                                     step: "2",
                                     icon: <ImageIcon className="h-4 w-4 text-orange-500" />,
-                                    title: "ตั้งค่า Format",
-                                    desc: "เลือก output format ที่ต้องการ ปรับค่า Quality (0–100) และ Effort เพื่อสมดุลระหว่างขนาดไฟล์กับคุณภาพภาพ",
+                                    title: t("seo.howto.step2.title"),
+                                    desc: t("seo.howto.step2.desc"),
                                 },
                                 {
                                     step: "3",
                                     icon: <Download className="h-4 w-4 text-orange-500" />,
-                                    title: "ดาวน์โหลด",
-                                    desc: "กดปุ่ม 'แปลงทั้งหมด' และดาวน์โหลดไฟล์ทีละไฟล์ หรือใช้ปุ่ม Download All เพื่อรับทุกไฟล์ในรูปแบบ ZIP ไฟล์เดียว",
+                                    title: t("seo.howto.step3.title"),
+                                    desc: t("seo.howto.step3.desc"),
                                 },
                             ].map((item) => (
                                 <Card key={item.step} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
@@ -969,10 +999,10 @@ export default function ImageConverterPage() {
                     {/* Section 4: Use Cases */}
                     <section aria-labelledby="usecases-heading">
                         <h2 id="usecases-heading" className="text-xl font-bold tracking-tight mb-6">
-                            เมื่อไหร่ควรใช้ Format ไหน?
+                            {t("seo.usecases.title")}
                         </h2>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            {USE_CASES.map((item) => (
+                            {useCases.map((item) => (
                                 <Card key={item.format} className={`p-5 border-l-4 ${item.borderColor} border-border/30 bg-card flex flex-col gap-3`}>
                                     <div className="flex items-center gap-2">
                                         <Badge variant="secondary" className="text-[11px] uppercase tracking-wide">{item.format}</Badge>
@@ -991,11 +1021,11 @@ export default function ImageConverterPage() {
                                 <HelpCircle className="h-5 w-5 text-orange-500" />
                             </div>
                             <h2 id="faq-heading" className="text-xl font-bold tracking-tight">
-                                คำถามที่พบบ่อย (FAQ)
+                                {t("seo.faq.title")}
                             </h2>
                         </div>
                         <div className="space-y-4">
-                            {FAQ_ITEMS.map((item, i) => (
+                            {faqItems.map((item, i) => (
                                 <Card key={i} className="p-5 border-border/50">
                                     <h3 className="font-semibold text-sm mb-2 flex items-start gap-2">
                                         <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">Q</Badge>
@@ -1013,20 +1043,22 @@ export default function ImageConverterPage() {
                             <div className="flex items-center gap-3">
                                 <Shield className="h-5 w-5 text-orange-500 shrink-0" />
                                 <h2 id="privacy-heading" className="font-bold text-sm uppercase tracking-wider">
-                                    ความเป็นส่วนตัวและความปลอดภัย
+                                    {t("seo.privacy.title")}
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                เครื่องมือนี้ใช้เทคโนโลยี <strong className="text-foreground">WebAssembly (WASM)</strong> ซึ่งเป็น runtime ที่ทำงานอยู่ภายในเบราว์เซอร์ของคุณโดยตรง ไฟล์รูปภาพทุกไฟล์จะถูกโหลดเข้า RAM ของอุปกรณ์ ประมวลผล และส่งออกมาโดยไม่มีการส่งข้อมูลออกไปทางเครือข่ายเลยแม้แต่ไบต์เดียว
+                                {t.rich("seo.privacy.desc1", {
+                                    strong: (chunks) => <strong className="text-foreground">{chunks}</strong>
+                                })}
                             </p>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                ซึ่งหมายความว่าคุณสามารถใช้งานได้อย่างมั่นใจกับรูปภาพส่วนตัว เอกสารลับ หรือทรัพย์สินทางปัญญาขององค์กร โดยไม่ต้องกังวลว่าไฟล์จะไปปรากฏบนเซิร์ฟเวอร์ที่ไหน และเนื่องจากไม่มีการเก็บ log หรือ cookie ใดๆ ทั้งสิ้น ประวัติการแปลงไฟล์จึงอยู่กับคุณเพียงผู้เดียว
+                                {t("seo.privacy.desc2")}
                             </p>
                             <div className="flex flex-wrap gap-2 pt-1">
-                                <Badge variant="outline" className="text-[11px]">No Upload</Badge>
-                                <Badge variant="outline" className="text-[11px]">Client-Side Only</Badge>
-                                <Badge variant="outline" className="text-[11px]">WebAssembly Powered</Badge>
-                                <Badge variant="outline" className="text-[11px]">No Cookies</Badge>
+                                <Badge variant="outline" className="text-[11px]">{t("seo.privacy.badges.noUpload")}</Badge>
+                                <Badge variant="outline" className="text-[11px]">{t("seo.privacy.badges.clientSide")}</Badge>
+                                <Badge variant="outline" className="text-[11px]">{t("seo.privacy.badges.wasm")}</Badge>
+                                <Badge variant="outline" className="text-[11px]">{t("seo.privacy.badges.noCookies")}</Badge>
                             </div>
                         </div>
                     </section>

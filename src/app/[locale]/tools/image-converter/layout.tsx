@@ -1,13 +1,23 @@
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "Image Converter แปลงไฟล์รูปภาพในเครื่อง 100%",
-    description: "แปลงรูปภาพออนไลน์ฟรี รองรับ JPG, PNG, WebP, AVIF ไม่ต้องติดตั้งโปรแกรม ประมวลผลด้วย WebAssembly ในเครื่องของคุณ ข้อมูลไม่ถูกอัปโหลดไปยังเซิร์ฟเวอร์ใดๆ",
-    keywords: ["Image Converter", "แปลงรูป", "JPG to PNG", "WebP converter", "AVIF converter", "แปลงรูปฟรี", "image converter ออนไลน์"],
-    alternates: {
-        canonical: "https://yuukub.com/tools/image-converter/",
-    },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'ImageConverter' });
+
+    return {
+        title: t('metaTitle'),
+        description: t('metaDesc'),
+        keywords: t('metaKeywords')?.split(',').map((k: string) => k.trim()) || [],
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/image-converter/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/image-converter/",
+                en: "https://yuukub.com/en/tools/image-converter/",
+                "x-default": "https://yuukub.com/th/tools/image-converter/",
+            }
+        },
+    };
+}
 
 export default function ImageConverterLayout({
     children,

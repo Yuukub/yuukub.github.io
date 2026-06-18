@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,41 +54,10 @@ interface OrganizerPage {
 
 /* ─── SEO Data ──────────────────────────────────────────── */
 
-const FAQ_ITEMS = [
-    {
-        question: "ไฟล์ PDF ที่อัปโหลดปลอดภัยไหม?",
-        answer: "ปลอดภัย 100% เพราะไฟล์ทั้งหมดถูกประมวลผลภายในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ใดๆ ทั้งสิ้น เหมาะสำหรับเอกสารที่เป็นความลับหรือข้อมูลส่วนตัว",
-    },
-    {
-        question: "รองรับ PDF ขนาดใหญ่แค่ไหน?",
-        answer: "ขึ้นอยู่กับ RAM ของอุปกรณ์คุณ โดยทั่วไปรองรับได้ถึงหลายสิบ MB สำหรับ Merge และ Split สำหรับ PDF→JPG ถ้า PDF มีหลายสิบหน้าอาจใช้เวลานานขึ้น แนะนำให้ทำทีละไม่เกิน 50 หน้าเพื่อประสิทธิภาพสูงสุด",
-    },
-    {
-        question: "PDF→JPG ได้ความละเอียดเท่าไหร่?",
-        answer: "ระบบ render ที่ scale 2x (192 DPI) เพื่อให้ได้ภาพที่คมชัด เหมาะสำหรับการนำไปใช้งานบนเว็บหรือ presentation คุณยังสามารถปรับ Quality ของ JPG ได้ตั้งแต่ 50–100 เพื่อสมดุลระหว่างขนาดไฟล์และคุณภาพ",
-    },
-    {
-        question: "รองรับ PDF ที่มีรหัสผ่านไหม?",
-        answer: "ไม่รองรับครับ PDF ที่ถูก encrypt หรือมีรหัสผ่านปกป้องไว้จะไม่สามารถประมวลผลได้ กรุณาถอดรหัสผ่านออกก่อนนำมาใช้งาน",
-    },
-    {
-        question: "สามารถเรียงลำดับไฟล์ก่อน Merge ได้ไหม?",
-        answer: "ได้ครับ ในโหมด Merge แต่ละไฟล์จะแสดง thumbnail หน้าแรกพร้อมปุ่มลูกศร ◀▶ เพื่อเลื่อนลำดับ และถ้าต้องการจัดเรียงระดับหน้าแบบละเอียด ให้ใช้ tab 'จัดระเบียบ PDF' ที่รองรับการลากวาง thumbnail ทุกหน้าได้เลย",
-    },
-    {
-        question: "ความแตกต่างระหว่าง 'รวม PDF' กับ 'จัดระเบียบ PDF' คืออะไร?",
-        answer: "รวม PDF (Merge) ใช้เมื่อต้องการต่อ PDF หลายไฟล์เข้าด้วยกันตามลำดับไฟล์ ส่วน จัดระเบียบ PDF (Organizer) ให้อิสระมากกว่า — สามารถลากวาง thumbnail แต่ละหน้า ลบหน้าที่ไม่ต้องการ และผสมหน้าจากหลาย PDF ในลำดับที่กำหนดเองได้อย่างอิสระ",
-    },
-    {
-        question: "ลดขนาด PDF ได้กี่ % และผลลัพธ์เป็นอย่างไร?",
-        answer: "ขึ้นอยู่กับเนื้อหาและโหมดที่เลือก — โหมด Rasterize (เปลี่ยนหน้าเป็นภาพ JPEG) ลดได้ 50–90% เหมาะกับเอกสารสแกนหรือมีรูปภาพเยอะ แต่ข้อความจะคัดลอกไม่ได้ ส่วนโหมด Smart (object stream compression) คงข้อความคัดลอกได้แต่ลดได้น้อยประมาณ 1–10% ถ้าต้องการลดขนาดเยอะให้ใช้โหมด Rasterize",
-    },
-];
-
-const COMPRESS_PRESETS: Record<CompressQuality, { dpi: number; jpegQuality: number; label: string; hint: string }> = {
-    low:    { dpi: 96,  jpegQuality: 0.60, label: "ต่ำ",      hint: "เล็กที่สุด • เหมาะกับเอกสารดูบนจอ" },
-    medium: { dpi: 144, jpegQuality: 0.75, label: "ปานกลาง", hint: "สมดุล • แนะนำ" },
-    high:   { dpi: 200, jpegQuality: 0.90, label: "สูง",      hint: "ใหญ่ขึ้น • คุณภาพใกล้ต้นฉบับ" },
+const COMPRESS_PRESETS: Record<CompressQuality, { dpi: number; jpegQuality: number }> = {
+    low:    { dpi: 96,  jpegQuality: 0.60 },
+    medium: { dpi: 144, jpegQuality: 0.75 },
+    high:   { dpi: 200, jpegQuality: 0.90 },
 };
 
 /* ─── Helpers ───────────────────────────────────────────── */
@@ -144,9 +114,44 @@ function triggerDownload(blob: Blob, filename: string) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Helpers for translation ───────────────────────────── */
+
+function translateProgress(msg: string, t: any): string {
+    if (!msg) return msg;
+    if (msg.includes("กำลังรวมไฟล์ PDF...")) return t("worker.mergingPdf");
+    if (msg.includes("กำลังประมวลผลไฟล์")) {
+        const match = msg.match(/กำลังประมวลผลไฟล์\s+(\d+\/\d+)/);
+        if (match) return t("worker.processingFile", { progress: match[1] });
+        return msg;
+    }
+    if (msg.includes("กำลังสร้างไฟล์ผลลัพธ์...")) return t("worker.generatingResult");
+    if (msg.includes("กำลังโหลด PDF...")) return t("worker.loadingPdf");
+    if (msg.includes("กำลังแยกหน้า")) {
+        const match = msg.match(/กำลังแยกหน้า\s+(\d+\/\d+)/);
+        if (match) return t("worker.splittingPage", { progress: match[1] });
+        return msg;
+    }
+    if (msg.includes("กำลังรวมหน้า")) {
+        const match = msg.match(/กำลังรวมหน้า\s+(\d+\/\d+)/);
+        if (match) return t("worker.mergingPage", { progress: match[1] });
+        return msg;
+    }
+    if (msg.includes("กำลังสร้าง PDF...")) return t("worker.generatingPdf");
+    if (msg.includes("กำลังประมวลผลหน้า")) {
+        const match = msg.match(/กำลังประมวลผลหน้า\s+(\d+\/\d+)/);
+        if (match) return t("worker.processingPage", { progress: match[1] });
+        return msg;
+    }
+    if (msg.includes("กำลังบันทึกไฟล์...")) return t("worker.savingFile");
+    if (msg.includes("กำลังบีบอัดโครงสร้าง PDF...")) return t("worker.compressingStructure");
+    if (msg.includes("กำลังบันทึก...")) return t("compressSaving");
+    return msg;
+}
+
 /* ─── Component ─────────────────────────────────────────── */
 
 export default function PdfToolsPage() {
+    const t = useTranslations("PdfTools");
     const [activeTool, setActiveTool] = useState<PdfTool>("merge");
 
     /* ── Merge state ──────────────────────────── */
@@ -479,14 +484,14 @@ export default function PdfToolsPage() {
             const pdfjs = await import("pdfjs-dist");
             pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
 
-            setJpgProgress("กำลังโหลด PDF...");
+            setJpgProgress(t("jpgLoadingPdf"));
             const buffer = await jpgFile.file.arrayBuffer();
             const pdf = await pdfjs.getDocument({ data: buffer }).promise;
             const total = pdf.numPages;
             const results: JpgResult[] = [];
 
             for (let i = 1; i <= total; i++) {
-                setJpgProgress(`กำลังแปลงหน้า ${i}/${total}...`);
+                setJpgProgress(t("jpgConvertingPage", { current: i, total }));
                 const page = await pdf.getPage(i);
                 const viewport = page.getViewport({ scale: 2 });
                 const canvas = document.createElement("canvas");
@@ -506,11 +511,11 @@ export default function PdfToolsPage() {
             setJpgStatus("done");
             setJpgProgress("");
         } catch (err: unknown) {
-            setJpgError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดระหว่างแปลง PDF");
+            setJpgError(err instanceof Error ? err.message : t("jpgErrorConverting"));
             setJpgStatus("error");
             setJpgProgress("");
         }
-    }, [jpgFile, jpgQuality]);
+    }, [jpgFile, jpgQuality, t]);
 
     /* ── Compress ─────────────────────────────── */
 
@@ -526,7 +531,7 @@ export default function PdfToolsPage() {
             const srcBuffer = await compressFile.file.arrayBuffer();
 
             if (compressMode === "smart") {
-                setCompressProgress("กำลังบีบอัดโครงสร้าง PDF...");
+                setCompressProgress(t("worker.compressingStructure"));
                 const doc = await PDFDocument.load(srcBuffer);
                 const bytes = await doc.save({ useObjectStreams: true });
                 const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
@@ -544,18 +549,18 @@ export default function PdfToolsPage() {
                 "pdfjs-dist/build/pdf.worker.mjs", import.meta.url,
             ).toString();
 
-            setCompressProgress("กำลังโหลด PDF...");
+            setCompressProgress(t("compressLoadingPdf"));
             const pdf = await pdfjs.getDocument({ data: srcBuffer }).promise;
             const total = pdf.numPages;
             const out = await PDFDocument.create();
 
             for (let i = 1; i <= total; i++) {
-                setCompressProgress(`กำลังประมวลผลหน้า ${i}/${total}...`);
+                setCompressProgress(t("compressProcessingPage", { current: i, total }));
                 let page;
                 try {
                     page = await pdf.getPage(i);
                 } catch {
-                    throw new Error(`ไม่สามารถประมวลผลหน้า ${i}`);
+                    throw new Error(t("compressProcessingPageError", { pageNum: i }));
                 }
                 const vp1 = page.getViewport({ scale: 1 });
                 const widthPt = vp1.width;
@@ -579,29 +584,60 @@ export default function PdfToolsPage() {
                 canvas.height = 0;
             }
 
-            setCompressProgress("กำลังบันทึก...");
+            setCompressProgress(t("compressSaving"));
             const bytes = await out.save({ useObjectStreams: true });
             const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
             setCompressResult(blob);
             setCompressStatus("done");
             setCompressProgress("");
         } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาด";
+            const msg = err instanceof Error ? err.message : t("compressErrorDefault");
             const friendly = /encrypt|password/i.test(msg)
-                ? "PDF นี้ถูกเข้ารหัส กรุณาปลดล็อกก่อนใช้งาน"
+                ? t("compressEncrypted")
                 : msg;
             setCompressError(friendly);
             setCompressStatus("error");
             setCompressProgress("");
         }
-    }, [compressFile, compressMode, compressQuality]);
+    }, [compressFile, compressMode, compressQuality, t]);
 
     /* ── FAQ JSON-LD ──────────────────────────── */
+
+    const faqItems = [
+        {
+            question: t("faqItems.0.question"),
+            answer: t("faqItems.0.answer"),
+        },
+        {
+            question: t("faqItems.1.question"),
+            answer: t("faqItems.1.answer"),
+        },
+        {
+            question: t("faqItems.2.question"),
+            answer: t("faqItems.2.answer"),
+        },
+        {
+            question: t("faqItems.3.question"),
+            answer: t("faqItems.3.answer"),
+        },
+        {
+            question: t("faqItems.4.question"),
+            answer: t("faqItems.4.answer"),
+        },
+        {
+            question: t("faqItems.5.question"),
+            answer: t("faqItems.5.answer"),
+        },
+        {
+            question: t("faqItems.6.question"),
+            answer: t("faqItems.6.answer"),
+        },
+    ];
 
     const faqJsonLd = {
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        "mainEntity": FAQ_ITEMS.map((item) => ({
+        "mainEntity": faqItems.map((item) => ({
             "@type": "Question",
             "name": item.question,
             "acceptedAnswer": { "@type": "Answer", "text": item.answer },
@@ -621,11 +657,11 @@ export default function PdfToolsPage() {
     /* ── Render ───────────────────────────────── */
 
     const TABS: { id: PdfTool; label: string; icon: React.ReactNode }[] = [
-        { id: "merge",    label: "รวม PDF",        icon: <Layers      className="h-4 w-4" /> },
-        { id: "split",    label: "แยกหน้า",         icon: <Scissors    className="h-4 w-4" /> },
-        { id: "to-jpg",   label: "PDF → JPG",      icon: <ImageIcon   className="h-4 w-4" /> },
-        { id: "organize", label: "จัดระเบียบ PDF",  icon: <LayoutGrid  className="h-4 w-4" /> },
-        { id: "compress", label: "ลดขนาด PDF",     icon: <Minimize2   className="h-4 w-4" /> },
+        { id: "merge",    label: t("tabMerge"),        icon: <Layers      className="h-4 w-4" /> },
+        { id: "split",    label: t("tabSplit"),         icon: <Scissors    className="h-4 w-4" /> },
+        { id: "to-jpg",   label: t("tabToJpg"),      icon: <ImageIcon   className="h-4 w-4" /> },
+        { id: "organize", label: t("tabOrganize"),  icon: <LayoutGrid  className="h-4 w-4" /> },
+        { id: "compress", label: t("tabCompress"),     icon: <Minimize2   className="h-4 w-4" /> },
     ];
 
     return (
@@ -642,7 +678,7 @@ export default function PdfToolsPage() {
                 {/* Header */}
                 <div className="mb-8">
                     <Link href="/tools/" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4 w-fit">
-                        <ArrowLeft className="h-4 w-4 mr-1" /> กลับไปที่เครื่องมือ
+                        <ArrowLeft className="h-4 w-4 mr-1" /> {t("backToTools")}
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center">
@@ -651,7 +687,7 @@ export default function PdfToolsPage() {
                         <h1 className="text-3xl font-bold tracking-tight">PDF Tools</h1>
                     </div>
                     <p className="text-muted-foreground">
-                        รวม PDF, แยกหน้า, จัดระเบียบ, ลดขนาด และแปลง PDF เป็นรูปภาพ JPG ประมวลผลในเครื่อง 100% ไม่อัปโหลดไปที่ใด
+                        {t("headerDesc")}
                     </p>
                 </div>
 
@@ -685,13 +721,13 @@ export default function PdfToolsPage() {
                                 </div>
                                 {mergeFiles.length > 0 ? (
                                     <>
-                                        <p className="font-semibold">{mergeFiles.length} ไฟล์พร้อมรวม</p>
-                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือกด &quot;เพิ่มไฟล์&quot;</p>
+                                        <p className="font-semibold">{t("mergeReadyFiles", { count: mergeFiles.length })}</p>
+                                        <p className="text-sm text-muted-foreground">{t("mergeDragMore")}</p>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                        <p className="text-sm text-muted-foreground">เลือกได้หลายไฟล์ • ปรับลำดับได้</p>
+                                        <p className="font-semibold">{t("mergeDragDrop")}</p>
+                                        <p className="text-sm text-muted-foreground">{t("mergeSelectMultiple")}</p>
                                     </>
                                 )}
                             </div>
@@ -703,18 +739,18 @@ export default function PdfToolsPage() {
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                        ลำดับไฟล์
-                                        <span className="ml-2 text-red-500 normal-case font-semibold">({mergeFiles.length} ไฟล์)</span>
+                                        {t("mergeOrder")}
+                                        <span className="ml-2 text-red-500 normal-case font-semibold">{t("mergeCount", { count: mergeFiles.length })}</span>
                                     </p>
                                     <div className="flex gap-2">
                                         <Button variant="outline" size="sm" className="gap-1.5 text-xs"
                                             onClick={() => mergeInputRef.current?.click()}>
-                                            <Upload className="h-3.5 w-3.5" /> เพิ่มไฟล์
+                                            <Upload className="h-3.5 w-3.5" /> {t("mergeAddFile")}
                                         </Button>
                                         <Button variant="ghost" size="sm"
                                             onClick={() => { setMergeFiles([]); setMergeThumbs(new Map()); setMergeResult(null); setMergeError(""); setMergeStatus("waiting"); }}
                                             className="text-xs text-muted-foreground hover:text-red-500">
-                                            <Trash2 className="h-3 w-3 mr-1" /> ล้างทั้งหมด
+                                            <Trash2 className="h-3 w-3 mr-1" /> {t("mergeClearAll")}
                                         </Button>
                                     </div>
                                 </div>
@@ -738,7 +774,7 @@ export default function PdfToolsPage() {
                                             <button
                                                 onClick={() => setMergeFiles((p) => p.filter((x) => x.id !== f.id))}
                                                 className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500"
-                                                title="ลบ"
+                                                title={t("mergeDelete")}
                                             >
                                                 <XCircle className="h-3.5 w-3.5" />
                                             </button>
@@ -751,7 +787,7 @@ export default function PdfToolsPage() {
                                                         onClick={() => moveMergeFile(i, -1)}
                                                         disabled={i === 0}
                                                         className="flex-1 flex items-center justify-center py-0.5 rounded bg-muted hover:bg-muted/80 disabled:opacity-20 transition-colors"
-                                                        title="เลื่อนซ้าย"
+                                                        title={t("mergeMoveLeft")}
                                                     >
                                                         <ChevronUp className="h-3 w-3 rotate-[-90deg]" />
                                                     </button>
@@ -759,7 +795,7 @@ export default function PdfToolsPage() {
                                                         onClick={() => moveMergeFile(i, 1)}
                                                         disabled={i === mergeFiles.length - 1}
                                                         className="flex-1 flex items-center justify-center py-0.5 rounded bg-muted hover:bg-muted/80 disabled:opacity-20 transition-colors"
-                                                        title="เลื่อนขวา"
+                                                        title={t("mergeMoveRight")}
                                                     >
                                                         <ChevronDown className="h-3 w-3 rotate-[-90deg]" />
                                                     </button>
@@ -772,8 +808,8 @@ export default function PdfToolsPage() {
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runMerge} disabled={mergeStatus === "processing" || mergeFiles.length < 2}>
                                     {mergeStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {mergeProgress || "กำลังรวม..."}</>
-                                        : <><Layers className="h-4 w-4" /> รวม PDF ({mergeFiles.length} ไฟล์)</>}
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {translateProgress(mergeProgress, t) || t("mergeProgressLoading")}</>
+                                        : <><Layers className="h-4 w-4" /> {t("mergeBtn", { count: mergeFiles.length })}</>}
                                 </Button>
 
                                 {mergeError && (
@@ -787,12 +823,12 @@ export default function PdfToolsPage() {
                                     <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
                                         <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-semibold">รวม PDF สำเร็จ</p>
+                                            <p className="text-sm font-semibold">{t("mergeSuccess")}</p>
                                             <p className="text-xs text-muted-foreground">{formatBytes(mergeResult.size)}</p>
                                         </div>
                                         <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
                                             onClick={() => triggerDownload(mergeResult!, "merged.pdf")}>
-                                            <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                            <Download className="h-3.5 w-3.5" /> {t("mergeDownload")}
                                         </Button>
                                     </div>
                                 )}
@@ -822,19 +858,19 @@ export default function PdfToolsPage() {
                                     <>
                                         <p className="font-semibold">{splitFile.name}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            {formatBytes(splitFile.size)}{splitThumbnails.length > 0 && ` • ${splitThumbnails.length} หน้า`}
+                                            {formatBytes(splitFile.size)}{splitThumbnails.length > 0 && ` • ${t("pagesCount", { count: splitThumbnails.length })}`}
                                         </p>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setSplitFile(null); setSplitThumbnails([]); setSplitSelectedPages(new Set()); setSplitResults([]); setSplitError(""); setSplitStatus("waiting"); }}
                                             className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
                                         >
-                                            เปลี่ยนไฟล์
+                                            {t("splitChangeFile")}
                                         </button>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                        <p className="text-sm text-muted-foreground">รองรับ 1 ไฟล์</p>
+                                        <p className="font-semibold">{t("splitDragDrop")}</p>
+                                        <p className="text-sm text-muted-foreground">{t("splitSupportOne")}</p>
                                     </>
                                 )}
                             </div>
@@ -851,7 +887,7 @@ export default function PdfToolsPage() {
 
                         {splitThumbLoading && (
                             <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground text-sm">
-                                <Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลด thumbnail...
+                                <Loader2 className="h-4 w-4 animate-spin" /> {t("splitLoadingThumb")}
                             </div>
                         )}
 
@@ -863,24 +899,24 @@ export default function PdfToolsPage() {
                                         onClick={() => { setSplitMode("split"); setSplitResults([]); setSplitExtractResult(null); setSplitStatus("waiting"); }}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${splitMode === "split" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        แยกเป็นหลายไฟล์
+                                        {t("splitModeSplit")}
                                     </button>
                                     <button
                                         onClick={() => { setSplitMode("extract"); setSplitResults([]); setSplitExtractResult(null); setSplitStatus("waiting"); }}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${splitMode === "extract" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        ตัดเป็นไฟล์เดียว
+                                        {t("splitModeExtract")}
                                     </button>
                                 </div>
                                 <p className="text-xs text-muted-foreground -mt-2 text-center">
                                     {splitMode === "split"
-                                        ? "หน้าที่เลือกแต่ละหน้าจะได้เป็นไฟล์ PDF แยก"
-                                        : "หน้าที่เลือกทั้งหมดจะรวมเป็น PDF ไฟล์เดียว"}
+                                        ? t("splitDescSplit")
+                                        : t("splitDescExtract")}
                                 </p>
 
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                        เลือกหน้า
+                                        {t("splitSelectPages")}
                                         <span className="ml-2 text-red-500 normal-case font-semibold">
                                             ({splitSelectedPages.size}/{splitThumbnails.length})
                                         </span>
@@ -890,14 +926,14 @@ export default function PdfToolsPage() {
                                             onClick={() => setSplitSelectedPages(new Set(Array.from({ length: splitThumbnails.length }, (_, i) => i + 1)))}
                                             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                                         >
-                                            เลือกทั้งหมด
+                                            {t("splitSelectAll")}
                                         </button>
                                         <span className="text-muted-foreground/30">|</span>
                                         <button
                                             onClick={() => setSplitSelectedPages(new Set())}
                                             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                                         >
-                                            ยกเลิกทั้งหมด
+                                            {t("splitClearAll")}
                                         </button>
                                     </div>
                                 </div>
@@ -919,7 +955,7 @@ export default function PdfToolsPage() {
                                                     : "border-border/30 opacity-60 hover:opacity-90 hover:border-border"
                                                     }`}
                                             >
-                                                <img src={src} alt={`หน้า ${pageNum}`} className="w-full block" />
+                                                <img src={src} alt={t("splitPageAlt", { pageNum })} className="w-full block" />
                                                 <div className={`absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 ${selected ? "bg-red-500 text-white" : "bg-black/40 text-white"}`}>
                                                     {pageNum}
                                                 </div>
@@ -936,10 +972,10 @@ export default function PdfToolsPage() {
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runSplit} disabled={splitStatus === "processing" || splitSelectedPages.size === 0}>
                                     {splitStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {splitProgress || "กำลังประมวลผล..."}</>
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {translateProgress(splitProgress, t) || t("splitProcessing")}</>
                                         : splitMode === "split"
-                                            ? <><Scissors className="h-4 w-4" /> แยก {splitSelectedPages.size} หน้า เป็น {splitSelectedPages.size} ไฟล์</>
-                                            : <><Scissors className="h-4 w-4" /> ตัด {splitSelectedPages.size} หน้า เป็น PDF เดียว</>
+                                            ? <><Scissors className="h-4 w-4" /> {t("splitBtnSplit", { count: splitSelectedPages.size })}</>
+                                            : <><Scissors className="h-4 w-4" /> {t("splitBtnExtract", { count: splitSelectedPages.size })}</>
                                     }
                                 </Button>
 
@@ -954,12 +990,12 @@ export default function PdfToolsPage() {
                                     <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
                                         <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-semibold">ตัดหน้าสำเร็จ</p>
+                                            <p className="text-sm font-semibold">{t("splitSuccess")}</p>
                                             <p className="text-xs text-muted-foreground">{formatBytes(splitExtractResult.size)}</p>
                                         </div>
                                         <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
                                             onClick={() => triggerDownload(splitExtractResult!, "extracted.pdf")}>
-                                            <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                            <Download className="h-3.5 w-3.5" /> {t("splitDownload")}
                                         </Button>
                                     </div>
                                 )}
@@ -968,12 +1004,12 @@ export default function PdfToolsPage() {
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" /> ผลลัพธ์ ({splitResults.length} ไฟล์)
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" /> {t("splitResultsCount", { count: splitResults.length })}
                                             </p>
                                             {splitResults.length > 1 && (
                                                 <Button size="sm" variant="outline" className="gap-1.5 text-xs"
                                                     onClick={() => downloadZip(splitResults, "split-pages.zip")}>
-                                                    <PackageOpen className="h-3.5 w-3.5" /> ZIP ทั้งหมด
+                                                    <PackageOpen className="h-3.5 w-3.5" /> {t("splitZipAll")}
                                                 </Button>
                                             )}
                                         </div>
@@ -1014,8 +1050,8 @@ export default function PdfToolsPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                        <p className="text-sm text-muted-foreground">แต่ละหน้าจะถูกแปลงเป็น JPG</p>
+                                        <p className="font-semibold">{t("jpgDragDrop")}</p>
+                                        <p className="text-sm text-muted-foreground">{t("jpgEachPage")}</p>
                                     </>
                                 )}
                             </div>
@@ -1028,9 +1064,9 @@ export default function PdfToolsPage() {
                                 <Card className="p-5 border-border/50 space-y-3">
                                     <div className="flex justify-between items-center">
                                         <label className="text-sm font-medium">
-                                            คุณภาพ (Quality): <span className="text-red-500 font-bold text-lg ml-1">{jpgQuality}</span>
+                                            {t("jpgQualityLabel")} <span className="text-red-500 font-bold text-lg ml-1">{jpgQuality}</span>
                                         </label>
-                                        <span className="text-xs text-muted-foreground">50 = เล็กสุด • 100 = คุณภาพสูงสุด</span>
+                                        <span className="text-xs text-muted-foreground">{t("jpgQualityHint")}</span>
                                     </div>
                                     <input type="range" min="50" max="100" value={jpgQuality}
                                         onChange={(e) => setJpgQuality(parseInt(e.target.value))}
@@ -1041,8 +1077,8 @@ export default function PdfToolsPage() {
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runToJpg} disabled={jpgStatus === "processing"}>
                                     {jpgStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {jpgProgress || "กำลังแปลง..."}</>
-                                        : <><ImageIcon className="h-4 w-4" /> แปลงเป็น JPG</>}
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {translateProgress(jpgProgress, t) || t("jpgProgressLoading")}</>
+                                        : <><ImageIcon className="h-4 w-4" /> {t("jpgBtn")}</>}
                                 </Button>
 
                                 {jpgError && (
@@ -1056,24 +1092,24 @@ export default function PdfToolsPage() {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" /> {jpgResults.length} หน้า
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" /> {t("pagesCount", { count: jpgResults.length })}
                                             </p>
                                             {jpgResults.length > 1 && (
                                                 <Button size="sm" variant="outline" className="gap-1.5 text-xs"
                                                     onClick={() => downloadZip(jpgResults, "pdf-to-jpg.zip")}>
-                                                    <PackageOpen className="h-3.5 w-3.5" /> ZIP ทั้งหมด
+                                                    <PackageOpen className="h-3.5 w-3.5" /> {t("jpgZipAll")}
                                                 </Button>
                                             )}
                                         </div>
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                             {jpgResults.map((r) => (
                                                 <div key={r.pageNum} className="group relative rounded-xl overflow-hidden border border-border/50 bg-muted/20">
-                                                    <img src={r.previewUrl} alt={`หน้า ${r.pageNum}`} className="w-full object-cover" />
+                                                    <img src={r.previewUrl} alt={t("jpgPageAlt", { pageNum: r.pageNum })} className="w-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                                         <Button size="sm" variant="secondary"
                                                             className="opacity-0 group-hover:opacity-100 transition-opacity gap-1.5 text-xs shadow-lg"
                                                             onClick={() => triggerDownload(r.blob, r.filename)}>
-                                                            <Download className="h-3.5 w-3.5" /> หน้า {r.pageNum}
+                                                            <Download className="h-3.5 w-3.5" /> {t("jpgPageText", { pageNum: r.pageNum })}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -1100,13 +1136,13 @@ export default function PdfToolsPage() {
                                 </div>
                                 {orgFiles.length > 0 ? (
                                     <>
-                                        <p className="font-semibold">{orgFiles.length} ไฟล์ • {orgPages.length} หน้า</p>
-                                        <p className="text-sm text-muted-foreground">ลากไฟล์เพิ่ม หรือใช้ปุ่มด้านล่าง</p>
+                                        <p className="font-semibold">{t("orgFilesCount", { files: orgFiles.length })} • {t("pagesCount", { count: orgPages.length })}</p>
+                                        <p className="text-sm text-muted-foreground">{t("orgDragMore")}</p>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                        <p className="text-sm text-muted-foreground">เลือกได้หลายไฟล์ • ลากหน้าเพื่อจัดลำดับ</p>
+                                        <p className="font-semibold">{t("orgDragDrop")}</p>
+                                        <p className="text-sm text-muted-foreground">{t("orgSelectMultiple")}</p>
                                     </>
                                 )}
                             </div>
@@ -1116,7 +1152,7 @@ export default function PdfToolsPage() {
 
                         {orgThumbLoading && (
                             <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground text-sm">
-                                <Loader2 className="h-4 w-4 animate-spin" /> กำลังโหลด thumbnail...
+                                <Loader2 className="h-4 w-4 animate-spin" /> {t("orgLoadingThumb")}
                             </div>
                         )}
 
@@ -1124,18 +1160,18 @@ export default function PdfToolsPage() {
                             <>
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                        หน้าทั้งหมด
-                                        <span className="ml-2 text-red-500 normal-case font-semibold">({orgPages.length} หน้า)</span>
+                                        {t("orgAllPages")}
+                                        <span className="ml-2 text-red-500 normal-case font-semibold">{t("orgCount", { count: orgPages.length })}</span>
                                     </p>
                                     <div className="flex gap-2">
                                         <Button variant="outline" size="sm" className="gap-1.5 text-xs"
                                             onClick={() => orgInputRef.current?.click()}>
-                                            <Upload className="h-3.5 w-3.5" /> เพิ่มไฟล์
+                                            <Upload className="h-3.5 w-3.5" /> {t("orgAddFile")}
                                         </Button>
                                         <Button variant="ghost" size="sm"
                                             onClick={() => { setOrgFiles([]); setOrgPages([]); setOrgResult(null); setOrgError(""); setOrgStatus("waiting"); }}
                                             className="text-xs text-muted-foreground hover:text-red-500">
-                                            <Trash2 className="h-3 w-3 mr-1" /> ล้างทั้งหมด
+                                            <Trash2 className="h-3 w-3 mr-1" /> {t("orgClearAll")}
                                         </Button>
                                     </div>
                                 </div>
@@ -1159,9 +1195,9 @@ export default function PdfToolsPage() {
                                                 dragIndexRef.current = null;
                                             }}
                                             className="relative rounded-lg overflow-hidden border-2 border-border/30 hover:border-red-500/40 transition-all cursor-grab active:cursor-grabbing group"
-                                            title={`${page.sourceName} — หน้า ${page.pageNum}`}
+                                            title={`${page.sourceName} — ${t("orgPageText", { pageNum: page.pageNum })}`}
                                         >
-                                            <img src={page.thumbUrl} alt={`หน้า ${index + 1}`} className="w-full block pointer-events-none" />
+                                            <img src={page.thumbUrl} alt={t("orgPageAlt", { pageNum: index + 1 })} className="w-full block pointer-events-none" />
                                             <div className="absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 bg-black/50 text-white">
                                                 {index + 1}
                                             </div>
@@ -1171,7 +1207,7 @@ export default function PdfToolsPage() {
                                             <button
                                                 onClick={() => setOrgPages((prev) => prev.filter((_, i) => i !== index))}
                                                 className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
-                                                title="ลบหน้านี้"
+                                                title={t("orgDeletePage")}
                                             >
                                                 <XCircle className="h-3 w-3" />
                                             </button>
@@ -1182,8 +1218,8 @@ export default function PdfToolsPage() {
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runOrganize} disabled={orgStatus === "processing" || orgPages.length === 0}>
                                     {orgStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {orgProgress || "กำลังสร้าง..."}</>
-                                        : <><LayoutGrid className="h-4 w-4" /> สร้าง PDF ที่จัดระเบียบแล้ว ({orgPages.length} หน้า)</>}
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {translateProgress(orgProgress, t) || t("orgGenerating")}</>
+                                        : <><LayoutGrid className="h-4 w-4" /> {t("orgBtn", { count: orgPages.length })}</>}
                                 </Button>
 
                                 {orgError && (
@@ -1197,12 +1233,12 @@ export default function PdfToolsPage() {
                                     <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
                                         <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-semibold">สร้าง PDF สำเร็จ</p>
+                                            <p className="text-sm font-semibold">{t("orgSuccess")}</p>
                                             <p className="text-xs text-muted-foreground">{formatBytes(orgResult.size)}</p>
                                         </div>
                                         <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
                                             onClick={() => triggerDownload(orgResult!, "organized.pdf")}>
-                                            <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                            <Download className="h-3.5 w-3.5" /> {t("orgDownload")}
                                         </Button>
                                     </div>
                                 )}
@@ -1234,13 +1270,13 @@ export default function PdfToolsPage() {
                                             onClick={(e) => { e.stopPropagation(); setCompressFile(null); setCompressResult(null); setCompressError(""); setCompressStatus("waiting"); }}
                                             className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
                                         >
-                                            เปลี่ยนไฟล์
+                                            {t("compressChangeFile")}
                                         </button>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="font-semibold">ลากไฟล์ PDF มาวาง หรือคลิกเพื่อเลือก</p>
-                                        <p className="text-sm text-muted-foreground">ระบบจะลดขนาดไฟล์ให้เล็กลง</p>
+                                        <p className="font-semibold">{t("compressDragDrop")}</p>
+                                        <p className="text-sm text-muted-foreground">{t("compressDesc")}</p>
                                     </>
                                 )}
                             </div>
@@ -1250,7 +1286,7 @@ export default function PdfToolsPage() {
 
                         {compressFile && (
                             <p className="text-xs text-muted-foreground text-center -mt-2">
-                                แนะนำไม่เกิน 100 หน้าต่อครั้ง
+                                {t("compressLimitHint")}
                             </p>
                         )}
 
@@ -1262,24 +1298,24 @@ export default function PdfToolsPage() {
                                         onClick={() => { setCompressMode("rasterize"); setCompressResult(null); setCompressStatus("waiting"); }}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${compressMode === "rasterize" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        ลดขนาดสูงสุด
+                                        {t("compressModeRasterize")}
                                     </button>
                                     <button
                                         onClick={() => { setCompressMode("smart"); setCompressResult(null); setCompressStatus("waiting"); }}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${compressMode === "smart" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        รักษาข้อความ
+                                        {t("compressModeSmart")}
                                     </button>
                                 </div>
                                 <p className="text-xs text-muted-foreground -mt-2 text-center">
                                     {compressMode === "rasterize"
-                                        ? "เปลี่ยนแต่ละหน้าเป็นภาพ • เหมาะกับเอกสารสแกน • ข้อความคัดลอกไม่ได้"
-                                        : "คงข้อความคัดลอกได้ • ลดได้น้อย ≈ 1–10%"}
+                                        ? t("compressRasterizeDesc")
+                                        : t("compressSmartDesc")}
                                 </p>
 
                                 {compressMode === "rasterize" && (
                                     <Card className="p-5 border-border/50 space-y-3">
-                                        <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">คุณภาพ</p>
+                                        <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("compressQualityLabel")}</p>
                                         <div className="grid grid-cols-3 gap-2">
                                             {(["low", "medium", "high"] as CompressQuality[]).map((q) => {
                                                 const preset = COMPRESS_PRESETS[q];
@@ -1293,7 +1329,7 @@ export default function PdfToolsPage() {
                                                             : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground"
                                                             }`}
                                                     >
-                                                        {preset.label}
+                                                        {t(`presets.${q}.label`)}
                                                         <span className="block text-[10px] font-normal opacity-70 mt-0.5">
                                                             {preset.dpi} DPI
                                                         </span>
@@ -1302,22 +1338,22 @@ export default function PdfToolsPage() {
                                             })}
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            {COMPRESS_PRESETS[compressQuality].hint}
+                                            {t(`presets.${compressQuality}.hint`)}
                                         </p>
                                     </Card>
                                 )}
 
                                 {compressMode === "smart" && (
                                     <p className="text-xs text-muted-foreground text-center px-2">
-                                        โหมด Smart ลดขนาดด้วย object stream compression เท่านั้น (ประมาณ 1–10%) ไม่มีการตั้งค่าเพิ่ม
+                                        {t("compressSmartNoSettings")}
                                     </p>
                                 )}
 
                                 <Button className="w-full h-11 font-bold gap-2 bg-red-500 hover:bg-red-600 text-white"
                                     onClick={runCompress} disabled={compressStatus === "processing"}>
                                     {compressStatus === "processing"
-                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {compressProgress || "กำลังลดขนาด..."}</>
-                                        : <><Minimize2 className="h-4 w-4" /> ลดขนาด PDF</>}
+                                        ? <><Loader2 className="h-4 w-4 animate-spin" /> {translateProgress(compressProgress, t) || t("compressProgress")}</>
+                                        : <><Minimize2 className="h-4 w-4" /> {t("compressBtn")}</>}
                                 </Button>
 
                                 {compressError && (
@@ -1338,14 +1374,14 @@ export default function PdfToolsPage() {
                                             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold flex items-center gap-2 flex-wrap">
-                                                    ลดขนาดสำเร็จ
+                                                    {t("compressSuccess")}
                                                     {reduced ? (
                                                         <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-700">
-                                                            ลดลง {pct}%
+                                                            {t("compressReduced", { pct })}
                                                         </Badge>
                                                     ) : (
                                                         <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                                                            ขนาดใกล้เคียงเดิม
+                                                            {t("compressNoChange")}
                                                         </Badge>
                                                     )}
                                                 </p>
@@ -1355,7 +1391,7 @@ export default function PdfToolsPage() {
                                             </div>
                                             <Button size="sm" variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500 hover:text-white"
                                                 onClick={() => triggerDownload(compressResult!, "compressed.pdf")}>
-                                                <Download className="h-3.5 w-3.5" /> ดาวน์โหลด
+                                                <Download className="h-3.5 w-3.5" /> {t("compressDownload")}
                                             </Button>
                                         </div>
                                     );
@@ -1369,8 +1405,7 @@ export default function PdfToolsPage() {
                 <div className="mt-6 p-4 bg-red-500/5 border border-red-500/10 rounded-xl flex gap-3 items-center">
                     <Shield className="h-5 w-5 text-red-500 shrink-0" />
                     <p className="text-[13px] text-muted-foreground leading-relaxed">
-                        ปลอดภัย 100%: ไฟล์ทุกไฟล์ถูกประมวลผลในเครื่องคุณเท่านั้น —
-                        ไม่มีการอัปโหลดไปยังเซิร์ฟเวอร์ใดๆ
+                        {t("privacyNote")}
                     </p>
                 </div>
 
@@ -1380,7 +1415,6 @@ export default function PdfToolsPage() {
                     responsive={true}
                     className="min-h-[250px] mt-16 mb-4 bg-muted/10 rounded-xl py-12 border border-dashed border-muted"
                 />
-
                 {/* ─── SEO Content ───────────────────────────── */}
                 <div className="mt-4 space-y-12 border-t border-border/20 pt-12">
 
@@ -1391,27 +1425,27 @@ export default function PdfToolsPage() {
                                 <Info className="h-5 w-5 text-red-500" />
                             </div>
                             <h2 id="intro-heading" className="text-xl font-bold tracking-tight">
-                                PDF Tools ออนไลน์ฟรี ทำอะไรได้บ้าง?
+                                {t("seoIntroTitle")}
                             </h2>
                         </div>
                         <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                             <p>
-                                เครื่องมือนี้รวม <strong className="text-foreground">5 ฟีเจอร์หลัก</strong>สำหรับจัดการ PDF ไว้ในที่เดียว โดยทำงานทั้งหมดภายในเบราว์เซอร์ของคุณผ่าน <strong className="text-foreground">pdf-lib</strong> และ <strong className="text-foreground">pdfjs-dist</strong> ซึ่งเป็น library ระดับโปรที่ไม่ต้องการ server เลย ไฟล์ PDF ของคุณจะไม่ถูกส่งออกไปที่ใดทั้งสิ้น
+                                {t.rich("seoIntroDesc1", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <p>
-                                <strong className="text-foreground">รวม PDF (Merge)</strong> ช่วยให้นำ PDF หลายไฟล์มาเชื่อมต่อกันเป็นไฟล์เดียว พร้อมปรับลำดับได้ตามต้องการ เหมาะสำหรับการรวมรายงาน สัญญา หรือเอกสารหลายชุดเข้าด้วยกัน
+                                {t.rich("seoIntroDesc2", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <p>
-                                <strong className="text-foreground">แยกหน้า (Split)</strong> ช่วยตัดบางหน้าออกจาก PDF เป็นไฟล์ PDF ย่อยแยกกัน เลือกหน้าโดยคลิก thumbnail ได้เลย รองรับทั้งโหมดแยกเป็นหลายไฟล์และตัดรวมเป็นไฟล์เดียว
+                                {t.rich("seoIntroDesc3", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <p>
-                                <strong className="text-foreground">PDF → JPG</strong> แปลงแต่ละหน้าของ PDF ให้เป็นรูปภาพ JPG ความละเอียดสูง (192 DPI) เหมาะสำหรับการนำหน้า PDF ไปใช้ใน presentation, โซเชียลมีเดีย หรือแนบในอีเมล
+                                {t.rich("seoIntroDesc4", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <p>
-                                <strong className="text-foreground">จัดระเบียบ PDF (Organizer)</strong> ช่วยให้จัดเรียงหน้า PDF ใหม่ได้อย่างอิสระด้วยการลากและวาง thumbnail ของแต่ละหน้า ลบหน้าที่ไม่ต้องการ หรือนำหลาย PDF มารวมกันแล้วจัดลำดับหน้าก่อน Export เป็นไฟล์เดียว
+                                {t.rich("seoIntroDesc5", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <p>
-                                <strong className="text-foreground">ลดขนาด PDF (Compress)</strong> ช่วยลดขนาดไฟล์ PDF ให้เล็กลงเพื่อแนบอีเมลหรืออัปโหลดได้ง่าย เลือกได้สองโหมด — Rasterize (ลดได้ 50–90% เปลี่ยนหน้าเป็นภาพ JPEG) สำหรับเอกสารสแกน หรือ Smart (ลดได้ 1–10% รักษาข้อความให้คัดลอกได้) สำหรับเอกสารข้อความ
+                                {t.rich("seoIntroDesc6", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                         </div>
                     </section>
@@ -1419,48 +1453,28 @@ export default function PdfToolsPage() {
                     {/* Section 2: วิธีใช้งาน */}
                     <section aria-labelledby="howto-heading">
                         <h2 id="howto-heading" className="text-xl font-bold tracking-tight mb-6">
-                            วิธีใช้งานแต่ละฟีเจอร์
+                            {t("seoHowtoTitle")}
                         </h2>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            {[
-                                {
-                                    icon: <Layers className="h-4 w-4 text-red-500" />,
-                                    title: "รวม PDF",
-                                    steps: ["ลากไฟล์ PDF หลายไฟล์ลงในกล่อง", "ดู thumbnail แล้วกดลูกศร ◀▶ ปรับลำดับ", "กดรวม PDF แล้วดาวน์โหลด"],
-                                },
-                                {
-                                    icon: <Scissors className="h-4 w-4 text-red-500" />,
-                                    title: "แยกหน้า",
-                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "คลิก thumbnail เลือกหน้าที่ต้องการ", "กดแยกหน้า → ดาวน์โหลดแยกหรือ ZIP"],
-                                },
-                                {
-                                    icon: <ImageIcon className="h-4 w-4 text-red-500" />,
-                                    title: "PDF → JPG",
-                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "ปรับ Quality ตามต้องการ (50–100)", "กดแปลง → preview และดาวน์โหลด"],
-                                },
-                                {
-                                    icon: <LayoutGrid className="h-4 w-4 text-red-500" />,
-                                    title: "จัดระเบียบ PDF",
-                                    steps: ["ลาก PDF หนึ่งหรือหลายไฟล์ลงในกล่อง", "ลาก thumbnail เพื่อจัดเรียงหน้า หรือกด ✕ เพื่อลบ", "กดสร้าง PDF แล้วดาวน์โหลดไฟล์ที่จัดระเบียบแล้ว"],
-                                },
-                                {
-                                    icon: <Minimize2 className="h-4 w-4 text-red-500" />,
-                                    title: "ลดขนาด PDF",
-                                    steps: ["ลาก PDF ไฟล์เดียวลงในกล่อง", "เลือกโหมด Rasterize/Smart และระดับคุณภาพ", "กดลดขนาด → ดูอัตราการลดและดาวน์โหลด"],
-                                },
-                            ].map((item) => (
-                                <Card key={item.title} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
+                            {([
+                                { key: "merge", icon: <Layers className="h-4 w-4 text-red-500" /> },
+                                { key: "split", icon: <Scissors className="h-4 w-4 text-red-500" /> },
+                                { key: "toJpg", icon: <ImageIcon className="h-4 w-4 text-red-500" /> },
+                                { key: "organize", icon: <LayoutGrid className="h-4 w-4 text-red-500" /> },
+                                { key: "compress", icon: <Minimize2 className="h-4 w-4 text-red-500" /> },
+                            ] as const).map((item) => (
+                                <Card key={item.key} className="p-5 border-border/50 bg-muted/20 flex flex-col gap-3">
                                     <div className="flex items-center gap-2">
                                         {item.icon}
-                                        <span className="font-semibold text-sm">{item.title}</span>
+                                        <span className="font-semibold text-sm">{t(`seoHowtoItems.${item.key}.title`)}</span>
                                     </div>
                                     <ol className="space-y-1.5">
-                                        {item.steps.map((step, i) => (
+                                        {[0, 1, 2].map((i) => (
                                             <li key={i} className="text-xs text-muted-foreground flex gap-2">
                                                 <span className="h-4 w-4 rounded-full bg-red-500/10 text-red-600 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                                                     {i + 1}
                                                 </span>
-                                                {step}
+                                                {t(`seoHowtoItems.${item.key}.steps.${i}`)}
                                             </li>
                                         ))}
                                     </ol>
@@ -1476,11 +1490,11 @@ export default function PdfToolsPage() {
                                 <HelpCircle className="h-5 w-5 text-red-500" />
                             </div>
                             <h2 id="faq-heading" className="text-xl font-bold tracking-tight">
-                                คำถามที่พบบ่อย (FAQ)
+                                {t("seoFaqTitle")}
                             </h2>
                         </div>
                         <div className="space-y-4">
-                            {FAQ_ITEMS.map((item, i) => (
+                            {faqItems.map((item, i) => (
                                 <Card key={i} className="p-5 border-border/50">
                                     <h3 className="font-semibold text-sm mb-2 flex items-start gap-2">
                                         <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">Q</Badge>
@@ -1498,11 +1512,11 @@ export default function PdfToolsPage() {
                             <div className="flex items-center gap-3">
                                 <Shield className="h-5 w-5 text-red-500 shrink-0" />
                                 <h2 id="privacy-heading" className="font-bold text-sm uppercase tracking-wider">
-                                    ความเป็นส่วนตัวและความปลอดภัย
+                                    {t("seoPrivacyTitle")}
                                 </h2>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                ทั้ง <strong className="text-foreground">pdf-lib</strong> (สำหรับ Merge/Split/Compress) และ <strong className="text-foreground">pdfjs-dist</strong> (สำหรับ PDF→JPG และ Compress) รันทั้งหมดภายใน browser sandbox ของคุณ ไฟล์ PDF ถูกโหลดเข้า RAM ประมวลผล และส่งออกมาโดยไม่มีการส่ง network request ใดๆ ออกไป ไม่มีการเก็บ log ไม่มี cookie และไม่มีการติดตามเนื้อหาในไฟล์ของคุณ
+                                {t.rich("seoPrivacyDesc", { strong: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
                             </p>
                             <div className="flex flex-wrap gap-2 pt-1">
                                 <Badge variant="outline" className="text-[11px]">No Upload</Badge>
@@ -1514,6 +1528,7 @@ export default function PdfToolsPage() {
                     </section>
 
                 </div>
+
 
                 <AdUnit
                     slotId="2863984675"

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
@@ -6,85 +5,99 @@ import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ArrowRight, Hash, Lock, ImageIcon, MonitorPlay, Zap, FileText, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdUnit } from "@/components/ad-unit";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const metadata: Metadata = {
-    title: "รวมเครื่องมือออนไลน์ Developer & Security Tools",
-    description: "รวมหลากหลายเครื่องมือด้านความปลอดภัยและยูทิลิตี้สำหรับนักพัฒนาและผู้ดูแลระบบ ใช้งานฟรีและปลอดภัย",
-    alternates: { canonical: "https://yuukub.com/tools/" },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'ToolsHub' });
 
-const TOOLS = [
-    {
-        title: "WordPress XML-RPC Checker",
-        description: "ตรวจสอบช่องโหว่ XML-RPC บน WordPress ของคุณ พร้อมแนะนำวิธีป้องกันและเพิ่มความปลอดภัย",
-        icon: <ShieldCheck className="h-6 w-6 text-emerald-500" />,
-        href: "/tools/xmlrpc-checker/",
-        tags: ["Security", "WordPress"],
-        colorClass: "bg-emerald-500/10 text-emerald-500",
-    },
-    {
-        title: "Hash Generator",
-        description: "สร้างรหัส MD5 และ SHA-256 ภายในเครื่องของคุณ ใช้สำหรับรีเซ็ตรหัสผ่าน WordPress ผ่าน phpMyAdmin",
-        icon: <Hash className="h-6 w-6 text-blue-500" />,
-        href: "/tools/hash-generator/",
-        tags: ["Security", "DevOps"],
-        colorClass: "bg-blue-500/10 text-blue-500",
-    },
-    {
-        title: "Password Generator",
-        description: "สร้างรหัสผ่านที่ปลอดภัยและคาดเดายาก (Secure Password) พร้อมระบบวัดความแข็งแรงในตัว",
-        icon: <Lock className="h-6 w-6 text-purple-500" />,
-        href: "/tools/password-generator/",
-        tags: ["Productivity", "Security"],
-        colorClass: "bg-purple-500/10 text-purple-500",
-    },
-    {
-        title: "Image Converter",
-        description: "แปลงรูป JPG, PNG, WebP, AVIF ไปมาได้อย่างอิสระ รองรับหลายไฟล์ ประมวลผลในเครื่อง 100%",
-        icon: <ImageIcon className="h-6 w-6 text-orange-500" />,
-        href: "/tools/image-converter/",
-        tags: ["Media", "Productivity"],
-        colorClass: "bg-orange-500/10 text-orange-500",
-    },
-    {
-        title: "Background Remover",
-        description: "ลบพื้นหลังรูปภาพด้วย AI แบบ local-first ส่งออก PNG/WebP โปร่งใสเต็มความละเอียด พร้อม Cloudflare fallback เมื่อ WebGPU ใช้ไม่ได้",
-        icon: <Eraser className="h-6 w-6 text-cyan-500" />,
-        href: "/tools/background-remover/",
-        tags: ["AI", "Media"],
-        colorClass: "bg-cyan-500/10 text-cyan-500",
-    },
-    {
-        title: "Live Web Previewer",
-        description: "เขียนและทดสอบโค้ด HTML/CSS/JS หรือวางโค้ดจาก AI เพื่อดูตัวอย่างหน้าเว็บได้แบบเรียลไทม์ พร้อมโหมดเต็มจอ",
-        icon: <MonitorPlay className="h-6 w-6 text-fuchsia-500" />,
-        href: "/tools/web-previewer/",
-        tags: ["Developer", "Live Preview"],
-        colorClass: "bg-fuchsia-500/10 text-fuchsia-500",
-    },
-    {
-        title: "API Tester",
-        description: "ทดสอบยิง REST API แบบ GET/POST/PUT/DELETE พร้อมระบบ Import โค้ด cURL อัตโนมัติ ใช้งานได้ทันทีจากเบราว์เซอร์",
-        icon: <Zap className="h-6 w-6 text-cyan-500" />,
-        href: "/tools/api-tester/",
-        tags: ["Developer", "API"],
-        colorClass: "bg-cyan-500/10 text-cyan-500",
-    },
-    {
-        title: "PDF Tools",
-        description: "รวม PDF, แยกหน้า และแปลง PDF เป็นรูปภาพ JPG ประมวลผลในเครื่อง 100%",
-        icon: <FileText className="h-6 w-6 text-red-500" />,
-        href: "/tools/pdf-tools/",
-        tags: ["PDF", "Productivity"],
-        colorClass: "bg-red-500/10 text-red-500",
-    },
-];
-
-import { setRequestLocale } from "next-intl/server";
+    return {
+        title: t('metaTitle'),
+        description: t('metaDesc'),
+        alternates: {
+            canonical: `https://yuukub.com/${locale}/tools/`,
+            languages: {
+                th: "https://yuukub.com/th/tools/",
+                en: "https://yuukub.com/en/tools/",
+                "x-default": "https://yuukub.com/th/tools/",
+            }
+        },
+    };
+}
 
 export default async function ToolsPage({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     setRequestLocale(locale);
+
+    const t = await getTranslations("ToolsHub");
+
+    const tools = [
+        {
+            key: "xmlrpc",
+            title: "WordPress XML-RPC Checker",
+            icon: <ShieldCheck className="h-6 w-6 text-emerald-500" />,
+            href: "/tools/xmlrpc-checker/",
+            tags: ["Security", "WordPress"],
+            colorClass: "bg-emerald-500/10 text-emerald-500",
+        },
+        {
+            key: "hash",
+            title: "Hash Generator",
+            icon: <Hash className="h-6 w-6 text-blue-500" />,
+            href: "/tools/hash-generator/",
+            tags: ["Security", "DevOps"],
+            colorClass: "bg-blue-500/10 text-blue-500",
+        },
+        {
+            key: "password",
+            title: "Password Generator",
+            icon: <Lock className="h-6 w-6 text-purple-500" />,
+            href: "/tools/password-generator/",
+            tags: ["Productivity", "Security"],
+            colorClass: "bg-purple-500/10 text-purple-500",
+        },
+        {
+            key: "image",
+            title: "Image Converter",
+            icon: <ImageIcon className="h-6 w-6 text-orange-500" />,
+            href: "/tools/image-converter/",
+            tags: ["Media", "Productivity"],
+            colorClass: "bg-orange-500/10 text-orange-500",
+        },
+        {
+            key: "background",
+            title: "Background Remover",
+            icon: <Eraser className="h-6 w-6 text-cyan-500" />,
+            href: "/tools/background-remover/",
+            tags: ["AI", "Media"],
+            colorClass: "bg-cyan-500/10 text-cyan-500",
+        },
+        {
+            key: "previewer",
+            title: "Live Web Previewer",
+            icon: <MonitorPlay className="h-6 w-6 text-fuchsia-500" />,
+            href: "/tools/web-previewer/",
+            tags: ["Developer", "Live Preview"],
+            colorClass: "bg-fuchsia-500/10 text-fuchsia-500",
+        },
+        {
+            key: "api",
+            title: "API Tester",
+            icon: <Zap className="h-6 w-6 text-cyan-500" />,
+            href: "/tools/api-tester/",
+            tags: ["Developer", "API"],
+            colorClass: "bg-cyan-500/10 text-cyan-500",
+        },
+        {
+            key: "pdf",
+            title: "PDF Tools",
+            icon: <FileText className="h-6 w-6 text-red-500" />,
+            href: "/tools/pdf-tools/",
+            tags: ["PDF", "Productivity"],
+            colorClass: "bg-red-500/10 text-red-500",
+        },
+    ];
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             {/* Mesh Background */}
@@ -95,18 +108,18 @@ export default async function ToolsPage({ params }: { params: Promise<{ locale: 
             <main className="container mx-auto px-4 pt-32 pb-24 max-w-5xl">
                 <section className="flex flex-col items-center text-center gap-6 mb-12 border-b border-border/10 pb-12">
                     <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 text-primary px-4 py-1">
-                        Developer Tools & Utilities
+                        {t('badge')}
                     </Badge>
 
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-                        Premium Tools for<br />
+                        {t('title')}<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">
-                            Security & Productivity
+                            {t('titleGradient')}
                         </span>
                     </h1>
 
                     <p className="text-lg text-muted-foreground max-w-2xl text-balance leading-relaxed">
-                        รวมเครื่องมือสารพัดประโยชน์ที่ช่วยคุณตรวจสอบความปลอดภัยและเพิ่มประสิทธิภาพการทำงาน ใช้งานฟรี และให้ความสำคัญกับความเป็นส่วนตัวของคุณเป็นอันดับแรก (Privacy-First)
+                        {t('desc')}
                     </p>
                 </section>
 
@@ -118,7 +131,7 @@ export default async function ToolsPage({ params }: { params: Promise<{ locale: 
                 />
 
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {TOOLS.map((tool) => (
+                    {tools.map((tool) => (
                         <Link key={tool.title} href={tool.href} className="group">
                             <Card className="h-full p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border/50 backdrop-blur-sm">
                                 <div>
@@ -129,7 +142,7 @@ export default async function ToolsPage({ params }: { params: Promise<{ locale: 
                                         <h3 className="text-xl font-bold tracking-tight group-hover:text-primary transition-colors">{tool.title}</h3>
                                     </div>
                                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                                        {tool.description}
+                                        {t(`items.${tool.key}.desc`)}
                                     </p>
                                 </div>
 
