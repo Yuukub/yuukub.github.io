@@ -6,6 +6,7 @@
     "dev": "next dev",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "node scripts/build-safe.mjs",
+    "postbuild": "node scripts/generate-redirects.mjs",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node scripts/copy-wasm.mjs"
