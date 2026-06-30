@@ -1,0 +1,51 @@
+# yuukub.com
+
+> yuukub.com is a bilingual (Thai and English) web portal featuring professional developer utilities, security audit tools, and a technical knowledge hub curated by Saranyuu Meekumlang, a Systems Architect and Cybersecurity Consultant.
+
+This index maps the main landing pages, developer tools, and security guides available on the site in both Thai (TH) and English (EN).
+
+## Core Pages (Thai)
+- [Home (TH)](https://yuukub.com/th/): Homepage of Saranyuu Meekumlang.
+- [About (TH)](https://yuukub.com/th/about/): About the site and developer.
+- [Contact (TH)](https://yuukub.com/th/contact/): Contact methods and details.
+- [Tools Hub (TH)](https://yuukub.com/th/tools/): List of all developer utilities.
+- [Knowledge Hub / Blog (TH)](https://yuukub.com/th/blog/): Articles on WordPress security, Technical SEO, and full-stack development.
+
+## Core Pages (English)
+- [Home (EN)](https://yuukub.com/en/): English homepage.
+- [About (EN)](https://yuukub.com/en/about/): English about page.
+- [Contact (EN)](https://yuukub.com/en/contact/): English contact page.
+- [Tools Hub (EN)](https://yuukub.com/en/tools/): English tools page.
+- [Knowledge Hub / Blog (EN)](https://yuukub.com/en/blog/): English blog landing.
+
+## Developer & Security Tools (Thai)
+- [WordPress XML-RPC Checker (TH)](https://yuukub.com/th/tools/xmlrpc-checker/): Tool to verify if `xmlrpc.php` is active and vulnerable.
+- [Hash Generator (TH)](https://yuukub.com/th/tools/hash-generator/): Create MD5 and SHA-256 password hashes locally.
+- [Password Generator (TH)](https://yuukub.com/th/tools/password-generator/): Generate secure random passwords client-side.
+- [Image Converter (TH)](https://yuukub.com/th/tools/image-converter/): Convert and resize images locally using WebAssembly.
+- [Background Remover (TH)](https://yuukub.com/th/tools/background-remover/): Remove image backgrounds locally using ONNX Web workers.
+- [Live Web Previewer (TH)](https://yuukub.com/th/tools/web-previewer/): Safe preview rendering for HTML/CSS/JS snippets.
+- [API Tester (TH)](https://yuukub.com/th/tools/api-tester/): Make REST and GraphQL API requests via browser.
+- [PDF Tools (TH)](https://yuukub.com/th/tools/pdf-tools/): Merge, split, and sign PDFs locally.
+
+## Developer & Security Tools (English)
+- [WordPress XML-RPC Checker (EN)](https://yuukub.com/en/tools/xmlrpc-checker/): Check WordPress XML-RPC status.
+- [Hash Generator (EN)](https://yuukub.com/en/tools/hash-generator/): Local hash compiler.
+- [Password Generator (EN)](https://yuukub.com/en/tools/password-generator/): Local password generator.
+- [Image Converter (EN)](https://yuukub.com/en/tools/image-converter/): WASM image converter.
+- [Background Remover (EN)](https://yuukub.com/en/tools/background-remover/): AI background remover.
+- [Live Web Previewer (EN)](https://yuukub.com/en/tools/web-previewer/): Live HTML viewer.
+- [API Tester (EN)](https://yuukub.com/en/tools/api-tester/): Local API client.
+- [PDF Tools (EN)](https://yuukub.com/en/tools/pdf-tools/): Client-side PDF merger/splitter.
+
+## Key Security Guides (Thai)
+- [WordPress Security Hardening (TH)](https://yuukub.com/th/blog/wordpress-security/): WordPress defense guide.
+- [OWASP Top 10 Deep Dive (TH)](https://yuukub.com/th/blog/owasp-top-10-deep-dive/): Web application vulnerabilities guide.
+- [SQL Injection (SQLi) Prevention (TH)](https://yuukub.com/th/blog/sqli-deep-dive-2026/): SQLi defense.
+- [WordPress Brute Force Attack Defense (TH)](https://yuukub.com/th/blog/wp-brute-force-attack-defense/): Defend against authentication attacks.
+
+## Key Security Guides (English)
+- [WordPress Security Hardening (EN)](https://yuukub.com/en/blog/wordpress-security/): English security guide.
+- [OWASP Top 10 Deep Dive (EN)](https://yuukub.com/en/blog/owasp-top-10-deep-dive/): English OWASP guide.
+- [SQL Injection (SQLi) Prevention (EN)](https://yuukub.com/en/blog/sqli-deep-dive-2026/): English SQLi guide.
+- [WordPress Brute Force Attack Defense (EN)](https://yuukub.com/en/blog/wp-brute-force-attack-defense/): English authentication defense.
