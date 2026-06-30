@@ -598,7 +598,7 @@ export default function BackgroundRemoverPage() {
             {
                 "@type": "WebApplication",
                 name: "AI Background Remover",
-                url: "https://yuukub.com/tools/background-remover/",
+                url: `https://yuukub.com/${locale}/tools/background-remover/`,
                 applicationCategory: "MultimediaApplication",
                 operatingSystem: "Any",
                 inLanguage: locale === "th" ? "th-TH" : "en-US",
@@ -620,14 +620,20 @@ export default function BackgroundRemoverPage() {
                     {
                         "@type": "ListItem",
                         position: 1,
-                        name: "Tools",
-                        item: "https://yuukub.com/tools/",
+                        name: "Home",
+                        item: `https://yuukub.com/${locale}/`,
                     },
                     {
                         "@type": "ListItem",
                         position: 2,
+                        name: "Tools",
+                        item: `https://yuukub.com/${locale}/tools/`,
+                    },
+                    {
+                        "@type": "ListItem",
+                        position: 3,
                         name: "Background Remover",
-                        item: "https://yuukub.com/tools/background-remover/",
+                        item: `https://yuukub.com/${locale}/tools/background-remover/`,
                     },
                 ],
             },

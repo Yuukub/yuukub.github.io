@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, CheckCircle2, Lock, Shield, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { AdUnit } from "@/components/ad-unit";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function PasswordGenerator() {
+    const locale = useLocale();
     const [password, setPassword] = useState("");
     const [length, setLength] = useState(16);
     const [options, setOptions] = useState({
@@ -81,8 +82,36 @@ export default function PasswordGenerator() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const softwareAppJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Password Generator",
+        "operatingSystem": "All",
+        "applicationCategory": "SecurityApplication",
+        "browserRequirements": "Requires HTML5, Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    };
+
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": `https://yuukub.com/${locale}/tools/` },
+            { "@type": "ListItem", "position": 3, "name": "Password Generator", "item": `https://yuukub.com/${locale}/tools/password-generator/` }
+        ]
+    };
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([softwareAppJsonLd, breadcrumbJsonLd]) }}
+            />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
 

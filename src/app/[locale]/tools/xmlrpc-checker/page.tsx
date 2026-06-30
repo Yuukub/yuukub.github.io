@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,9 @@ export default function XmlRpcCheckerPage() {
         }
     };
 
+    const params = useParams();
+    const locale = params?.locale as string || "th";
+
     const faqJsonLd = {
         "@context": "https://schema.org",
         "@type": "FAQPage",
@@ -111,11 +115,35 @@ export default function XmlRpcCheckerPage() {
         })),
     };
 
+    const softwareAppJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "WordPress XML-RPC Checker",
+        "operatingSystem": "All",
+        "applicationCategory": "SecurityApplication",
+        "browserRequirements": "Requires HTML5, Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    };
+
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": `https://yuukub.com/${locale}/tools/` },
+            { "@type": "ListItem", "position": 3, "name": "WordPress XML-RPC Checker", "item": `https://yuukub.com/${locale}/tools/xmlrpc-checker/` }
+        ]
+    };
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqJsonLd, softwareAppJsonLd, breadcrumbJsonLd]) }}
             />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />

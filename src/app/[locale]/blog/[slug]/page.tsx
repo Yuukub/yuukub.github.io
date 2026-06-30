@@ -64,9 +64,9 @@ export default async function Post({ params }: { params: Promise<{ slug: string;
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.com/blog/" },
-            { "@type": "ListItem", "position": 3, "name": postData.title, "item": `https://yuukub.com/blog/${slug}/` }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": `https://yuukub.com/${locale}/blog/` },
+            { "@type": "ListItem", "position": 3, "name": postData.title, "item": `https://yuukub.com/${locale}/blog/${slug}/` }
         ]
     };
 

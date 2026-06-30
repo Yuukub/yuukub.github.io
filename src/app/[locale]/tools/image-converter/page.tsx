@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { AdUnit } from "@/components/ad-unit";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 /* ─── Types ────────────────────────────────────────────────── */
 
@@ -79,6 +79,7 @@ function uid(): string {
 
 export default function ImageConverterPage() {
     const t = useTranslations("ImageConverter");
+    const locale = useLocale();
 
     const getLocalizedProgress = (progress: string) => {
         if (progress === "เตรียมพร้อม...") return t("progress.preparing");
@@ -449,11 +450,35 @@ export default function ImageConverterPage() {
         })),
     };
 
+    const softwareAppJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Image Converter",
+        "operatingSystem": "All",
+        "applicationCategory": "MultimediaApplication",
+        "browserRequirements": "Requires HTML5, Web Browser, WebAssembly",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    };
+
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": `https://yuukub.com/${locale}/tools/` },
+            { "@type": "ListItem", "position": 3, "name": "Image Converter", "item": `https://yuukub.com/${locale}/tools/image-converter/` }
+        ]
+    };
+
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqJsonLd, softwareAppJsonLd, breadcrumbJsonLd]) }}
             />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />

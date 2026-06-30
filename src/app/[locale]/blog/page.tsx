@@ -38,8 +38,8 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                         "@context": "https://schema.org",
                         "@type": "BreadcrumbList",
                         "itemListElement": [
-                            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yuukub.com/" },
-                            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://yuukub.com/blog/" }
+                            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+                            { "@type": "ListItem", "position": 2, "name": "Blog", "item": `https://yuukub.com/${locale}/blog/` }
                         ]
                     })
                 }}

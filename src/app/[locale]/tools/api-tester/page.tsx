@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1504,6 +1505,9 @@ export default function ApiTesterPage() {
         );
     };
 
+    const params = useParams();
+    const locale = params?.locale as string || "th";
+
     const faqJsonLd = {
         "@context": "https://schema.org",
         "@type": "FAQPage",
@@ -1514,12 +1518,36 @@ export default function ApiTesterPage() {
         })),
     };
 
+    const softwareAppJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "API Tester",
+        "operatingSystem": "All",
+        "applicationCategory": "DeveloperApplication",
+        "browserRequirements": "Requires HTML5, Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    };
+
+    const breadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `https://yuukub.com/${locale}/` },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": `https://yuukub.com/${locale}/tools/` },
+            { "@type": "ListItem", "position": 3, "name": "API Tester", "item": `https://yuukub.com/${locale}/tools/api-tester/` }
+        ]
+    };
+
     // ─── JSX ────────────────────────────────────────────
     return (
         <div className="min-h-screen selection:bg-primary/20 relative">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([faqJsonLd, softwareAppJsonLd, breadcrumbJsonLd]) }}
             />
             {/* Mesh Background */}
             <div className="fixed inset-0 -z-10 mesh-gradient opacity-40 dark:opacity-20 pointer-events-none" />
