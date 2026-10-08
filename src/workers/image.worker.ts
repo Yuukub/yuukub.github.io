@@ -6,10 +6,12 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { orientPixels, readMetadata, writeMetadata } from '@/lib/image-metadata';
+
 // We'll dynamically import the @jsquash modules and manually init their WASM
 // using fetch() from the public/wasm/ folder.
 
-const WASM_BASE = '/wasm';
+let WASM_BASE = '/wasm';
 
 // Cache for initialized modules
 let avifDecModule: any = null;
@@ -116,15 +118,18 @@ function getMimeType(format: string): string {
 }
 
 self.onmessage = async (e: MessageEvent) => {
-    const { type, id, imageBuffer, inputFormat, outputFormat, quality, effort } = e.data;
+    const { type, id, imageBuffer, inputFormat, outputFormat, quality, effort, removeMetadata = true, wasmBaseUrl } = e.data;
 
     if (type !== 'encode') return;
+    // Workers may have a blob URL, which cannot resolve root-relative fetch URLs.
+    if (wasmBaseUrl) WASM_BASE = wasmBaseUrl;
 
     try {
         // Step 1: Decode
         self.postMessage({ type: 'progress', id, message: `กำลังถอดรหัส ${inputFormat.toUpperCase()}...` });
         const decode = await initDecoder(inputFormat);
-        const imageData: ImageData = await decode(imageBuffer);
+        const metadata = readMetadata(imageBuffer, inputFormat);
+        const imageData = orientPixels(await decode(imageBuffer), metadata);
 
         // Step 2: Encode
         self.postMessage({ type: 'progress', id, message: `กำลังเข้ารหัส ${outputFormat.toUpperCase()}...` });
@@ -143,7 +148,13 @@ self.onmessage = async (e: MessageEvent) => {
         }
         // PNG doesn't typically have quality options
 
-        const encodedData: ArrayBuffer = await encode(imageData, encodeOptions);
+        let encodedData: ArrayBuffer = await encode(imageData, encodeOptions);
+        let metadataWarning = false;
+        if (!removeMetadata) {
+            const result = writeMetadata(encodedData, outputFormat, metadata, imageData.width, imageData.height);
+            encodedData = result.buffer;
+            metadataWarning = result.incomplete;
+        }
 
         // Step 3: Create Blob and send back
         const blob = new Blob([encodedData], { type: getMimeType(outputFormat) });
@@ -154,6 +165,7 @@ self.onmessage = async (e: MessageEvent) => {
             blob,
             originalSize: imageBuffer.byteLength,
             newSize: encodedData.byteLength,
+            metadataWarning,
         });
     } catch (err: any) {
         self.postMessage({

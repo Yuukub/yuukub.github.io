@@ -568,11 +568,13 @@
       "qualityLabel": "Quality:",
       "qualityDesc": "0 = smallest • 100 = best quality",
       "effortLabel": "Effort:",
-      "effortDesc": "1 = fastest • 9 = smallest size"
+      "effortDesc": "1 = fastest • 9 = smallest size",
+      "removeMetadata": "Remove metadata"
     },
     "queue": {
       "title": "File List ({count})",
-      "clearAll": "Clear All"
+      "clearAll": "Clear All",
+      "metadataWarning": "Some metadata could not be preserved"
     },
     "progress": {
       "preparing": "Preparing...",
@@ -694,6 +696,13 @@
           "wasm": "WebAssembly Powered",
           "noCookies": "No Cookies"
         }
+      },
+      "metadata": {
+        "title": "Removing and keeping metadata",
+        "description": "Metadata is information stored inside an image file, such as camera details, capture date, GPS location and copyright. EXIF or XMP can carry this information into files you share.",
+        "modes": "Remove metadata is on by default. When on, the converter does not attach the original EXIF/XMP to the converted image. Turn it off to keep supported EXIF/XMP, including GPS if present. This setting applies to the whole batch and takes effect when you convert again.",
+        "limits": "EXIF/XMP can be read and preserved in JPG, PNG, WebP and AVIF. Orientation and dimensions are updated to match the output image. Manufacturer-specific data, thumbnails and other metadata types are not guaranteed to be preserved. A warning appears on each affected file if metadata is damaged or cannot be fully transferred.",
+        "local": "Metadata is read, removed and preserved in your browser, on your device. Images are not uploaded to a server. Exact preservation of original color information such as ICC profiles is not currently supported."
       }
     }
   },

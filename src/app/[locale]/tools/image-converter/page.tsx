@@ -44,6 +44,7 @@ interface QueueItem {
     convertedSize?: number;
     previewUrl?: string; // Add preview URL
     errorMessage?: string;
+    metadataWarning?: boolean;
 }
 
 /* ─── Helpers ──────────────────────────────────────────────── */
@@ -169,6 +170,7 @@ export default function ImageConverterPage() {
     const [outputFormat, setOutputFormat] = useState<ImageFormat>("webp");
     const [quality, setQuality] = useState(75);
     const [effort, setEffort] = useState(4);
+    const [removeMetadata, setRemoveMetadata] = useState(true);
     const [isConverting, setIsConverting] = useState(false);
     const [convertedCount, setConvertedCount] = useState(0);
     const [dragActive, setDragActive] = useState(false);
@@ -260,6 +262,7 @@ export default function ImageConverterPage() {
                 convertedBlob: undefined,
                 convertedSize: undefined,
                 errorMessage: undefined,
+                metadataWarning: undefined,
                 progress: undefined,
             }))
         );
@@ -311,6 +314,7 @@ export default function ImageConverterPage() {
                                         status: "done" as FileStatus,
                                         convertedBlob: msg.blob,
                                         convertedSize: msg.newSize,
+                                        metadataWarning: msg.metadataWarning,
                                     }
                                     : q
                             )
@@ -362,10 +366,14 @@ export default function ImageConverterPage() {
                     outputFormat,
                     quality,
                     effort,
+                    removeMetadata,
+                    wasmBaseUrl: new URL('/wasm', window.location.href).href,
                 });
             });
         }
 
+        worker.terminate();
+        workerRef.current = null;
         setIsConverting(false);
     };
 
@@ -507,7 +515,7 @@ export default function ImageConverterPage() {
                     </p>
                 </div>
 
-                <div className="grid gap-6">
+                <div className="grid grid-cols-1 gap-6">
                     {/* Drop Zone */}
                     <Card
                         className={`border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${dragActive
@@ -564,6 +572,20 @@ export default function ImageConverterPage() {
                                 {t("settings.title")}
                             </h3>
                             <div className="space-y-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <span id="metadata-toggle-label" className="text-sm font-medium">{t("settings.removeMetadata")}</span>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-labelledby="metadata-toggle-label"
+                                        aria-checked={removeMetadata}
+                                        onClick={() => setRemoveMetadata((value) => !value)}
+                                        disabled={isConverting}
+                                        className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:opacity-50 ${removeMetadata ? "bg-orange-500 border-orange-500" : "bg-muted border-border"}`}
+                                    >
+                                        <span aria-hidden="true" className={`absolute top-0.5 left-0.5 h-4.5 w-4.5 rounded-full bg-white shadow-sm transition-transform ${removeMetadata ? "translate-x-5" : "translate-x-0"}`} />
+                                    </button>
+                                </div>
                                 {/* Output Format */}
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
@@ -681,7 +703,7 @@ export default function ImageConverterPage() {
                                 {queue.map((item) => (
                                     <Card
                                         key={item.id}
-                                        className={`p-4 border-border/50 transition-all ${item.status === "done"
+                                        className={`p-4 gap-2 border-border/50 transition-all ${item.status === "done"
                                             ? "bg-emerald-500/[0.03] border-emerald-500/20"
                                             : item.status === "error"
                                                 ? "bg-red-500/[0.03] border-red-500/20"
@@ -728,7 +750,7 @@ export default function ImageConverterPage() {
                                                 <p className="text-sm font-medium truncate">
                                                     {item.name}
                                                 </p>
-                                                <div className="flex items-center gap-2 mt-0.5">
+                                                <div className="flex flex-wrap items-center gap-2 mt-0.5">
                                                     <span className="text-xs text-muted-foreground">
                                                         {formatBytes(
                                                             item.originalSize
@@ -818,6 +840,11 @@ export default function ImageConverterPage() {
                                                 )}
                                             </div>
                                         </div>
+                                        {item.status === "done" && item.metadataWarning && (
+                                            <p role="status" className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                                {t("queue.metadataWarning")}
+                                            </p>
+                                        )}
                                     </Card>
                                 ))}
                             </div>
@@ -1036,6 +1063,18 @@ export default function ImageConverterPage() {
                                     <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                                 </Card>
                             ))}
+                        </div>
+                    </section>
+
+                    <section aria-labelledby="metadata-heading">
+                        <h2 id="metadata-heading" className="text-xl font-bold tracking-tight mb-4">
+                            {t("seo.metadata.title")}
+                        </h2>
+                        <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                            <p>{t("seo.metadata.description")}</p>
+                            <p>{t("seo.metadata.modes")}</p>
+                            <p>{t("seo.metadata.limits")}</p>
+                            <p>{t("seo.metadata.local")}</p>
                         </div>
                     </section>
 
