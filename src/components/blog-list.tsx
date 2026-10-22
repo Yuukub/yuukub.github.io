@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,8 +85,11 @@ export function BlogList({ posts }: BlogListProps) {
                         <Link key={slug} href={`/blog/${slug}/`} className="group h-full block">
                             <Card className="h-full flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-primary/20">
                                 {thumbnail && (
-                                    <div className="aspect-video w-full overflow-hidden shrink-0">
-                                        <img
+                                    <div className="relative aspect-video w-full overflow-hidden shrink-0">
+                                        <Image
+                                            fill
+                                            unoptimized
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                             src={thumbnail}
                                             alt={title}
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"

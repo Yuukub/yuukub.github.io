@@ -118,7 +118,7 @@ async function readImageInfo(file: File): Promise<{ width: number; height: numbe
     return info;
 }
 
-const translateMessage = (msg: string, t: any): string => {
+const translateMessage = (msg: string, t: ReturnType<typeof useTranslations<"BackgroundRemover">>): string => {
     if (!msg) return "";
 
     // Exact matches
@@ -189,7 +189,7 @@ const translateMessage = (msg: string, t: any): string => {
     return msg;
 };
 
-const translateError = (errStr: string, t: any): string => {
+const translateError = (errStr: string, t: ReturnType<typeof useTranslations<"BackgroundRemover">>): string => {
     if (!errStr) return "";
     if (errStr.includes("รูปนี้มีความละเอียดสูงเกิน 32MP กรุณาย่อขนาดรูปก่อนใช้งาน")) return t("errorTooLarge");
     if (errStr.includes("รองรับเฉพาะ JPG, PNG และ WebP เท่านั้น")) return t("errorInvalidType");

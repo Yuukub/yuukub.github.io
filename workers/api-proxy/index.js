@@ -18,7 +18,7 @@ const CORS_HEADERS = {
 
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB limit
 
-export default {
+const apiProxyWorker = {
     async fetch(request) {
         const origin = request.headers.get('Origin') || '';
         const isAllowed = ALLOWED_ORIGINS.includes(origin);
@@ -123,3 +123,5 @@ function jsonResponse(data, status, origin) {
         },
     });
 }
+
+export default apiProxyWorker;

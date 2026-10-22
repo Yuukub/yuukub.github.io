@@ -1,10 +1,10 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { getPostData, getAllPostSlugs } from "@/lib/blog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Calendar, ChevronLeft, Tag as TagIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
@@ -120,8 +120,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string;
 
                         {/* Cover Image */}
                         {postData.thumbnail && (
-                            <div className="mt-8 aspect-video w-full overflow-hidden rounded-xl border border-border/50 shadow-md">
-                                <img
+                            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-xl border border-border/50 shadow-md">
+                                <Image
+                                    fill
+                                    unoptimized
+                                    sizes="(max-width: 1024px) 100vw, 896px"
                                     src={postData.thumbnail}
                                     alt={postData.title}
                                     className="w-full h-full object-cover"

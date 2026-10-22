@@ -41,16 +41,6 @@ type GpuStatus =
     | { available: true; supportsFp16: boolean }
     | { available: false; reason: string };
 
-interface NavigatorWithGpu extends Navigator {
-    gpu?: {
-        requestAdapter: () => Promise<{
-            features: {
-                has: (feature: string) => boolean;
-            };
-        } | null>;
-    };
-}
-
 function postProgress(id: string, message: string, progress: number, engine?: Engine) {
     self.postMessage({
         type: "progress",
@@ -92,7 +82,7 @@ function progressFromInfo(info: ProgressInfo): number {
 }
 
 async function getGpuStatus(): Promise<GpuStatus> {
-    const nav = navigator as NavigatorWithGpu;
+    const nav = navigator;
     if (!nav.gpu) {
         return {
             available: false,

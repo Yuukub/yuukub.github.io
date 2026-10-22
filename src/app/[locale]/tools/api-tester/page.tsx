@@ -14,9 +14,9 @@ import { Link } from "@/i18n/routing";
 import {
     ArrowLeft, Zap, Send, Loader2, Clock, Copy, CheckCircle2,
     Trash2, ChevronDown, ChevronUp, AlertCircle, Code2, RotateCcw, History,
-    Info, HelpCircle, Layers, Shield, Globe, Plus, Folder, Save, Upload, X, Sliders, ExternalLink
+    Info, HelpCircle, Layers, Shield, Globe, Plus, Folder, Save, Upload, X, Sliders
 } from "lucide-react";
-import { resolveVariables, findUnresolvedVariables, type EnvVariable, type Environment } from "./lib/variables";
+import { resolveVariables, type EnvVariable, type Environment } from "./lib/variables";
 import { importFile, type ApiRequest, type Collection, type KeyValue } from "./lib/importExport";
 
 // ─────────────────────────────────────────────────────────
@@ -26,6 +26,8 @@ import { importFile, type ApiRequest, type Collection, type KeyValue } from "./l
 // ─────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────
+type KeyValueField = "key" | "value" | "enabled" | "description";
+
 interface ParsedRequest {
     url: string;
     method: string;
@@ -83,7 +85,6 @@ interface Tab {
 // ─────────────────────────────────────────────────────────
 const PROXY_URL = process.env.NEXT_PUBLIC_API_PROXY_URL || "https://api-proxy.sarnyou.workers.dev";
 const HISTORY_KEY = "api-tester-history";
-const MAX_HISTORY = 10;
 
 const METHOD_COLORS: Record<string, string> = {
     GET: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
@@ -386,6 +387,62 @@ function statusColor(code: number): string {
 // ─────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────
+const parseUrlToParams = (urlString: string): { baseUrl: string; params: KeyValue[] } => {
+    try {
+        const qIdx = urlString.indexOf("?");
+        if (qIdx === -1) {
+            return { baseUrl: urlString, params: [] };
+        }
+        const baseUrl = urlString.slice(0, qIdx);
+        const queryStr = urlString.slice(qIdx + 1);
+        if (!queryStr.trim()) {
+            return { baseUrl, params: [] };
+        }
+
+        const params: KeyValue[] = queryStr.split("&").map((pair) => {
+            const eqIdx = pair.indexOf("=");
+            let key = pair;
+            let value = "";
+            if (eqIdx !== -1) {
+                key = pair.slice(0, eqIdx);
+                value = pair.slice(eqIdx + 1);
+            }
+            return {
+                id: crypto.randomUUID(),
+                key: safeDecode(key),
+                value: safeDecode(value),
+                enabled: true,
+            };
+        });
+
+        return { baseUrl, params };
+    } catch {
+        return { baseUrl: urlString, params: [] };
+    }
+};
+
+const compileUrl = (baseUrl: string, params: KeyValue[]): string => {
+    const activeParams = params.filter((p) => p.enabled && p.key.trim());
+    if (activeParams.length === 0) {
+        return baseUrl;
+    }
+    const queryStr = activeParams
+        .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+        .join("&");
+
+    const base = baseUrl.split("?")[0];
+    return `${base}?${queryStr}`;
+};
+
+const safeDecode = (val: string): string => {
+    try {
+        return decodeURIComponent(val);
+    } catch {
+        return val;
+    }
+};
+
+
 export default function ApiTesterPage() {
     const t = useTranslations("ApiTester");
 
@@ -433,7 +490,7 @@ export default function ApiTesterPage() {
     const [importCode, setImportCode] = useState("");
     const [importExpanded, setImportExpanded] = useState(false);
     const [importSuccess, setImportSuccess] = useState("");
-    const [detectedLang, setDetectedLang] = useState("");
+    const detectedLang = detectLanguage(importCode);
 
     // History state
     const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -448,7 +505,6 @@ export default function ApiTesterPage() {
     // UI variables edit state
     const [tempVars, setTempVars] = useState<string>("");
     const [envName, setEnvName] = useState<string>("");
-    const [isManagingEnvs, setIsManagingEnvs] = useState<boolean>(false);
 
     // Collections state
     const [collections, setCollections] = useState<Collection[]>([]);
@@ -484,7 +540,8 @@ export default function ApiTesterPage() {
         isCorsError: false
     });
 
-    // Load states from localStorage
+    // Browser-only saved state must be restored after hydration of the static page.
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         try {
             const savedHistory = localStorage.getItem(HISTORY_KEY);
@@ -532,6 +589,8 @@ export default function ApiTesterPage() {
             setActiveTabId(initialTab.id);
         }
     }, []);
+
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     // Save tabs to localStorage
     useEffect(() => {
@@ -620,69 +679,8 @@ export default function ApiTesterPage() {
     // Live URL preview
     const resolvedUrl = resolveVariables(activeTab.url || "", activeVariables);
 
-    // Auto-detect language while typing import code
-    useEffect(() => {
-        setDetectedLang(detectLanguage(importCode));
-    }, [importCode]);
-
-    // Parse URL query parameters helper
-    const parseUrlToParams = (urlString: string): { baseUrl: string; params: KeyValue[] } => {
-        try {
-            const qIdx = urlString.indexOf("?");
-            if (qIdx === -1) {
-                return { baseUrl: urlString, params: [] };
-            }
-            const baseUrl = urlString.slice(0, qIdx);
-            const queryStr = urlString.slice(qIdx + 1);
-            if (!queryStr.trim()) {
-                return { baseUrl, params: [] };
-            }
-            
-            const params: KeyValue[] = queryStr.split("&").map((pair) => {
-                const eqIdx = pair.indexOf("=");
-                let key = pair;
-                let value = "";
-                if (eqIdx !== -1) {
-                    key = pair.slice(0, eqIdx);
-                    value = pair.slice(eqIdx + 1);
-                }
-                return {
-                    id: crypto.randomUUID(),
-                    key: safeDecode(key),
-                    value: safeDecode(value),
-                    enabled: true,
-                };
-            });
-            
-            return { baseUrl, params };
-        } catch {
-            return { baseUrl: urlString, params: [] };
-        }
-    };
-
-    const compileUrl = (baseUrl: string, params: KeyValue[]): string => {
-        const activeParams = params.filter((p) => p.enabled && p.key.trim());
-        if (activeParams.length === 0) {
-            return baseUrl;
-        }
-        const queryStr = activeParams
-            .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
-            .join("&");
-        
-        const base = baseUrl.split("?")[0];
-        return `${base}?${queryStr}`;
-    };
-
-    const safeDecode = (val: string): string => {
-        try {
-            return decodeURIComponent(val);
-        } catch {
-            return val;
-        }
-    };
-
     // ─── Import Handler ─────────────────────────────────
-    const handleImport = useCallback(() => {
+    const handleImport = () => {
         if (!importCode.trim()) return;
         const parsed = parseImportCode(importCode);
 
@@ -729,10 +727,10 @@ export default function ApiTesterPage() {
         setImportSuccess(t("importSuccess", { language: parsed.language }));
         setImportCode("");
         setTimeout(() => setImportSuccess(""), 3000);
-    }, [importCode]);
+    };
 
     // ─── Send Request Handler ───────────────────────────
-    const sendRequest = useCallback(async () => {
+    const sendRequest = async () => {
         if (!activeTab || !activeTab.url.trim()) return;
 
         setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, loading: true, response: null, error: "", isCorsError: false } : t));
@@ -773,7 +771,7 @@ export default function ApiTesterPage() {
         }
 
         // 3. Request Body
-        let finalBody: any = undefined;
+        let finalBody: string | FormData | undefined = undefined;
         if (activeTab.method !== "GET" && activeTab.method !== "HEAD") {
             if (activeTab.bodyMode === "json" || activeTab.bodyMode === "raw") {
                 finalBody = resolveVariables(activeTab.bodyRaw, activeVariables);
@@ -893,10 +891,10 @@ export default function ApiTesterPage() {
 
             setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, loading: false, error: errorMsg, isCorsError: corsErr } : t));
         }
-    }, [activeTab, activeVariables, directMode]);
+    };
 
     // ─── History Helpers ────────────────────────────────
-    const loadFromHistory = useCallback((item: HistoryItem) => {
+    const loadFromHistory = (item: HistoryItem) => {
         const parseHeaders = (hStr: string): KeyValue[] => {
             try {
                 if (!hStr.trim()) return [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }];
@@ -942,7 +940,7 @@ export default function ApiTesterPage() {
 
         setTabs(prev => [...prev, newT]);
         setActiveTabId(newT.id);
-    }, []);
+    };
 
     const handleCloseTab = (id: string) => {
         if (tabs.length === 1) return;
@@ -995,7 +993,6 @@ export default function ApiTesterPage() {
                 return { ...t, url: newUrl, params: t.params.filter(p => !p.enabled || p.key.trim() === "") };
             }
             
-            const baseUrl = newUrl.slice(0, qIdx);
             const queryStr = newUrl.slice(qIdx + 1);
             const parsedPairs = queryStr.split("&").map(pair => {
                 const eqIdx = pair.indexOf("=");
@@ -1032,7 +1029,7 @@ export default function ApiTesterPage() {
         }));
     };
 
-    const handleParamChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+    const handleParamChange = <Field extends KeyValueField>(index: number, field: Field, val: KeyValue[Field]) => {
         setTabs(prev => prev.map(t => {
             if (t.id !== activeTabId) return t;
             
@@ -1057,7 +1054,7 @@ export default function ApiTesterPage() {
         }));
     };
 
-    const handleHeaderChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+    const handleHeaderChange = <Field extends KeyValueField>(index: number, field: Field, val: KeyValue[Field]) => {
         setTabs(prev => prev.map(t => {
             if (t.id !== activeTabId) return t;
             
@@ -1081,7 +1078,7 @@ export default function ApiTesterPage() {
         }));
     };
 
-    const handleBodyKVChange = (type: "formData" | "urlEncoded", index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+    const handleBodyKVChange = <Field extends KeyValueField>(type: "formData" | "urlEncoded", index: number, field: Field, val: KeyValue[Field]) => {
         setTabs(prev => prev.map(t => {
             if (t.id !== activeTabId) return t;
             
@@ -1263,11 +1260,13 @@ export default function ApiTesterPage() {
             activeEnv.variables.forEach((v) => {
                 varObj[v.key] = v.value;
             });
+            // Reset the editable draft when a different saved environment is selected.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTempVars(JSON.stringify(varObj, null, 2));
         } else {
             setTempVars("{}");
         }
-    }, [activeEnvironmentId, environments]);
+    }, [activeEnvironmentId, activeEnv]);
 
     const handleSaveRequestToCollection = () => {
         if (!saveRequestName.trim()) return;
@@ -1353,7 +1352,7 @@ export default function ApiTesterPage() {
     };
 
     const loadCollectionRequest = (req: ApiRequest) => {
-        const mapRows = (rows: any[] | undefined): KeyValue[] => {
+        const mapRows = (rows: (KeyValue & { disabled?: boolean })[] | undefined): KeyValue[] => {
             if (!Array.isArray(rows)) return [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }];
             const mapped: KeyValue[] = rows.map(r => ({
                 id: r.id || crypto.randomUUID(),
@@ -1369,14 +1368,15 @@ export default function ApiTesterPage() {
         };
 
         const parsedUrl = parseUrlToParams(req.url || "");
+        const requestParams = mapRows(req.params?.length ? req.params : parsedUrl.params);
 
         const newTab: Tab = {
             id: crypto.randomUUID(),
             name: req.name || "GET Request",
             method: req.method || "GET",
-            url: req.url || "",
+            url: compileUrl(parsedUrl.baseUrl, requestParams),
             headers: mapRows(req.headers),
-            params: parsedUrl.params.length > 0 ? [...parsedUrl.params, { id: crypto.randomUUID(), key: "", value: "", enabled: true }] : [{ id: crypto.randomUUID(), key: "", value: "", enabled: true }],
+            params: requestParams,
             bodyMode: req.body?.mode || "none",
             bodyRaw: req.body?.raw || "",
             bodyFormData: mapRows(req.body?.formData),
@@ -1400,8 +1400,8 @@ export default function ApiTesterPage() {
             setTabs(prev => prev.map(t => t.id === activeTab.id ? newTab : t));
         } else {
             setTabs(prev => [...prev, newTab]);
-            setActiveTabId(newTab.id);
         }
+        setActiveTabId(newTab.id);
     };
 
     const handleDeleteCollection = (colId: string) => {
@@ -1443,7 +1443,7 @@ export default function ApiTesterPage() {
         type: "params" | "headers" | "formData" | "urlEncoded",
         rows: KeyValue[]
     ) => {
-        const onChange = (index: number, field: "key" | "value" | "enabled" | "description", val: any) => {
+        const onChange = <Field extends KeyValueField>(index: number, field: Field, val: KeyValue[Field]) => {
             if (type === "params") handleParamChange(index, field, val);
             else if (type === "headers") handleHeaderChange(index, field, val);
             else handleBodyKVChange(type === "formData" ? "formData" : "urlEncoded", index, field, val);
@@ -1975,7 +1975,7 @@ export default function ApiTesterPage() {
                                                     <button
                                                         key={tab.id}
                                                         type="button"
-                                                        onClick={() => setReqTab(tab.id as any)}
+                                                        onClick={() => setReqTab(tab.id as typeof reqTab)}
                                                         className={`px-3 py-1.5 text-xs font-semibold rounded-t-md border-b-2 transition-all ${
                                                             isActive
                                                                 ? "border-cyan-500 text-cyan-500 font-bold"
@@ -2012,7 +2012,7 @@ export default function ApiTesterPage() {
                                                         <label className="text-[10px] font-bold text-muted-foreground uppercase">Type</label>
                                                         <select
                                                             value={activeTab.authType}
-                                                            onChange={(e) => handleAuthTypeChange(e.target.value as any)}
+                                                            onChange={(e) => handleAuthTypeChange(e.target.value as Tab["authType"])}
                                                             className="w-full max-w-[200px] h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
                                                         >
                                                             <option value="none">No Auth</option>
@@ -2092,7 +2092,7 @@ export default function ApiTesterPage() {
                                                                 <label className="text-[10px] font-bold text-muted-foreground uppercase">Add to</label>
                                                                 <select
                                                                     value={activeTab.authApiKeyIn}
-                                                                    onChange={(e) => handleAuthFieldChange("authApiKeyIn", e.target.value as any)}
+                                                                    onChange={(e) => handleAuthFieldChange("authApiKeyIn", e.target.value)}
                                                                     className="w-full h-9 rounded-lg border border-border/50 bg-background px-3 text-xs focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
                                                                 >
                                                                     <option value="header">Header</option>
@@ -2128,7 +2128,7 @@ export default function ApiTesterPage() {
                                                             <button
                                                                 key={mode.id}
                                                                 type="button"
-                                                                onClick={() => handleBodyModeChange(mode.id as any)}
+                                                                onClick={() => handleBodyModeChange(mode.id as Tab["bodyMode"])}
                                                                 className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${
                                                                     activeTab.bodyMode === mode.id
                                                                         ? "bg-cyan-500/15 text-cyan-500 shadow-sm"

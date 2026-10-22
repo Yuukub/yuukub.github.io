@@ -1,4 +1,4 @@
-import { EnvVariable } from "./variables";
+import type { EnvVariable, Environment } from "./variables";
 
 export interface KeyValue {
     id: string;
@@ -62,26 +62,39 @@ export interface ImportReport {
 
 const newId = () => crypto.randomUUID();
 
-function descText(d: any): string | undefined {
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function record(value: unknown): Record<string, unknown> {
+    return isRecord(value) ? value : {};
+}
+
+function text(value: unknown, fallback = ""): string {
+    return value == null ? fallback : String(value);
+}
+
+function descText(d: unknown): string | undefined {
     if (typeof d === "string") return d;
-    if (d && typeof d === "object" && typeof d.content === "string") {
+    if (isRecord(d) && typeof d.content === "string") {
         return d.content;
     }
     return undefined;
 }
 
-function kvFromPm(kv: any): KeyValue {
+function kvFromPm(value: unknown): KeyValue {
+    const kv = record(value);
     return {
         id: newId(),
-        key: kv.key ?? "",
-        value: kv.value ?? "",
+        key: text(kv.key),
+        value: text(kv.value),
         enabled: kv.disabled !== true,
         description: descText(kv.description),
     };
 }
 
-export function detectFormat(data: any): "postman-collection" | "postman-environment" | "native" | "unknown" {
-    if (!data || typeof data !== "object") return "unknown";
+export function detectFormat(data: unknown): "postman-collection" | "postman-environment" | "native" | "unknown" {
+    if (!isRecord(data)) return "unknown";
     
     // Check native backup
     if (data.apiTesterBackupVersion === 1 || (data.collections && data.requests && data.environments)) {
@@ -89,7 +102,7 @@ export function detectFormat(data: any): "postman-collection" | "postman-environ
     }
 
     // Check Postman Collection
-    const info = data.info;
+    const info = record(data.info);
     if (info && Array.isArray(data.item) && (info._postman_id || (typeof info.schema === "string" && info.schema.includes("collection")))) {
         return "postman-collection";
     }
@@ -102,16 +115,18 @@ export function detectFormat(data: any): "postman-collection" | "postman-environ
     return "unknown";
 }
 
-export function importPostmanCollection(data: any, now: number): ImportReport {
+export function importPostmanCollection(input: unknown, now: number): ImportReport {
+    const data = record(input);
     const report: ImportReport = { collections: [], requests: [], environments: [], warnings: [], skipped: [] };
-    const info = data.info || {};
-    const items = data.item || [];
+    const info = record(data.info);
+    const items = Array.isArray(data.item) ? data.item : [];
 
-    const walk = (pmItems: any[], prefix: string) => {
-        for (const item of pmItems) {
+    const walk = (pmItems: unknown[], prefix: string) => {
+        for (const rawItem of pmItems) {
+            const item = record(rawItem);
             if (Array.isArray(item.item)) {
                 // Folder: flatten and prefix request name
-                const folderName = item.name ?? "Folder";
+                const folderName = text(item.name, "Folder");
                 walk(item.item, prefix ? `${prefix} / ${folderName}` : folderName);
                 continue;
             }
@@ -121,8 +136,8 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
                 continue;
             }
 
-            const name = prefix ? `${prefix} / ${item.name ?? "Request"}` : (item.name ?? "Request");
-            const pmReq = typeof item.request === "string" ? { url: item.request } : item.request;
+            const name = prefix ? `${prefix} / ${text(item.name, "Request")}` : text(item.name, "Request");
+            const pmReq = typeof item.request === "string" ? { url: item.request } : record(item.request);
             
             // Extract URL and parameters
             let url = "";
@@ -131,9 +146,10 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
                 if (typeof pmReq.url === "string") {
                     url = pmReq.url;
                 } else {
-                    url = pmReq.url.raw ?? "";
-                    if (Array.isArray(pmReq.url.query)) {
-                        params = pmReq.url.query.map(kvFromPm);
+                    const pmUrl = record(pmReq.url);
+                    url = text(pmUrl.raw);
+                    if (Array.isArray(pmUrl.query)) {
+                        params = pmUrl.query.map(kvFromPm);
                     }
                     if (url && params.length && url.includes("?")) {
                         url = url.split("?")[0]; // Query string is handled in params list
@@ -146,41 +162,43 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
 
             // Extract body
             let body: RequestBody = { mode: "none" };
-            if (pmReq.body && pmReq.body.mode) {
-                const mode = pmReq.body.mode;
+            const pmBody = record(pmReq.body);
+            if (pmBody.mode) {
+                const mode = pmBody.mode;
                 if (mode === "raw") {
-                    const lang = pmReq.body.options?.raw?.language;
+                    const lang = record(record(pmBody.options).raw).language;
                     const rawLang = lang === "json" || lang === "xml" || lang === "html" ? lang : "text";
                     body = {
                         mode: rawLang === "json" ? "json" : "raw",
-                        raw: pmReq.body.raw ?? "",
+                        raw: text(pmBody.raw),
                         rawLang,
                     };
                 } else if (mode === "formdata") {
                     body = {
                         mode: "form-data",
-                        formData: Array.isArray(pmReq.body.formdata) ? pmReq.body.formdata.map(kvFromPm) : [],
+                        formData: Array.isArray(pmBody.formdata) ? pmBody.formdata.map(kvFromPm) : [],
                     };
                 } else if (mode === "urlencoded") {
                     body = {
                         mode: "x-www-form-urlencoded",
-                        formData: Array.isArray(pmReq.body.urlencoded) ? pmReq.body.urlencoded.map(kvFromPm) : [],
+                        formData: Array.isArray(pmBody.urlencoded) ? pmBody.urlencoded.map(kvFromPm) : [],
                     };
                 }
             }
 
             // Extract Auth
             let auth: Auth = { type: "none" };
-            if (pmReq.auth && pmReq.auth.type && pmReq.auth.type !== "noauth") {
-                const authType = pmReq.auth.type;
-                const block = pmReq.auth[authType];
+            const pmAuth = record(pmReq.auth);
+            if (typeof pmAuth.type === "string" && pmAuth.type !== "noauth") {
+                const authType = pmAuth.type;
+                const block = pmAuth[authType];
                 
                 const getVal = (key: string): string => {
                     if (Array.isArray(block)) {
-                        const param = block.find((p: any) => p.key === key);
+                        const param = block.map(record).find((p) => p.key === key);
                         return typeof param?.value === "string" ? param.value : String(param?.value ?? "");
                     }
-                    if (block && typeof block === "object") {
+                    if (isRecord(block)) {
                         const v = block[key];
                         return typeof v === "string" ? v : "";
                     }
@@ -206,7 +224,7 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
             const req: ApiRequest = {
                 id: newId(),
                 name,
-                method: (pmReq.method ?? "GET").toUpperCase(),
+                method: text(pmReq.method, "GET").toUpperCase(),
                 url,
                 params,
                 headers,
@@ -224,7 +242,7 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
 
     const collection: Collection = {
         id: newId(),
-        name: info.name ?? "Postman Import",
+        name: text(info.name, "Postman Import"),
         description: descText(info.description),
         requestIds: report.requests.map((r) => r.id),
         createdAt: now,
@@ -237,27 +255,79 @@ export function importPostmanCollection(data: any, now: number): ImportReport {
     return report;
 }
 
-export function importPostmanEnvironment(data: any): ImportReport {
+export function importPostmanEnvironment(input: unknown): ImportReport {
+    const data = record(input);
     const report: ImportReport = { collections: [], requests: [], environments: [], warnings: [], skipped: [] };
-    const values = data.values ?? [];
+    const values = Array.isArray(data.values) ? data.values : [];
     
-    const variables: EnvVariable[] = values.map((v: any) => ({
+    const variables: EnvVariable[] = values.map(record).map((v) => ({
         id: newId(),
-        key: v.key ?? "",
+        key: text(v.key),
         value: typeof v.value === "string" ? v.value : String(v.value ?? ""),
         enabled: v.enabled !== false,
     }));
 
     report.environments.push({
         id: newId(),
-        name: data.name ?? "Postman Env",
+        name: text(data.name, "Postman Env"),
         variables,
     });
 
     return report;
 }
 
-export function importFile(data: any, now: number): ImportReport {
+function isKeyValue(value: unknown): value is KeyValue {
+    return isRecord(value) && [value.id, value.key, value.value].every(v => typeof v === "string")
+        && typeof value.enabled === "boolean"
+        && (value.description === undefined || typeof value.description === "string");
+}
+
+function isKeyValueArray(value: unknown): value is KeyValue[] {
+    return Array.isArray(value) && value.every(isKeyValue);
+}
+
+function isRequest(value: unknown): value is ApiRequest {
+    if (!isRecord(value) || !isRecord(value.body) || !isRecord(value.auth)) return false;
+    const auth = value.auth;
+    return [value.id, value.name, value.method, value.url].every(v => typeof v === "string")
+        && isKeyValueArray(value.params) && isKeyValueArray(value.headers)
+        && typeof value.createdAt === "number" && typeof value.updatedAt === "number"
+        && (value.collectionId === undefined || typeof value.collectionId === "string")
+        && ["none", "json", "raw", "form-data", "x-www-form-urlencoded"].includes(text(value.body.mode))
+        && (value.body.raw === undefined || typeof value.body.raw === "string")
+        && (value.body.rawLang === undefined || ["json", "text", "xml", "html"].includes(text(value.body.rawLang)))
+        && (value.body.formData === undefined || isKeyValueArray(value.body.formData))
+        && ["none", "bearer", "basic", "api-key"].includes(text(value.auth.type))
+        && ["bearerToken", "basicUser", "basicPass", "apiKeyName", "apiKeyValue"].every(
+            key => auth[key] === undefined || typeof auth[key] === "string"
+        )
+        && (value.auth.apiKeyIn === undefined || ["header", "query"].includes(text(value.auth.apiKeyIn)));
+}
+
+function isCollection(value: unknown): value is Collection {
+    return isRecord(value) && typeof value.id === "string" && typeof value.name === "string"
+        && (value.description === undefined || typeof value.description === "string")
+        && Array.isArray(value.requestIds) && value.requestIds.every(id => typeof id === "string")
+        && typeof value.createdAt === "number" && typeof value.updatedAt === "number";
+}
+
+function isEnvironment(value: unknown): value is Environment {
+    return isRecord(value) && typeof value.id === "string" && typeof value.name === "string"
+        && Array.isArray(value.variables) && value.variables.every(v => isRecord(v)
+            && [v.id, v.key, v.value].every(field => typeof field === "string")
+            && typeof v.enabled === "boolean");
+}
+
+function isNativeBackup(value: unknown): value is {
+    collections: Collection[]; requests: ApiRequest[]; environments: Environment[];
+} {
+    return isRecord(value)
+        && Array.isArray(value.collections) && value.collections.every(isCollection)
+        && Array.isArray(value.requests) && value.requests.every(isRequest)
+        && Array.isArray(value.environments) && value.environments.every(isEnvironment);
+}
+
+export function importFile(data: unknown, now: number): ImportReport {
     const format = detectFormat(data);
     switch (format) {
         case "postman-collection":
@@ -265,6 +335,7 @@ export function importFile(data: any, now: number): ImportReport {
         case "postman-environment":
             return importPostmanEnvironment(data);
         case "native":
+            if (!isNativeBackup(data)) throw new Error("INVALID_FORMAT");
             return {
                 collections: data.collections ?? [],
                 requests: data.requests ?? [],

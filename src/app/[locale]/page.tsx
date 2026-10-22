@@ -1,9 +1,9 @@
+import { Github, Linkedin, Facebook } from "@/components/brand-icons";
 import { Link } from "@/i18n/routing";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -31,9 +31,6 @@ import {
   Smartphone,
   BotMessageSquare,
   Mail,
-  Github,
-  Linkedin,
-  Facebook,
   TrendingUp,
   Layers,
   Zap,

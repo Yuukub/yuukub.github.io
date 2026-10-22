@@ -23,7 +23,7 @@ try {
     console.log('Running next build...');
     // Use npx and explicitly specify --webpack for Next.js 16 compatibility with custom configs
     execSync('npx next build --webpack', { stdio: 'inherit' });
-} catch (error) {
+} catch {
     console.error('Build failed!');
     // Don't exit here, let finally block run
     process.exitCode = 1;

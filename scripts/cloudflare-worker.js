@@ -9,8 +9,8 @@
  * 5. Use the Worker URL in your frontend application
  */
 
-export default {
-    async fetch(request, env, ctx) {
+const xmlrpcWorker = {
+    async fetch(request) {
         // Handle CORS preflight requests
         if (request.method === "OPTIONS") {
             return new Response(null, {
@@ -134,3 +134,5 @@ export default {
         }
     },
 };
+
+export default xmlrpcWorker;

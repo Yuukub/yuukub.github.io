@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -403,7 +405,7 @@ export default function ImageConverterPage() {
         }
 
         // Dynamic import fflate for ZIP
-        const { zipSync, strToU8 } = await import("fflate");
+        const { zipSync } = await import("fflate");
 
         const files: Record<string, Uint8Array> = {};
         for (const item of doneItems) {
@@ -434,7 +436,6 @@ export default function ImageConverterPage() {
     /* ── Derived state ─────────────────────────────────────── */
 
     const doneCount = queue.filter((q) => q.status === "done").length;
-    const hasResults = doneCount > 0;
     const allDone = !isConverting && queue.length > 0 && convertedCount === queue.length;
     const formatOptions: { value: ImageFormat; label: string }[] = [
         { value: "webp", label: "WebP" },
@@ -733,7 +734,10 @@ export default function ImageConverterPage() {
                                             {/* Thumbnail Preview */}
                                             <div className="shrink-0 h-10 w-10 rounded overflow-hidden bg-muted border border-border/50">
                                                 {item.previewUrl ? (
-                                                    <img
+                                                    <Image
+                                                        width={40}
+                                                        height={40}
+                                                        unoptimized
                                                         src={item.previewUrl}
                                                         alt="preview"
                                                         className="h-full w-full object-cover"

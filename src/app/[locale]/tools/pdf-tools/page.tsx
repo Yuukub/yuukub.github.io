@@ -10,7 +10,7 @@ import { AdUnit } from "@/components/ad-unit";
 import { Link } from "@/i18n/routing";
 import {
     ArrowLeft, FileText, Upload, Download, Loader2, Trash2,
-    CheckCircle2, XCircle, Clock, PackageOpen, ChevronUp, ChevronDown,
+    CheckCircle2, XCircle, PackageOpen, ChevronUp, ChevronDown,
     Layers, Scissors, ImageIcon, Info, HelpCircle, Shield,
     GripVertical, LayoutGrid, Minimize2,
 } from "lucide-react";
@@ -74,25 +74,6 @@ function formatBytes(bytes: number): string {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
-function parsePageRange(input: string, total: number): number[] {
-    const pages = new Set<number>();
-    const parts = input.split(",").map((s) => s.trim()).filter(Boolean);
-    for (const part of parts) {
-        if (part.includes("-")) {
-            const [a, b] = part.split("-").map(Number);
-            if (!isNaN(a) && !isNaN(b)) {
-                for (let i = Math.min(a, b); i <= Math.max(a, b); i++) {
-                    if (i >= 1 && i <= total) pages.add(i);
-                }
-            }
-        } else {
-            const n = Number(part);
-            if (!isNaN(n) && n >= 1 && n <= total) pages.add(n);
-        }
-    }
-    return Array.from(pages).sort((a, b) => a - b);
-}
-
 async function downloadZip(items: { blob: Blob; filename: string }[], zipName: string) {
     const { zipSync } = await import("fflate");
     const files: Record<string, Uint8Array> = {};
@@ -116,7 +97,7 @@ function triggerDownload(blob: Blob, filename: string) {
 
 /* ─── Helpers for translation ───────────────────────────── */
 
-function translateProgress(msg: string, t: any): string {
+function translateProgress(msg: string, t: ReturnType<typeof useTranslations<"PdfTools">>): string {
     if (!msg) return msg;
     if (msg.includes("กำลังรวมไฟล์ PDF...")) return t("worker.mergingPdf");
     if (msg.includes("กำลังประมวลผลไฟล์")) {
@@ -786,6 +767,8 @@ export default function PdfToolsPage() {
                                             {/* Thumbnail */}
                                             <div className="aspect-[3/4] bg-muted/30 flex items-center justify-center overflow-hidden">
                                                 {mergeThumbs.get(f.id) ? (
+                                                    // Local canvas preview keeps its intrinsic PDF page ratio.
+                                                    // eslint-disable-next-line @next/next/no-img-element
                                                     <img src={mergeThumbs.get(f.id)} alt={f.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
@@ -980,6 +963,8 @@ export default function PdfToolsPage() {
                                                     : "border-border/30 opacity-60 hover:opacity-90 hover:border-border"
                                                     }`}
                                             >
+                                                {/* Local canvas/blob preview keeps its intrinsic PDF page ratio; no image optimizer applies. */}
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img src={src} alt={t("splitPageAlt", { pageNum })} className="w-full block" />
                                                 <div className={`absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 ${selected ? "bg-red-500 text-white" : "bg-black/40 text-white"}`}>
                                                     {pageNum}
@@ -1129,6 +1114,8 @@ export default function PdfToolsPage() {
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                             {jpgResults.map((r) => (
                                                 <div key={r.pageNum} className="group relative rounded-xl overflow-hidden border border-border/50 bg-muted/20">
+                                                    {/* Local canvas/blob preview keeps its intrinsic PDF page ratio; no image optimizer applies. */}
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src={r.previewUrl} alt={t("jpgPageAlt", { pageNum: r.pageNum })} className="w-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                                         <Button size="sm" variant="secondary"
@@ -1222,6 +1209,8 @@ export default function PdfToolsPage() {
                                             className="relative rounded-lg overflow-hidden border-2 border-border/30 hover:border-red-500/40 transition-all cursor-grab active:cursor-grabbing group"
                                             title={`${page.sourceName} — ${t("orgPageText", { pageNum: page.pageNum })}`}
                                         >
+                                            {/* Local canvas/blob preview keeps its intrinsic PDF page ratio; no image optimizer applies. */}
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={page.thumbUrl} alt={t("orgPageAlt", { pageNum: index + 1 })} className="w-full block pointer-events-none" />
                                             <div className="absolute bottom-0 left-0 right-0 text-center text-[10px] font-bold py-0.5 bg-black/50 text-white">
                                                 {index + 1}

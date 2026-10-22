@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent, useCallback } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import { Link } from "@/i18n/routing";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,7 +14,6 @@ import {
     Smartphone,
     Tablet,
     Upload,
-    Eye,
     EyeOff,
     Code2,
     Maximize2,
@@ -32,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { saveSnippet, loadSnippet, getClientIp } from "@/lib/supabase-snippets";
 import { useTranslations } from "next-intl";
 
-const getHtmlTemplate = (t: any) => `<!DOCTYPE html>
+const getHtmlTemplate = (t: ReturnType<typeof useTranslations<"WebPreviewer">>) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,7 +48,7 @@ const getHtmlTemplate = (t: any) => `<!DOCTYPE html>
 </body>
 </html>`;
 
-const getCssTemplate = (t: any) => `/* ${t("defaultCssComment1")} */
+const getCssTemplate = (t: ReturnType<typeof useTranslations<"WebPreviewer">>) => `/* ${t("defaultCssComment1")} */
 body {
     /* ${t("defaultCssComment2")} */
     font-family: "Google Sans", sans-serif;
@@ -60,7 +59,7 @@ body {
     padding: 20px;
 }`;
 
-const getJsTemplate = (t: any) => `// ${t("defaultJsComment")}
+const getJsTemplate = (t: ReturnType<typeof useTranslations<"WebPreviewer">>) => `// ${t("defaultJsComment")}
 console.log("Preview Ready!");`;
 
 type ViewportMode = "desktop" | "tablet" | "mobile";

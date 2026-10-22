@@ -54,6 +54,8 @@ export default function PasswordGenerator() {
     }, []);
 
     useEffect(() => {
+        // Generate browser randomness after hydration, keeping the static HTML deterministic.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         generatePassword(length, options);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [generatePassword]);
