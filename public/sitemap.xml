@@ -263,6 +263,22 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://yuukub.com/th/blog/php2shell-security-update-2026/</loc>
+    <xhtml:link rel="alternate" hreflang="th" href="https://yuukub.com/th/blog/php2shell-security-update-2026/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://yuukub.com/en/blog/php2shell-security-update-2026/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yuukub.com/th/blog/php2shell-security-update-2026/" />
+    <lastmod>2026-10-29</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yuukub.com/en/blog/php2shell-security-update-2026/</loc>
+    <xhtml:link rel="alternate" hreflang="th" href="https://yuukub.com/th/blog/php2shell-security-update-2026/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://yuukub.com/en/blog/php2shell-security-update-2026/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yuukub.com/th/blog/php2shell-security-update-2026/" />
+    <lastmod>2026-10-29</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://yuukub.com/th/blog/reset-wordpress-password-methods/</loc>
     <xhtml:link rel="alternate" hreflang="th" href="https://yuukub.com/th/blog/reset-wordpress-password-methods/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://yuukub.com/en/blog/reset-wordpress-password-methods/" />
