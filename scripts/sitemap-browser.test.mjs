@@ -17,6 +17,7 @@ test("generated sitemap opens in Chrome without XSLT deprecation warnings", asyn
     const contentTypes = {
       "/sitemap.xml": "application/xml; charset=utf-8",
       "/sitemap.xsl": "application/xslt+xml; charset=utf-8",
+      "/sitemap.css": "text/css; charset=utf-8",
     };
     if (contentTypes[name]) {
       res.writeHead(200, { "Content-Type": contentTypes[name] });
@@ -62,6 +63,27 @@ test("generated sitemap opens in Chrome without XSLT deprecation warnings", asyn
       assert.deepEqual(url.alternates, ["th", "en", "x-default"]);
     }
     assert.deepEqual(messages.filter(message => /XSLT|XSLTProcessor/i.test(message)), []);
+    const appearance = await page.evaluate(() => ({
+      background: getComputedStyle(document.documentElement).backgroundColor,
+      title: getComputedStyle(document.documentElement, "::before").content,
+      rowDisplay: getComputedStyle(document.getElementsByTagName("url")[0]).display,
+      languageBadges: [...document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "link")]
+        .slice(0, 3).map(link => getComputedStyle(link, "::before").content),
+    }));
+    assert.equal(appearance.background, "rgb(11, 15, 25)");
+    assert.equal(appearance.title, '"XML Sitemap"');
+    assert.equal(appearance.rowDisplay, "grid");
+    assert.deepEqual(appearance.languageBadges, ['"th"', '"en"', '"x-default"']);
+    if (process.env.SITEMAP_SCREENSHOTS) {
+      await page.screenshot({ path: path.join(process.env.SITEMAP_SCREENSHOTS, "sitemap-desktop.png") });
+    }
+    // Use real mobile emulation: XML doesn't provide an HTML viewport meta tag.
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    await mobile.goto(`http://127.0.0.1:${server.address().port}/sitemap.xml`);
+    assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    if (process.env.SITEMAP_SCREENSHOTS) {
+      await mobile.screenshot({ path: path.join(process.env.SITEMAP_SCREENSHOTS, "sitemap-mobile.png") });
+    }
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

@@ -93,8 +93,9 @@ ${generateAlternates(routePath)}${lastmodTag}
   });
 });
 
-// Serve standard XML without relying on deprecated browser-side XSLT rendering.
+// CSS styles the XML preview without deprecated browser-side XSLT rendering.
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href="/sitemap.css"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urlEntries.join("\n")}
