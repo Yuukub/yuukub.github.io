@@ -11,6 +11,7 @@
     "lint": "eslint --max-warnings 0",
     "test:image-converter-browser": "node scripts/image-converter-browser.test.mjs",
     "test:metadata": "node --experimental-strip-types --test scripts/image-metadata.test.mjs",
+    "test:sitemap": "node --test scripts/sitemap-browser.test.mjs",
     "postinstall": "node scripts/copy-wasm.mjs",
     "typecheck": "tsc --noEmit",
     "test:api-import": "node --experimental-strip-types --test scripts/api-import.test.mjs",
